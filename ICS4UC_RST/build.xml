@@ -1,0 +1,53 @@
+<project basedir="." name="ICS4UC_RST">
+
+	<property name="build.dir" value="build" />
+	<property name="src.dir" value="src" />
+	<property name="test.dir" value="test" />	
+
+	<path id="classpath">
+		<pathelement location="lib/junit-4.12.jar" />
+		<pathelement location="lib/hamcrest-core-1.3.jar" />
+		<pathelement location="lib/SimpleIO.jar" />
+		<pathelement location="lib/xom-1.2.11.jar" />
+	</path>
+
+	<target name="compile">
+		<mkdir dir="${build.dir}" />
+		<javac srcdir="${src.dir}" destdir="${build.dir}" includeantruntime="false">
+			<classpath refid="classpath" />
+		</javac>
+	</target>
+
+
+	<target name="test_student" depends="compile">
+		<junit haltonfailure="yes" fork="true">
+			<classpath>
+				<path refid="classpath" />
+				<pathelement location="${build.dir}" />
+			</classpath>
+			<formatter type="brief" usefile="false" />
+
+			<batchtest id="Student">
+				<fileset dir="${src.dir}" includes="**/*Test.java" />
+			</batchtest>
+		</junit>
+	</target>
+	
+	<target name="test_teacher" depends="compile">
+		<junit haltonfailure="yes" fork="true">
+			<classpath>
+				<path refid="classpath" />
+				<pathelement location="${build.dir}" />
+				<pathelement location="${test.dir}" />
+			</classpath>
+			<formatter type="brief" usefile="false" />
+
+			<batchtest id="Teacher">
+				<fileset dir="${test.dir}" />
+			</batchtest>
+
+		</junit>
+	</target>
+
+</project>
+
