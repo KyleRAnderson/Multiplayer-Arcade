@@ -2,6 +2,7 @@ package games.pong.players;
 
 import games.player.Player;
 import games.pong.pieces.Paddle;
+import games.pong.pieces.Side;
 
 import java.util.function.Consumer;
 
@@ -36,14 +37,14 @@ public interface PongPlayer extends Player {
      *
      * @return {@link games.pong.Pong#LEFT_SIDE} for the left side, {@link games.pong.Pong#RIGHT_SIDE} for the right side.
      */
-    int getSide();
+    Side getSide();
 
     /**
      * Sets the start side for this pong player.
      *
      * @param side The start side. {@link games.pong.Pong#LEFT_SIDE} for left, {@link games.pong.Pong#RIGHT_SIDE} for right.
      */
-    void setSide(int side);
+    void setSide(Side side);
 
     /**
      * Adds a point to this player's score.

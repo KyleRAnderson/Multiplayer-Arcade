@@ -20,11 +20,13 @@ public class Pong extends Game {
     private static final int WIDTH = 200, HEIGHT = 150;
     // How far the paddles are from the side.
     private static final int PADDLE_DISTANCE = 2;
+    /**
+     * Maximum ball rebound angle, in degrees.
+     */
+    private static final int MAX_REBOUND_ANGLE = 75;
     private static double
             BALL_RADIUS_RATIO = 0.1,
             PADDLE__SCREEN_HEIGHT__RATIO = 0.1; // Ratio between the paddle size (height) and the screen height.
-
-    public static final int RIGHT_SIDE = 1, LEFT_SIDE = -1;
 
     private final PongBall ball;
     private final PongKeyboardPlayer localPlayer;
@@ -59,8 +61,8 @@ public class Pong extends Game {
         // The ball should be a certain ration to the size of the board's diagonal dimension.
         ball = new PongBall((int) Math.floor(getScreenSize() * BALL_RADIUS_RATIO));
 
-        this.localPlayer.setSide(1);
-        this.player2.setSide(-1);
+        this.localPlayer.setSide(Side.RIGHT);
+        this.player2.setSide(Side.LEFT);
 
         setupPaddles();
     }
@@ -84,11 +86,23 @@ public class Pong extends Game {
     }
 
     /**
-     * Sets up paddles for the players.
+     * Sets up paddles for the players, instantiating the Paddle objects if necessary and putting them back in the
+     * start (center) position.
      */
     private void setupPaddles() {
-        getLeftPlayer().setPaddle(new Paddle(PADDLE_DISTANCE, getBoardHeight() / 2, PADDLE_DISTANCE, (int) Math.floor(getBoardHeight() * PADDLE__SCREEN_HEIGHT__RATIO)));
-        getRightPlayer().setPaddle(new Paddle(getBoardWidth() - PADDLE_DISTANCE, getBoardHeight() / 2, PADDLE_DISTANCE, (int) Math.floor(getBoardHeight() * PADDLE__SCREEN_HEIGHT__RATIO)));
+        PongPlayer leftPlayer = getLeftPlayer();
+        PongPlayer rightPlayer = getRightPlayer();
+        if (leftPlayer.getPaddle() == null) {
+            getLeftPlayer().setPaddle(new Paddle(PADDLE_DISTANCE, (int) Math.floor(getBoardHeight() * PADDLE__SCREEN_HEIGHT__RATIO), Side.LEFT));
+        }
+        if (rightPlayer.getPaddle() == null) {
+            getRightPlayer().setPaddle(new Paddle(PADDLE_DISTANCE, (int) Math.floor(getBoardHeight() * PADDLE__SCREEN_HEIGHT__RATIO), Side.RIGHT));
+        }
+
+        leftPlayer.getPaddle().setX(PADDLE_DISTANCE);
+        leftPlayer.getPaddle().setY(getBoardHeight() / 2);
+        rightPlayer.getPaddle().setX(getBoardWidth() - PADDLE_DISTANCE);
+        rightPlayer.getPaddle().setY(getBoardHeight() / 2);
     }
 
     /**
@@ -112,27 +126,57 @@ public class Pong extends Game {
     }
 
     /**
+     * The last tick time in seconds.
+     */
+    private double lastTickTime = 0;
+
+    /**
      * Completes a tick of the game.
      */
     public void renderTick() {
-        ball.renderTick(); // Render a tick for the ball.
+        ball.renderTick(lastTickTime); // Render a tick for the ball.
 
         // Check if the ball has hit the vertical bounds of the board.
         checkBallBounds();
 
         // Check if the ball has hit one of the paddles
         renderBallCollision();
+
+        lastTickTime = (double)System.currentTimeMillis() / 1000;
     }
 
     /**
      * Renders any collisions of the ball with the pong paddle.
      */
     private void renderBallCollision() {
-        if (doesIntersect(ball, getLeftPlayer().getPaddle())) {
-
-        } else if (doesIntersect(ball, getRightPlayer().getPaddle())) {
-
+        Paddle touchedPaddle;
+        if (doesIntersect(ball, touchedPaddle = getLeftPlayer().getPaddle())) {
+            applyNewBallVelocity(touchedPaddle);
+        } else if (doesIntersect(ball, touchedPaddle = getRightPlayer().getPaddle())) {
+            applyNewBallVelocity(touchedPaddle);
         }
+    }
+
+    /**
+     * Calculates and applies the new ball velocity for the ball after hitting a paddle.
+     *
+     * @param paddleHit The paddle with which the ball entered a collision.
+     */
+    private void applyNewBallVelocity(Paddle paddleHit) {
+        final int centerPaddle = paddleHit.getY(Side.CENTER);
+        final int centerBall = ball.getY(Side.CENTER);
+
+        /* Get the difference between the center y-value of the ball and the paddle.
+        If ball is higher, this will be positive, else it will be negative.*/
+        final int difference = centerBall - centerPaddle;
+
+        /* Get the percentage difference (how far the centers
+        are from each other as a percentage of the maximum possible distance).*/
+        double percentageDifference = (double)difference / ((double)paddleHit.getHeight() / 2);
+        double angle = percentageDifference * (double)MAX_REBOUND_ANGLE;
+
+        // Go ahead and set the ball's velocity.
+        ball.setVelocity(angle);
     }
 
     /**
@@ -155,20 +199,20 @@ public class Pong extends Game {
     private void checkBallBounds() {
         // Check the top and bottom points to ensure that the ball has not hit a horizontal barrier.
         if (ball.getY(Side.TOP) >= HEIGHT) {
-            ball.setVelocity(-Math.abs(ball.getRisePerTick()), ball.getRunPerTick());
+            ball.setVelocity(-Math.abs(ball.getRisePerSecond()), ball.getRunPerSecond());
         } else if (ball.getY(Side.BOTTOM) <= 0) {
-            ball.setVelocity(Math.abs(ball.getRisePerTick()), ball.getRunPerTick());
+            ball.setVelocity(Math.abs(ball.getRisePerSecond()), ball.getRunPerSecond());
         }
 
         // Now check to see if the ball has hit a vertical barrier.
         if (ball.getX(Side.LEFT) <= 0) {
             getLeftPlayer().addPoint();
-            resetBall(LEFT_SIDE);
+            resetBall(Side.LEFT);
         }
         // If the ball hit the left side, then add to the player on the right.
         else if (ball.getX(Side.RIGHT) >= WIDTH) {
             getRightPlayer().addPoint();
-            resetBall(RIGHT_SIDE);
+            resetBall(Side.RIGHT);
         }
     }
 
@@ -176,9 +220,15 @@ public class Pong extends Game {
      * Resets the position and velocity of the ball after a player scores a point.
      *
      * @param scoringPlayer The player who just scored a point, left or right.
-     *                      Should be either {@link #RIGHT_SIDE} or {@link #LEFT_SIDE}
      */
-    private void resetBall(final int scoringPlayer) {
+    private void resetBall(final Side scoringPlayer) {
+        if (!(scoringPlayer == Side.LEFT || scoringPlayer == Side.RIGHT)) {
+            throw new IllegalArgumentException("Scoring player side must be either left or right.");
+        }
+
+        ball.setVelocity(0, (scoringPlayer == Side.LEFT) ? -PongBall.VELOCITY : PongBall.VELOCITY);
+        // Put the paddles back in the center position.
+        setupPaddles();
     }
 
     /**
@@ -188,7 +238,7 @@ public class Pong extends Game {
      */
     private PongPlayer getRightPlayer() {
         PongPlayer player;
-        if (localPlayer.getSide() == RIGHT_SIDE) {
+        if (localPlayer.getSide() == Side.RIGHT) {
             player = localPlayer;
         } else {
             player = player2;
@@ -203,7 +253,7 @@ public class Pong extends Game {
      */
     private PongPlayer getLeftPlayer() {
         PongPlayer player;
-        if (localPlayer.getSide() == LEFT_SIDE) {
+        if (localPlayer.getSide() == Side.LEFT) {
             player = localPlayer;
         } else {
             player = player2;

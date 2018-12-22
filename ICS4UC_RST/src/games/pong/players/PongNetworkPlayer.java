@@ -3,6 +3,7 @@ package games.pong.players;
 import games.Game;
 import games.player.NetworkPlayer;
 import games.pong.pieces.Paddle;
+import games.pong.pieces.Side;
 
 import java.util.function.Consumer;
 
@@ -27,12 +28,12 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
     }
 
     @Override
-    public int getSide() {
-        return 0;
+    public Side getSide() {
+        return null;
     }
 
     @Override
-    public void setSide(int side) {
+    public void setSide(Side side) {
 
     }
 

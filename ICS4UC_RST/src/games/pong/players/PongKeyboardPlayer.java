@@ -4,6 +4,7 @@ import games.Game;
 import games.player.KeyboardPlayer;
 import games.pong.Pong;
 import games.pong.pieces.Paddle;
+import games.pong.pieces.Side;
 
 import java.util.function.Consumer;
 
@@ -13,7 +14,7 @@ import java.util.function.Consumer;
  * ICS4U RST
  */
 public class PongKeyboardPlayer extends KeyboardPlayer implements PongPlayer {
-    private int side;
+    private Side side;
     private int points;
     private Paddle paddle;
 
@@ -21,7 +22,7 @@ public class PongKeyboardPlayer extends KeyboardPlayer implements PongPlayer {
     }
 
     @Override
-    public void setSide(int side) {
+    public void setSide(Side side) {
         this.side = side;
     }
 
@@ -46,7 +47,7 @@ public class PongKeyboardPlayer extends KeyboardPlayer implements PongPlayer {
     }
 
     @Override
-    public int getSide() {
+    public Side getSide() {
         return this.side;
     }
 
