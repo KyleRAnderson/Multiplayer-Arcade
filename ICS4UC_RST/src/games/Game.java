@@ -1,12 +1,17 @@
 package games;
 
-import javafx.scene.Parent;
+import games.player.Player;
 import javafx.scene.image.Image;
 
 /**
  * @author Kyle Anderson
  */
 public abstract class Game {
+    // True if the game is in progress, false otherwise.
+    protected boolean inProgress;
+
+    protected Player localPlayer;
+
     /**
      * The name of this game, in plain english.
      */
@@ -19,9 +24,12 @@ public abstract class Game {
 
     /**
      * Determines if this game is currently in progress or not.
-     * @return
+     *
+     * @return True if this game is currently being played, false otherwise.
      */
-    public abstract boolean isInProgress();
+    public boolean isInProgress() {
+        return inProgress;
+    }
 
     /**
      * Ends the game.
@@ -37,17 +45,11 @@ public abstract class Game {
     /**
      * Gets the cover image for the
      *
-     * @return
+     * @return Gets the cover art for this game.
      */
     public abstract Image getCoverArt();
 
     public String getName() {
         return gameName;
     }
-
-    /**
-     * Gets the Parent for the game, which needs to be displayed to the user for it to work.
-     * @return The Parent window for this game.
-     */
-    public abstract Parent getWindow();
 }

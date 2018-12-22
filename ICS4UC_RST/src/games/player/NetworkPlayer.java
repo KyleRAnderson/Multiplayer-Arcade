@@ -4,5 +4,5 @@ package games.player;
  * @author Kyle Anderson
  * ICS4U RST
  */
-public abstract class NetworkPlayer {
+public abstract class NetworkPlayer implements Player {
 }

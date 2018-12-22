@@ -10,7 +10,7 @@ import java.util.Map;
  * @author Kyle Anderson
  * ICS4U RST
  */
-public abstract class KeyboardPlayer {
+public abstract class KeyboardPlayer implements Player {
 
     /**
      * Key bindings map for the keyboard player.

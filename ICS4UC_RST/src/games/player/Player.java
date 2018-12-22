@@ -13,4 +13,10 @@ public interface Player {
      * @param game The game object for the game which was updated.
      */
     void gameUpdated(Game game);
+
+    /**
+     * Gets the name designation for this player.
+     * @return The name designation of the player.
+     */
+    String getName();
 }
