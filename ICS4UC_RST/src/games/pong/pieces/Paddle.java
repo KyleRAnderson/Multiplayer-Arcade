@@ -64,6 +64,71 @@ public class Paddle implements PongPiece {
         this.y = y;
     }
 
+
+    /**
+     * Sets the x-value for the pong paddle manually.
+     *
+     * @param value    The new value for hte position.
+     * @param position The position (left, right or center) to which the value is being applied.
+     */
+    @Override
+    public void setX(int value, Side position) {
+        switch (position) {
+            case LEFT:
+                setX(value);
+                break;
+            case RIGHT:
+                setX(value - getWidth());
+                break;
+            case CENTER:
+                setX(value - getWidth() / 2);
+                break;
+            default:
+                throw new IllegalArgumentException("Position must be one of supported positions for this object.");
+        }
+    }
+
+    /**
+     * Sets the y-position of the pong paddle manually .
+     *
+     * @param value    The value to which the position should be set.
+     * @param position The position (top, bottom or center) to which the value is being set to.
+     */
+    @Override
+    public void setY(int value, Side position) {
+        switch (position) {
+            case TOP:
+                setY(value);
+                break;
+            case BOTTOM:
+                setY(value + getHeight());
+                break;
+            case CENTER:
+                setY(value + getHeight() / 2);
+                break;
+            default:
+                throw new IllegalArgumentException("Position must be one of supported positions for this object.");
+        }
+    }
+
+    /**
+     * Gets the x-value position corresponding to the left of the paddle.
+     *
+     * @return The position's x-value component.
+     */
+    public int getX() {
+        return x;
+    }
+
+    /**
+     * Gets the y-value position corresponding to the top of the paddle.
+     *
+     * @return The position's y-value component.
+     */
+    public int getY() {
+        return y;
+    }
+
     @Override
     public int getX(Side position) {
         int xValue;
@@ -86,11 +151,11 @@ public class Paddle implements PongPiece {
         int yValue;
 
         if (position == Side.BOTTOM) {
-            yValue = y - height;
+            yValue = y - getHeight();
         } else if (position == Side.TOP) {
             yValue = y;
         } else if (position == Side.CENTER) {
-            yValue = y - height / 2;
+            yValue = y - getHeight() / 2;
         } else {
             throw new IllegalArgumentException("position must be one of supported sides for this object.");
         }

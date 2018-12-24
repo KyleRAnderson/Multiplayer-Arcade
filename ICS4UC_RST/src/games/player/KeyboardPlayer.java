@@ -15,14 +15,22 @@ public abstract class KeyboardPlayer implements Player {
     /**
      * Key bindings map for the keyboard player.
      */
-    protected HashMap<KeyCode, KeyBinding> keyBindings;
+    protected HashMap<KeyCode, ? extends KeyBinding> keyBindings;
 
     /**
      * Gets this keyboard player's key bindings.
      * @return The player's key bindings.
      */
-    public Map<KeyCode, KeyBinding> getKeyBindings() {
+    public HashMap<KeyCode, ? extends KeyBinding> getKeyBindings() {
         return keyBindings;
+    }
+
+    /**
+     * Sets the key bindings for this player.
+     * @param bindings The player's bindings.
+     */
+    public void setKeyBindings(HashMap<KeyCode, ? extends KeyBinding> bindings) {
+        this.keyBindings = bindings;
     }
 
 }

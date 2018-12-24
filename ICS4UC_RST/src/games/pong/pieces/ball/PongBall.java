@@ -13,7 +13,7 @@ public class PongBall implements PongPiece {
     /**
      * Velocity of the ball in units per second.
      */
-    public static final int VELOCITY = 10;
+    public static final int VELOCITY = 100;
 
     /* The velocities of the pong ball, in rise and runs per tick.
      * A positive rise means going up, a positive run means going left, opposite for negative rises and runs. */
@@ -39,8 +39,8 @@ public class PongBall implements PongPiece {
      * @param secondsSinceLastTick The number of seconds elapsed since the last tick.
      */
     public void renderTick(double secondsSinceLastTick) {
-        x += Math.round(risePerSecond * secondsSinceLastTick);
-        y += Math.round(runPerSecond * secondsSinceLastTick);
+        x += Math.round(runPerSecond * secondsSinceLastTick);
+        y += Math.round(risePerSecond * secondsSinceLastTick);
     }
 
     /**
@@ -71,6 +71,24 @@ public class PongBall implements PongPiece {
     }
 
     /**
+     * Gets the total height of the pong ball.
+     *
+     * @return The height of the pong ball.
+     */
+    public int getHeight() {
+        return radius * 2;
+    }
+
+    /**
+     * Gets the width of the pong ball.
+     *
+     * @return The width of the pong ball.
+     */
+    public int getWidth() {
+        return radius * 2;
+    }
+
+    /**
      * Gets the x position of the top left of the ball.
      *
      * @return The x position.
@@ -95,7 +113,7 @@ public class PongBall implements PongPiece {
      * @return The x position of the ball.
      */
     public int getX(Side position) {
-        return getX(radius, x, position);
+        return getX(getRadius(), getX(), position);
     }
 
     /**
@@ -105,7 +123,71 @@ public class PongBall implements PongPiece {
      * @return The y position of the ball.
      */
     public int getY(Side position) {
-        return getY(radius, y, position);
+        return getY(getRadius(), getY(), position);
+    }
+
+    /**
+     * Sets the x-value for the pong ball manually.
+     *
+     * @param value    The new value for hte position.
+     * @param position The position (left, right or center) to which the value is being applied.
+     */
+    @Override
+    public void setX(int value, Side position) {
+        switch (position) {
+            case LEFT:
+                setX(value);
+                break;
+            case RIGHT:
+                setX(value - getWidth());
+                break;
+            case CENTER:
+                setX(value - getRadius());
+                break;
+            default:
+                throw new IllegalArgumentException("Position must be one of supported positions for this object.");
+        }
+    }
+
+    /**
+     * Sets hte x-value for the pong ball.
+     *
+     * @param value The x-value.
+     */
+    private void setX(int value) {
+        this.x = value;
+    }
+
+    /**
+     * Sets the y-position of the pong ball manually .
+     *
+     * @param value    The value to which the position should be set.
+     * @param position The position (top, bottom or center) to which the value is being set to.
+     */
+    @Override
+    public void setY(int value, Side position) {
+        switch (position) {
+            case TOP:
+                setY(value);
+                break;
+            case BOTTOM:
+                setY(value + getHeight());
+                break;
+            case CENTER:
+                setY(value + getRadius());
+                break;
+            default:
+                throw new IllegalArgumentException("Position must be one of supported positions for this object.");
+        }
+    }
+
+    /**
+     * Sets the y-value for the ball.
+     *
+     * @param value The new value.
+     */
+    private void setY(int value) {
+        this.y = value;
     }
 
     /**
@@ -118,14 +200,18 @@ public class PongBall implements PongPiece {
      */
     public static int getX(final int radius, final int topLeftX, Side position) {
         int posX;
-        if (position == Side.LEFT) {
-            posX = topLeftX;
-        } else if (position == Side.RIGHT) {
-            posX = topLeftX + 2 * radius;
-        } else if (position == Side.CENTER) {
-            posX = topLeftX + radius;
-        } else {
-            throw new IllegalArgumentException("Position must be one of supported positions for this object.");
+        switch (position) {
+            case LEFT:
+                posX = topLeftX;
+                break;
+            case RIGHT:
+                posX = topLeftX + 2 * radius;
+                break;
+            case CENTER:
+                posX = topLeftX + radius;
+                break;
+            default:
+                throw new IllegalArgumentException("Position must be one of supported positions for this object.");
         }
         return posX;
     }
@@ -140,14 +226,18 @@ public class PongBall implements PongPiece {
      */
     public static int getY(final int radius, final int topLeftY, Side position) {
         int posY;
-        if (position == Side.BOTTOM) {
-            posY = topLeftY - 2 * radius;
-        } else if (position == Side.TOP) {
-            posY = topLeftY;
-        } else if (position == Side.CENTER) {
-            posY = topLeftY - radius;
-        } else {
-            throw new IllegalArgumentException("Position must be one of supported positions for this object.");
+        switch (position) {
+            case BOTTOM:
+                posY = topLeftY - 2 * radius;
+                break;
+            case TOP:
+                posY = topLeftY;
+                break;
+            case CENTER:
+                posY = topLeftY - radius;
+                break;
+            default:
+                throw new IllegalArgumentException("Position must be one of supported positions for this object.");
         }
         return posY;
     }
@@ -167,16 +257,17 @@ public class PongBall implements PongPiece {
      * Sets the velocity of the ball based off of the rebound angle.
      *
      * @param reboundAngle The rebound angle of the ball.
+     * @param direction    The direction in which the ball should move. Positive for rightwards, negative for leftwards.
      */
-    public void setVelocity(double reboundAngle) {
+    public void setVelocity(double reboundAngle, Side direction) {
         // For those who don't like math, skip looking at this.
 
         // Velocity (hypotenuse) * cos(reboundAngle) = velocity's x component.
-        double vX = VELOCITY * Math.cos(Math.toRadians(reboundAngle));
+        double vX = ((direction == Side.LEFT) ? -1 : 1) * VELOCITY * Math.cos(Math.toRadians(reboundAngle));
         // Velocity (hypotenuse) * sin(reboundAngle) = velocity's y component.
         double vY = VELOCITY * Math.sin(Math.toRadians(reboundAngle));
 
         // Set the velocity at the end.
-        setVelocity(vX, vY);
+        setVelocity(vY, vX);
     }
 }

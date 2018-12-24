@@ -1,6 +1,7 @@
 package games.pong.players;
 
 import games.player.Player;
+import games.pong.Pong;
 import games.pong.pieces.Paddle;
 import games.pong.pieces.Side;
 
@@ -67,4 +68,10 @@ public interface PongPlayer extends Player {
      * Sets this player's paddle.
      */
     void setPaddle(Paddle paddle);
+
+    /**
+     * Gets the game to which this player belongs.
+     * @return
+     */
+    Pong getGame();
 }
