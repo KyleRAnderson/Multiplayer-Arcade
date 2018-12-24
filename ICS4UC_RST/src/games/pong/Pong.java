@@ -22,9 +22,11 @@ public class Pong {
      * Maximum ball rebound angle, in degrees.
      */
     private static final int MAX_REBOUND_ANGLE = 75;
+    // Ratios for distances and speeds.
     private static double
             BALL_RADIUS_RATIO = 0.01,
-            PADDLE__SCREEN_HEIGHT__RATIO = 0.5; // Ratio between the paddle size (height) and the screen height.
+            PADDLE__SCREEN_HEIGHT__RATIO = 0.25, // Ratio between the paddle size (height) and the screen height.
+            PADDLE_MOVEMENT_RATIO = 0.3; // How many units the paddle moves while the button is being held down.
 
     private final PongBall ball;
 
@@ -176,7 +178,7 @@ public class Pong {
     public void renderTick() {
         long tempLastTick = lastTickTime;
         lastTickTime = System.currentTimeMillis();
-        ball.renderTick(lastTickTime - tempLastTick); // Render a tick for the ball.
+        ball.renderTick(System.currentTimeMillis() - tempLastTick); // Render a tick for the ball.
 
         // Check if the ball has hit the vertical bounds of the board.
         checkBallBounds();
@@ -203,12 +205,12 @@ public class Pong {
      * @param paddleHit The paddle with which the ball entered a collision.
      */
     private void applyNewBallVelocity(Paddle paddleHit) {
-        final int centerPaddle = paddleHit.getY(Side.CENTER);
-        final int centerBall = ball.getY(Side.CENTER);
+        final double centerPaddle = paddleHit.getY(Side.CENTER);
+        final double centerBall = ball.getY(Side.CENTER);
 
         /* Get the difference between the center y-value of the ball and the paddle.
         If ball is higher, this will be positive, else it will be negative.*/
-        final int difference = centerBall - centerPaddle;
+        final double difference = centerBall - centerPaddle;
 
         /* Get the percentage difference (how far the centers
         are from each other as a percentage of the maximum possible distance).*/
@@ -309,7 +311,7 @@ public class Pong {
      * @param paddle The paddle to be moved.
      */
     public void paddleDown(Paddle paddle) {
-        paddle.setY(paddle.getY() - 1);
+        paddle.setY(paddle.getY() - getBoardHeight() * PADDLE_MOVEMENT_RATIO);
     }
 
     /**

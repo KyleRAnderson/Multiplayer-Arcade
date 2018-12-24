@@ -13,6 +13,7 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
@@ -44,13 +45,13 @@ public class PongUI extends Pane implements Game {
         game = new Pong(p1, p2); // Initialize new pong game with the correct type of players.
 
         // TODO streamline automatic keybindings handled in the actual KeyboardPlayer class later.
-        HashMap<KeyCode, PongKeyBinding> p1Bindings = new HashMap<>();
-        p1Bindings.put(KeyCode.UP, PongKeyBinding.MOVE_UP);
-        p1Bindings.put(KeyCode.DOWN, PongKeyBinding.MOVE_DOWN);
-
         HashMap<KeyCode, PongKeyBinding> p2Bindings = new HashMap<>();
-        p2Bindings.put(KeyCode.Q, PongKeyBinding.MOVE_UP);
-        p2Bindings.put(KeyCode.A, PongKeyBinding.MOVE_DOWN);
+        p2Bindings.put(KeyCode.UP, PongKeyBinding.MOVE_UP);
+        p2Bindings.put(KeyCode.DOWN, PongKeyBinding.MOVE_DOWN);
+
+        HashMap<KeyCode, PongKeyBinding> p1Bindings = new HashMap<>();
+        p1Bindings.put(KeyCode.Q, PongKeyBinding.MOVE_UP);
+        p1Bindings.put(KeyCode.A, PongKeyBinding.MOVE_DOWN);
         p1.setKeyBindings(p1Bindings);
         p2.setKeyBindings(p2Bindings);
 
@@ -66,6 +67,21 @@ public class PongUI extends Pane implements Game {
         // Update the locations of the things we just created.
         updatePaddleLocations();
         updateBallLocation();
+
+        setOnKeyPressed(this::keyPressed);
+    }
+
+    /**
+     * Called when a key is pressed.
+     * @param event The keydown event.
+     */
+    private void keyPressed(KeyEvent event) {
+        if (game.getLocalPlayer()instanceof PongKeyboardPlayer) {
+            ((PongKeyboardPlayer)game.getLocalPlayer()).onKeyPressed(event.getCode());
+        }
+        if (game.getPlayer2() instanceof PongKeyboardPlayer) {
+            ((PongKeyboardPlayer)game.getPlayer2()).onKeyPressed(event.getCode());
+        }
     }
 
     @Override
@@ -112,6 +128,7 @@ public class PongUI extends Pane implements Game {
      */
     @Override
     public void start() {
+        requestFocus();
         calculateScaleFactor();
         Timeline tickTimer = new Timeline(new KeyFrame(Duration.millis(10), event -> tick()));
         tickTimer.setCycleCount(Timeline.INDEFINITE);

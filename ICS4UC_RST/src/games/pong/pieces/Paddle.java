@@ -7,8 +7,8 @@ package games.pong.pieces;
  * ICS4U RST
  */
 public class Paddle implements PongPiece {
-    private int x, y;
-    private final int width, height;
+    private double x, y;
+    private final double width, height;
 
     private Side side;
 
@@ -21,7 +21,7 @@ public class Paddle implements PongPiece {
      * @param height The height of the paddle.
      * @param side   The start side (left or right) of the paddle.
      */
-    public Paddle(final int x, final int y, final int width, final int height, Side side) {
+    public Paddle(final double x, final double y, final double width, final double height, Side side) {
         setX(x);
         setY(y);
         this.height = height;
@@ -36,31 +36,47 @@ public class Paddle implements PongPiece {
      * @param height The height of the paddle.
      * @param side   The start side (left or right) of the paddle.
      */
-    public Paddle(int width, int height, Side side) {
+    public Paddle(double width, double height, Side side) {
         this(0, 0, width, height, side);
     }
 
-    public int getWidth() {
+    /**
+     * Gets the paddle's width.
+     * @return The width of the paddle in units.
+     */
+    public double getWidth() {
         return width;
     }
 
-    public int getHeight() {
+    /**
+     * Gets the paddle's height.
+     * @return The height of the paddle in units.
+     */
+    public double getHeight() {
         return height;
     }
 
+    /**
+     * Gets the side on which the paddle is.
+     * @return The side on which the paddle is.
+     */
     public Side getSide() {
         return side;
     }
 
+    /**
+     * Sets the side on which the paddle is.
+     * @param side The side to which the paddle belongs.
+     */
     public void setSide(Side side) {
         this.side = side;
     }
 
-    public void setX(int x) {
+    public void setX(double x) {
         this.x = x;
     }
 
-    public void setY(int y) {
+    public void setY(double y) {
         this.y = y;
     }
 
@@ -72,7 +88,7 @@ public class Paddle implements PongPiece {
      * @param position The position (left, right or center) to which the value is being applied.
      */
     @Override
-    public void setX(int value, Side position) {
+    public void setX(double value, Side position) {
         switch (position) {
             case LEFT:
                 setX(value);
@@ -95,7 +111,7 @@ public class Paddle implements PongPiece {
      * @param position The position (top, bottom or center) to which the value is being set to.
      */
     @Override
-    public void setY(int value, Side position) {
+    public void setY(double value, Side position) {
         switch (position) {
             case TOP:
                 setY(value);
@@ -116,7 +132,7 @@ public class Paddle implements PongPiece {
      *
      * @return The position's x-value component.
      */
-    public int getX() {
+    public double getX() {
         return x;
     }
 
@@ -125,16 +141,16 @@ public class Paddle implements PongPiece {
      *
      * @return The position's y-value component.
      */
-    public int getY() {
+    public double getY() {
         return y;
     }
 
     @Override
-    public int getX(Side position) {
-        int xValue;
+    public double getX(Side position) {
+        double xValue;
 
         if (position == Side.RIGHT) {
-            xValue = x + width;
+            xValue = x + getWidth();
         } else if (position == Side.LEFT) {
             xValue = x;
         } else if (position == Side.CENTER) {
@@ -147,8 +163,8 @@ public class Paddle implements PongPiece {
     }
 
     @Override
-    public int getY(Side position) {
-        int yValue;
+    public double getY(Side position) {
+        double yValue;
 
         if (position == Side.BOTTOM) {
             yValue = y - getHeight();

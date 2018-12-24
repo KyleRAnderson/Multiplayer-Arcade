@@ -19,17 +19,17 @@ public class PongBall implements PongPiece {
      * A positive rise means going up, a positive run means going left, opposite for negative rises and runs. */
     private double risePerSecond, runPerSecond;
     // Position of the pong ball in x and y, with x and y corresponding to the top left corner of the ball.
-    private int x, y;
+    private double x, y;
 
     // Radius of the ball.
-    private final int radius;
+    private final double radius;
 
     /**
      * Constructs a new pong ball with the given radius.
      *
      * @param radius The radius to construct the pong ball with.
      */
-    public PongBall(final int radius) {
+    public PongBall(final double radius) {
         this.radius = radius;
     }
 
@@ -66,7 +66,7 @@ public class PongBall implements PongPiece {
      *
      * @return The radius.
      */
-    public int getRadius() {
+    public double getRadius() {
         return radius;
     }
 
@@ -75,7 +75,7 @@ public class PongBall implements PongPiece {
      *
      * @return The height of the pong ball.
      */
-    public int getHeight() {
+    public double getHeight() {
         return radius * 2;
     }
 
@@ -84,7 +84,7 @@ public class PongBall implements PongPiece {
      *
      * @return The width of the pong ball.
      */
-    public int getWidth() {
+    public double getWidth() {
         return radius * 2;
     }
 
@@ -93,7 +93,7 @@ public class PongBall implements PongPiece {
      *
      * @return The x position.
      */
-    public int getX() {
+    public double getX() {
         return x;
     }
 
@@ -102,7 +102,7 @@ public class PongBall implements PongPiece {
      *
      * @return The y position.
      */
-    public int getY() {
+    public double getY() {
         return y;
     }
 
@@ -112,7 +112,7 @@ public class PongBall implements PongPiece {
      * @param position The desired calculated position.
      * @return The x position of the ball.
      */
-    public int getX(Side position) {
+    public double getX(Side position) {
         return getX(getRadius(), getX(), position);
     }
 
@@ -122,7 +122,7 @@ public class PongBall implements PongPiece {
      * @param position The desired calculated position.
      * @return The y position of the ball.
      */
-    public int getY(Side position) {
+    public double getY(Side position) {
         return getY(getRadius(), getY(), position);
     }
 
@@ -133,7 +133,7 @@ public class PongBall implements PongPiece {
      * @param position The position (left, right or center) to which the value is being applied.
      */
     @Override
-    public void setX(int value, Side position) {
+    public void setX(double value, Side position) {
         switch (position) {
             case LEFT:
                 setX(value);
@@ -154,7 +154,7 @@ public class PongBall implements PongPiece {
      *
      * @param value The x-value.
      */
-    private void setX(int value) {
+    private void setX(double value) {
         this.x = value;
     }
 
@@ -165,7 +165,7 @@ public class PongBall implements PongPiece {
      * @param position The position (top, bottom or center) to which the value is being set to.
      */
     @Override
-    public void setY(int value, Side position) {
+    public void setY(double value, Side position) {
         switch (position) {
             case TOP:
                 setY(value);
@@ -186,7 +186,7 @@ public class PongBall implements PongPiece {
      *
      * @param value The new value.
      */
-    private void setY(int value) {
+    private void setY(double value) {
         this.y = value;
     }
 
@@ -198,8 +198,8 @@ public class PongBall implements PongPiece {
      * @param position The desired calculated position.
      * @return The x position of the ball.
      */
-    public static int getX(final int radius, final int topLeftX, Side position) {
-        int posX;
+    public static double getX(final double radius, final double topLeftX, Side position) {
+        double posX;
         switch (position) {
             case LEFT:
                 posX = topLeftX;
@@ -224,8 +224,8 @@ public class PongBall implements PongPiece {
      * @param position The desired calculated position.
      * @return The y position of the ball.
      */
-    public static int getY(final int radius, final int topLeftY, Side position) {
-        int posY;
+    public static double getY(final double radius, final double topLeftY, Side position) {
+        double posY;
         switch (position) {
             case BOTTOM:
                 posY = topLeftY - 2 * radius;
