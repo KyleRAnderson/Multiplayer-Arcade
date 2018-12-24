@@ -168,14 +168,14 @@ public class Pong {
     /**
      * The last tick time in seconds.
      */
-    private double lastTickTime = 0;
+    private long lastTickTime = 0;
 
     /**
      * Completes a tick of the game.
      */
     public void renderTick() {
-        double tempLastTick = lastTickTime;
-        lastTickTime = (double) System.currentTimeMillis() / 1000;
+        long tempLastTick = lastTickTime;
+        lastTickTime = System.currentTimeMillis();
         ball.renderTick(lastTickTime - tempLastTick); // Render a tick for the ball.
 
         // Check if the ball has hit the vertical bounds of the board.

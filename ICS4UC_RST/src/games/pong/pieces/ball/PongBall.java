@@ -36,11 +36,11 @@ public class PongBall implements PongPiece {
     /**
      * Moves the ball according to its current velocity.
      *
-     * @param secondsSinceLastTick The number of seconds elapsed since the last tick.
+     * @param millisSinceLastTick The number of milliseconds elapsed since the last tick.
      */
-    public void renderTick(double secondsSinceLastTick) {
-        x += Math.round(runPerSecond * secondsSinceLastTick);
-        y += Math.round(risePerSecond * secondsSinceLastTick);
+    public void renderTick(long millisSinceLastTick) {
+        x += Math.round(runPerSecond / 1000 * millisSinceLastTick);
+        y += Math.round(risePerSecond / 1000 * millisSinceLastTick);
     }
 
     /**
