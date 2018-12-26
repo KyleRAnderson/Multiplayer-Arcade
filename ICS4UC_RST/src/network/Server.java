@@ -4,6 +4,9 @@
 package network;
 
 import java.io.BufferedReader;
+import simpleIO.Console;
+import simpleIO.Dialog;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
@@ -18,34 +21,24 @@ public class Server {
 	
 	ServerSocket ssListener;
 	Socket stSocket;
-	String strData = "";
 	
-	public void create() throws IOException {
-		ssListener = new ServerSocket();
-	}
-	
-	public void bind(int port) throws IOException {
-		ssListener.bind(new InetSocketAddress("0.0.0.0", port));
+	public void create(int port) throws IOException {
+		ssListener = new ServerSocket(port);
+		ssListener.setSoTimeout(0);
 	}
 	
 	public void accept() throws IOException {
-		ssListener.accept();
+		stSocket = ssListener.accept();
 	}
 	
-	public void listen() throws IOException {
-		stSocket = ssListener.accept();
-		
+	public String listenForData() throws IOException {
 		InputStreamReader isInputStreamReader = new InputStreamReader(stSocket.getInputStream());
 		BufferedReader brBufferedReader = new BufferedReader(isInputStreamReader);
-		strData = brBufferedReader.readLine();
-		
-		System.out.println("sdf");
+		String strData = brBufferedReader.readLine();
 		
 		isInputStreamReader.close();
 		brBufferedReader.close();
-	}
-	
-	public String getData() {
+		
 		return strData;
 	}
 	

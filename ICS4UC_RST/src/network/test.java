@@ -2,20 +2,14 @@ package network;
 
 import java.io.IOException;
 
+
 public class test {
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, InterruptedException {
 		Server s = new Server();
-		s.create();
-		s.bind(3333);
+		s.create(3333);
 		s.accept();
-		s.listen();
-		
-		while (s.getData() == "") {
-			System.out.println(s.getData());
-		}
-		
+		System.out.println(s.listenForData());
 		s.close();
 	}
-
 }

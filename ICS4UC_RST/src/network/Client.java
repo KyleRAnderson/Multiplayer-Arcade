@@ -20,7 +20,7 @@ public class Client {
 	}
 	
 	public void send(String data) throws IOException {
-		PrintWriter pwOut = new PrintWriter(stSocket.getOutputStream(), true);
+		PrintWriter pwOut = new PrintWriter(stSocket.getOutputStream());
 		pwOut.println(data);
 		
 		pwOut.close();
@@ -29,6 +29,5 @@ public class Client {
 	public void close() throws IOException {
 		stSocket.close();
 	}
-	
 	
 }
