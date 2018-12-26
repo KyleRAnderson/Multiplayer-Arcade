@@ -6,6 +6,7 @@ import games.pong.Pong;
 import games.pong.pieces.Paddle;
 import games.pong.pieces.Side;
 
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
@@ -14,12 +15,12 @@ import java.util.function.Consumer;
  */
 public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
     @Override
-    public void setOnPaddleUp(Consumer<PongPlayer> action) {
+    public void setOnPaddleUp(BiConsumer<PongPlayer, Boolean> action) {
 
     }
 
     @Override
-    public void setOnPaddleDown(Consumer<PongPlayer> action) {
+    public void setOnPaddleDown(BiConsumer<PongPlayer, Boolean> action) {
 
     }
 

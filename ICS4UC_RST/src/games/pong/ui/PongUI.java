@@ -55,10 +55,10 @@ public class PongUI extends Pane implements Game {
         p1.setKeyBindings(p1Bindings);
         p2.setKeyBindings(p2Bindings);
 
-        p1.setOnPaddleDown(pongPlayer -> movePaddleDown(pongPlayer.getPaddle()));
-        p2.setOnPaddleDown(pongPlayer -> movePaddleDown(pongPlayer.getPaddle()));
-        p1.setOnPaddleUp(pongPlayer -> movePaddleUp(pongPlayer.getPaddle()));
-        p2.setOnPaddleUp(pongPlayer -> movePaddleUp(pongPlayer.getPaddle()));
+        p1.setOnPaddleDown((pongPlayer, move) -> movePaddleDown(pongPlayer.getPaddle(), move));
+        p2.setOnPaddleDown((pongPlayer, move) -> movePaddleDown(pongPlayer.getPaddle(), move));
+        p1.setOnPaddleUp((pongPlayer, move) -> movePaddleUp(pongPlayer.getPaddle(), move));
+        p2.setOnPaddleUp((pongPlayer, move) -> movePaddleUp(pongPlayer.getPaddle(), move));
 
         leftPaddle = new Rectangle();
         rightPaddle = new Rectangle();
@@ -69,18 +69,34 @@ public class PongUI extends Pane implements Game {
         updateBallLocation();
 
         setOnKeyPressed(this::keyPressed);
+        setOnKeyReleased(this::keyReleased);
     }
 
     /**
      * Called when a key is pressed.
+     *
      * @param event The keydown event.
      */
     private void keyPressed(KeyEvent event) {
-        if (game.getLocalPlayer()instanceof PongKeyboardPlayer) {
-            ((PongKeyboardPlayer)game.getLocalPlayer()).onKeyPressed(event.getCode());
+        if (game.getLocalPlayer() instanceof PongKeyboardPlayer) {
+            ((PongKeyboardPlayer) game.getLocalPlayer()).onKeyPressed(event.getCode());
         }
         if (game.getPlayer2() instanceof PongKeyboardPlayer) {
-            ((PongKeyboardPlayer)game.getPlayer2()).onKeyPressed(event.getCode());
+            ((PongKeyboardPlayer) game.getPlayer2()).onKeyPressed(event.getCode());
+        }
+    }
+
+    /**
+     * Called when a key is released.
+     *
+     * @param event The keyup event.
+     */
+    private void keyReleased(KeyEvent event) {
+        if (game.getLocalPlayer() instanceof PongKeyboardPlayer) {
+            ((PongKeyboardPlayer) game.getLocalPlayer()).onKeyReleased(event.getCode());
+        }
+        if (game.getPlayer2() instanceof PongKeyboardPlayer) {
+            ((PongKeyboardPlayer) game.getPlayer2()).onKeyReleased(event.getCode());
         }
     }
 
@@ -148,18 +164,20 @@ public class PongUI extends Pane implements Game {
      * Moves the given paddle down.
      *
      * @param paddle The paddle to be moved.
+     * @param move   True to move the paddle, false to stop moving the paddle.
      */
-    private void movePaddleDown(Paddle paddle) {
-        game.paddleDown(paddle);
+    private void movePaddleDown(Paddle paddle, boolean move) {
+        paddle.setVelY((move) ? -game.getPaddleVelocity() : 0);
     }
 
     /**
      * Moves the given paddle up.
      *
      * @param paddle The paddle to be moved.
+     * @param move   True to move the paddle, false to stop moving the paddle.
      */
-    private void movePaddleUp(Paddle paddle) {
-        game.paddleUp(paddle);
+    private void movePaddleUp(Paddle paddle, boolean move) {
+        paddle.setVelY((move) ? game.getPaddleVelocity() : 0);
     }
 
     /**
@@ -188,7 +206,7 @@ public class PongUI extends Pane implements Game {
      * @param desiredSide The desired coordinate (Side.TOP, Side.CENTER, Side.BOTTOM) that needs to be calculated.
      * @return The transformed value.
      */
-    public static double transformY(int boardHeight, PongPiece piece, Side desiredSide) {
+    public static double transformY(double boardHeight, PongPiece piece, Side desiredSide) {
         double newY;
         double topLeftY = boardHeight - piece.getY(Side.TOP);
         switch (desiredSide) {

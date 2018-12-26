@@ -9,6 +9,8 @@ package games.pong.pieces;
 public class Paddle implements PongPiece {
     private double x, y;
     private final double width, height;
+    // Current velocities of the paddle.
+    private double velX = 0, velY = 0;
 
     private Side side;
 
@@ -177,5 +179,37 @@ public class Paddle implements PongPiece {
         }
 
         return yValue;
+    }
+
+    /**
+     * Gets the current horizontal velocity of the paddle in units/second.
+     * @return The current velocity of the paddle.
+     */
+    public double getVelX() {
+        return velX;
+    }
+
+    /**
+     * Sets the current horizontal velocity of the paddle in units/second.
+     * @param velX The current velocity of the paddle.
+     */
+    public void setVelX(double velX) {
+        this.velX = velX;
+    }
+
+    /**
+     * Gets the current vertical velocity of the paddle in units/second.
+     * @return The current velocity of the paddle.
+     */
+    public double getVelY() {
+        return velY;
+    }
+
+    /**
+     * Sets the current vertical velocity of the paddle in units/second.
+     * @param velY The current velocity of the paddle.
+     */
+    public void setVelY(double velY) {
+        this.velY = velY;
     }
 }

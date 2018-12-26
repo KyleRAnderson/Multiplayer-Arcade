@@ -7,7 +7,6 @@ import games.pong.pieces.Side;
 import games.pong.pieces.ball.PongBall;
 import games.pong.players.PongKeyboardPlayer;
 import games.pong.players.PongPlayer;
-import javafx.scene.shape.Circle;
 
 /**
  * @author Kyle Anderson
@@ -25,8 +24,8 @@ public class Pong {
     // Ratios for distances and speeds.
     private static double
             BALL_RADIUS_RATIO = 0.01,
-            PADDLE__SCREEN_HEIGHT__RATIO = 0.25, // Ratio between the paddle size (height) and the screen height.
-            PADDLE_MOVEMENT_RATIO = 0.3; // How many units the paddle moves while the button is being held down.
+            PADDLE__SCREEN_HEIGHT__RATIO = 0.15, // Ratio between the paddle size (height) and the screen height.
+            PADDLE_MOVEMENT_RATIO = 0.5; // How many units the paddle moves while the button is being held down.
 
     private final PongBall ball;
 
@@ -51,7 +50,7 @@ public class Pong {
     private final PongPlayer localPlayer;
     private final PongPlayer player2;
 
-    private final int width, height;
+    private final double width, height;
 
     /**
      * Constructs a new pong game with the given players.
@@ -114,7 +113,7 @@ public class Pong {
      *
      * @return The width of the board.
      */
-    public int getBoardWidth() {
+    public double getBoardWidth() {
         return width;
     }
 
@@ -123,7 +122,7 @@ public class Pong {
      *
      * @return The height of the board.
      */
-    public int getBoardHeight() {
+    public double getBoardHeight() {
         return height;
     }
 
@@ -163,7 +162,7 @@ public class Pong {
      * @param height The height of hte pong board.
      * @return The screen size (diagonally) of the pong board.
      */
-    public static double getScreenSize(int width, int height) {
+    public static double getScreenSize(double width, double height) {
         return Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2));
     }
 
@@ -178,7 +177,14 @@ public class Pong {
     public void renderTick() {
         long tempLastTick = lastTickTime;
         lastTickTime = System.currentTimeMillis();
-        ball.renderTick(System.currentTimeMillis() - tempLastTick); // Render a tick for the ball.
+        final long timeSinceLastTick = System.currentTimeMillis() - tempLastTick;
+        ball.renderTick(timeSinceLastTick); // Render a tick for the ball.
+
+        Paddle rightPaddle = getRightPaddle(), leftPaddle = getLeftPaddle();
+        rightPaddle.setY(rightPaddle.getY() + rightPaddle.getVelY() / 1000 * timeSinceLastTick);
+        leftPaddle.setY(leftPaddle.getY() + leftPaddle.getVelY() / 1000 * timeSinceLastTick);
+        rightPaddle.setX(rightPaddle.getX() + rightPaddle.getVelX() / 1000 * timeSinceLastTick);
+        leftPaddle.setX(leftPaddle.getX() + leftPaddle.getVelX() / 1000 * timeSinceLastTick);
 
         // Check if the ball has hit the vertical bounds of the board.
         checkBallBounds();
@@ -271,8 +277,6 @@ public class Pong {
         ball.setX(getBoardWidth() / 2, Side.CENTER);
         ball.setY(getBoardHeight() / 2, Side.CENTER);
         ball.setVelocity(0, (scoringPlayer == Side.LEFT) ? -PongBall.VELOCITY : PongBall.VELOCITY);
-        // Put the paddles back in the center position.
-        setupPaddles();
     }
 
     /**
@@ -306,7 +310,7 @@ public class Pong {
     }
 
     /**
-     * Moves the given paddle down.
+     * Moves the given paddle down. Recommend using {@link games.pong.pieces.Paddle#setVelY(double)} instead for smoother movements.
      *
      * @param paddle The paddle to be moved.
      */
@@ -346,5 +350,13 @@ public class Pong {
      */
     public Paddle getLeftPaddle() {
         return getLeftPlayer().getPaddle();
+    }
+
+    /**
+     * Gets the rate (in units/second) at which a paddle should rightly move up or down.
+     * @return The speed, in units/second.
+     */
+    public double getPaddleVelocity() {
+        return PADDLE_MOVEMENT_RATIO * getBoardHeight();
     }
 }
