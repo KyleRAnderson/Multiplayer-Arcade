@@ -188,6 +188,8 @@ public class Pong {
 
         // Check if the ball has hit the vertical bounds of the board.
         checkBallBounds();
+        // Make sure the paddle is in bounds as well.
+        checkPaddleBounds();
 
         // Check if the ball has hit one of the paddles
         renderBallCollision();
@@ -261,6 +263,30 @@ public class Pong {
         else if (ball.getX(Side.RIGHT) >= WIDTH) {
             getRightPlayer().addPoint();
             resetBall(Side.RIGHT);
+        }
+    }
+
+    /**
+     * Checks each of the paddles in the game to ensure that they are within the boundaries of the
+     * board and places them back in the boundaries if they are not.
+     */
+    private void checkPaddleBounds() {
+        Paddle[] paddles = new Paddle[] { getLeftPaddle(), getRightPaddle() };
+
+        // Iterate through all of the paddles checking their boundaries.
+        for (Paddle paddle : paddles) {
+            if (paddle.getY(Side.TOP) > getBoardHeight()) {
+                paddle.setY(getBoardHeight(), Side.TOP);
+            }
+            if (paddle.getY(Side.BOTTOM) < 0) {
+                paddle.setY(0, Side.BOTTOM);
+            }
+            if (paddle.getX(Side.RIGHT) > getBoardWidth()) {
+                paddle.setX(getBoardWidth(), Side.RIGHT);
+            }
+            if (paddle.getX(Side.LEFT) < 0) {
+                paddle.setX(0, Side.LEFT);
+            }
         }
     }
 
