@@ -11,6 +11,7 @@ import games.pong.players.PongKeyboardPlayer;
 import games.pong.players.PongNetworkPlayer;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.animation.TranslateTransition;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;

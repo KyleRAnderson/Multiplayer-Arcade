@@ -13,7 +13,7 @@ public class PongBall implements PongPiece {
     /**
      * Velocity of the ball in units per second.
      */
-    public static final int VELOCITY = 100;
+    public static final double VELOCITY = 150;
 
     /* The velocities of the pong ball, in rise and runs per tick.
      * A positive rise means going up, a positive run means going left, opposite for negative rises and runs. */
@@ -59,6 +59,14 @@ public class PongBall implements PongPiece {
      */
     public double getRunPerSecond() {
         return runPerSecond;
+    }
+
+    /**
+     * Determines the velocity of the ball.
+     * @return The velocity of the ball, in units/second.
+     */
+    public double getVelocity() {
+        return Math.sqrt(Math.pow(getRisePerSecond(), 2) + Math.pow(getRunPerSecond(), 2));
     }
 
     /**

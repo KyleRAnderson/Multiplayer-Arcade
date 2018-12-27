@@ -20,12 +20,12 @@ public class Pong {
     /**
      * Maximum ball rebound angle, in degrees.
      */
-    private static final int MAX_REBOUND_ANGLE = 75;
+    private static final double MAX_REBOUND_ANGLE = 75;
     // Ratios for distances and speeds.
     private static double
             BALL_RADIUS_RATIO = 0.01,
             PADDLE__SCREEN_HEIGHT__RATIO = 0.15, // Ratio between the paddle size (height) and the screen height.
-            PADDLE_MOVEMENT_RATIO = 0.5; // How many units the paddle moves while the button is being held down.
+            PADDLE_MOVEMENT_RATIO = 0.8; // How many units the paddle moves while the button is being held down.
 
     private final PongBall ball;
 
@@ -222,8 +222,8 @@ public class Pong {
 
         /* Get the percentage difference (how far the centers
         are from each other as a percentage of the maximum possible distance).*/
-        double percentageDifference = (double) difference / ((double) paddleHit.getHeight() / 2);
-        double angle = percentageDifference * (double) MAX_REBOUND_ANGLE;
+        double percentageDifference = difference / (paddleHit.getHeight() / 2);
+        double angle = percentageDifference * MAX_REBOUND_ANGLE;
 
         // Go ahead and set the ball's velocity.
         ball.setVelocity(angle, (paddleHit.getSide() == Side.LEFT) ? Side.RIGHT : Side.LEFT);
@@ -271,7 +271,7 @@ public class Pong {
      * board and places them back in the boundaries if they are not.
      */
     private void checkPaddleBounds() {
-        Paddle[] paddles = new Paddle[] { getLeftPaddle(), getRightPaddle() };
+        Paddle[] paddles = new Paddle[]{getLeftPaddle(), getRightPaddle()};
 
         // Iterate through all of the paddles checking their boundaries.
         for (Paddle paddle : paddles) {
@@ -364,6 +364,7 @@ public class Pong {
 
     /**
      * Gets the paddle on the right.
+     *
      * @return The right paddle.
      */
     public Paddle getRightPaddle() {
@@ -372,6 +373,7 @@ public class Pong {
 
     /**
      * Gets the left paddle.
+     *
      * @return The paddle on the left of the board.
      */
     public Paddle getLeftPaddle() {
@@ -380,6 +382,7 @@ public class Pong {
 
     /**
      * Gets the rate (in units/second) at which a paddle should rightly move up or down.
+     *
      * @return The speed, in units/second.
      */
     public double getPaddleVelocity() {
