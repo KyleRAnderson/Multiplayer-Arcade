@@ -10,6 +10,10 @@ public class testclient {
 		Client c = new Client();
 		c.connect("127.0.0.1", 3333);
 		c.send("hell");
+		Thread.sleep(100);
+		c.close();
+		c.connect("127.0.0.1", 3333);
+		c.send("hellss");
 		c.close();
 	}
 
