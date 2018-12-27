@@ -22,7 +22,7 @@ import java.io.PrintWriter;
 public class TCPSocket {
 	Socket stSocket;
 
-	// method to listen for data sent from client
+	// method to listen for data sent
 	public String listenForData() throws IOException {
 		String strData = "";
 
@@ -33,7 +33,7 @@ public class TCPSocket {
 		// create a new buffered reader of the socket input stream reader
 		BufferedReader brBufferedReader = new BufferedReader(new InputStreamReader(isSocketInputStream));
 
-		// get string received from client
+		// get string received
 		strData = brBufferedReader.readLine();
 
 		// close InputStream and Buffered reader
@@ -44,12 +44,12 @@ public class TCPSocket {
 		return strData;
 	}
 
-	// method to send data to client
+	// method to send data
 	public void send(String data) throws IOException {
 		// create a new output stream
 		OutputStream osSocketOutputStream = stSocket.getOutputStream();
 
-		// use PrintWriter to send a line of text to the outputStream (client)
+		// use PrintWriter to send a line of text to the outputStream
 		PrintWriter pwOut = new PrintWriter(osSocketOutputStream, true);
 		pwOut.println(data);
 
