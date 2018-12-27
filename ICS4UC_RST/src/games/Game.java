@@ -19,6 +19,7 @@ public abstract class Game {
 
     /**
      * Determines if this game is currently in progress or not.
+     *
      * @return
      */
     public abstract boolean isInProgress();
@@ -30,6 +31,7 @@ public abstract class Game {
 
     /**
      * Gets the score data from this game.
+     *
      * @return The Score data.
      */
     public abstract Score getScore();
@@ -47,6 +49,7 @@ public abstract class Game {
 
     /**
      * Gets the Parent for the game, which needs to be displayed to the user for it to work.
+     *
      * @return The Parent window for this game.
      */
     public abstract Parent getWindow();

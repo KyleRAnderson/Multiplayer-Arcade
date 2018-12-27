@@ -5,6 +5,7 @@ import javafx.scene.input.KeyCode;
 
 /**
  * The default key bindings for the game of pong, which can be reset if necessary.
+ *
  * @author Kyle Anderson
  * ICS4U RST
  */

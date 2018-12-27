@@ -19,6 +19,7 @@ public abstract class KeyboardPlayer {
 
     /**
      * Gets this keyboard player's key bindings.
+     *
      * @return The player's key bindings.
      */
     public Map<KeyCode, KeyBinding> getKeyBindings() {
