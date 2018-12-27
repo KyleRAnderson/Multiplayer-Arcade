@@ -15,18 +15,31 @@ public class Server extends TCPSocket {
     // define data field for server
     private ServerSocket ssServer;
 
-    // constructor to create a new server on a port and set a blocking timeout to 0
+    /**
+     * Instantiates a new server on the given port and set a blocking timeout to 0.
+     *
+     * @param port The port to be used in the connection.
+     * @throws IOException Thrown when there is some sort of IO problem.
+     */
     public Server(int port) throws IOException {
         ssServer = new ServerSocket(port);
         ssServer.setSoTimeout(0);
     }
 
-    // method to accept a socket connection
+    /**
+     * Method to accept a socket connection
+     *
+     * @throws IOException Thrown when there is some sort of IO issue.
+     */
     public void accept() throws IOException {
         stSocket = ssServer.accept();
     }
 
-    // method to close the server
+    /**
+     * Method to close the server
+     *
+     * @throws IOException Thrown when there is some sort of IO issue.
+     */
     public void closeServer() throws IOException {
         ssServer.close();
     }

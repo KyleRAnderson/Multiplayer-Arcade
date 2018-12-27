@@ -14,7 +14,12 @@ import java.net.Socket;
 class TCPSocket {
     protected Socket stSocket;
 
-    // method to listen for data sent
+    /**
+     * Listens for data being sent to this client.
+     *
+     * @return The string data sent to the client.
+     * @throws IOException Thrown when there is some sort of IO problem.
+     */
     public String listenForData() throws IOException {
         String strData;
 
@@ -36,7 +41,12 @@ class TCPSocket {
         return strData;
     }
 
-    // method to send data
+    /**
+     * Sends data to the clienet.
+     *
+     * @param data The string data to be set.
+     * @throws IOException Thrown when there is some sort of IO problem.
+     */
     public void send(String data) throws IOException {
         // create a new output stream
         OutputStream osSocketOutputStream = stSocket.getOutputStream();
@@ -49,7 +59,11 @@ class TCPSocket {
         pwOut.close();
     }
 
-    // method to close the socket
+    /**
+     * Closes the socket in use.
+     *
+     * @throws IOException Thrown when there is an IO problem.
+     */
     public void close() throws IOException {
         stSocket.close();
     }
