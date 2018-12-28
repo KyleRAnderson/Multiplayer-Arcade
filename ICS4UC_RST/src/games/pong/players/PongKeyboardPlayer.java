@@ -3,7 +3,6 @@ package games.pong.players;
 import games.Game;
 import games.player.KeyboardPlayer;
 import games.player.PongKeyBinding;
-import games.pong.Pong;
 import games.pong.pieces.Paddle;
 import games.pong.pieces.Side;
 import javafx.scene.input.KeyCode;
@@ -21,8 +20,6 @@ public class PongKeyboardPlayer extends KeyboardPlayer implements PongPlayer {
     private Side side;
     private int points;
     private Paddle paddle;
-
-    private Pong game;
 
     public PongKeyboardPlayer() {
     }
@@ -50,15 +47,6 @@ public class PongKeyboardPlayer extends KeyboardPlayer implements PongPlayer {
     @Override
     public void setPaddle(Paddle paddle) {
         this.paddle = paddle;
-    }
-
-    @Override
-    public Pong getGame() {
-        return this.game;
-    }
-
-    public void setGame(Pong game) {
-        this.game = game;
     }
 
     @Override
