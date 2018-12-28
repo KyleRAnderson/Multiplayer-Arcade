@@ -39,8 +39,8 @@ public class PongBall implements PongPiece {
      * @param millisSinceLastTick The number of milliseconds elapsed since the last tick.
      */
     public void renderTick(long millisSinceLastTick) {
-        x += Math.round(runPerSecond / 1000 * millisSinceLastTick);
-        y += Math.round(risePerSecond / 1000 * millisSinceLastTick);
+        x += runPerSecond / 1000 * millisSinceLastTick;
+        y += risePerSecond / 1000 * millisSinceLastTick;
     }
 
     /**

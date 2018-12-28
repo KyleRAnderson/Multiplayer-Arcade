@@ -214,11 +214,21 @@ public class Pong {
      */
     private void applyNewBallVelocity(Paddle paddleHit) {
         final double centerPaddle = paddleHit.getY(Side.CENTER);
-        final double centerBall = ball.getY(Side.CENTER);
+        /* If the ball is higher than the paddle's center, use the bottom of the ball's vertical point.
+        Else use its top. */
+        final double ballCenter = ball.getY(Side.CENTER);
+        final double ballPoint;
+        if (ballCenter > centerPaddle) {
+            ballPoint = ball.getY(Side.BOTTOM);
+        } else if (ballCenter < centerPaddle) {
+            ballPoint = ball.getY(Side.TOP);
+        } else {
+            ballPoint = ballCenter;
+        }
 
         /* Get the difference between the center y-value of the ball and the paddle.
         If ball is higher, this will be positive, else it will be negative.*/
-        final double difference = centerBall - centerPaddle;
+        final double difference = ballPoint - centerPaddle;
 
         /* Get the percentage difference (how far the centers
         are from each other as a percentage of the maximum possible distance).*/

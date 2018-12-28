@@ -11,7 +11,6 @@ import games.pong.players.PongKeyboardPlayer;
 import games.pong.players.PongNetworkPlayer;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
-import javafx.animation.TranslateTransition;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -29,6 +28,10 @@ import java.util.HashMap;
  * ICS4U RST
  */
 public class PongUI extends Pane implements Game {
+
+    private static final double
+            CYCLE_TIME = 5, // How long between ticks.
+            FPS = 60; // Frames per second
     private Pong game;
     // How much the units in the pong game backend are scaled to make a nice looking UI.
     private double scaleFactor;
@@ -105,9 +108,9 @@ public class PongUI extends Pane implements Game {
     protected void setWidth(double value) {
         super.setWidth(value);
         // Only perform resizing if the ratio is dramatically off.
-        if (getHeight() / getWidth() - (double) game.getBoardHeight() / (double) game.getBoardWidth() > 1) {
+        if (getHeight() / getWidth() - game.getBoardHeight() / game.getBoardWidth() > 1) {
             // Calculate how much the height should be if we keep the same ratio between height and width.
-            setHeight((double) game.getBoardHeight() / (double) game.getBoardWidth() * getWidth());
+            setHeight(game.getBoardHeight() / game.getBoardWidth() * getWidth());
         }
         calculateScaleFactor();
     }
@@ -128,7 +131,7 @@ public class PongUI extends Pane implements Game {
      * Re-calculates the scale factor for rendering and such.
      */
     private void calculateScaleFactor() {
-        scaleFactor = getWidth() / (double) game.getBoardWidth();
+        scaleFactor = getWidth() / game.getBoardWidth();
 
         leftPaddle.setWidth(game.getLeftPaddle().getWidth() * scaleFactor);
         leftPaddle.setHeight(game.getLeftPaddle().getHeight() * scaleFactor);
@@ -147,9 +150,14 @@ public class PongUI extends Pane implements Game {
     public void start() {
         requestFocus();
         calculateScaleFactor();
-        Timeline tickTimer = new Timeline(new KeyFrame(Duration.millis(10), event -> tick()));
+        Timeline tickTimer = new Timeline(new KeyFrame(Duration.millis(CYCLE_TIME), event -> tick()));
         tickTimer.setCycleCount(Timeline.INDEFINITE);
+        Timeline renderFrameTimer = new Timeline(new KeyFrame(Duration.millis(1000.0 / FPS), event -> renderFrame()));
+        renderFrameTimer.setCycleCount(Timeline.INDEFINITE);
+
+        // Start all timelines.
         tickTimer.play();
+        renderFrameTimer.play();
     }
 
     /**
@@ -157,6 +165,12 @@ public class PongUI extends Pane implements Game {
      */
     private void tick() {
         game.renderTick();
+    }
+
+    /**
+     * Renders a new frame on screen.
+     */
+    private void renderFrame() {
         updateBallLocation();
         updatePaddleLocations();
     }
