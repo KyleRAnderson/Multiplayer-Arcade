@@ -48,7 +48,7 @@ public class PongUI extends Pane implements Game {
         PongKeyboardPlayer p1 = new PongKeyboardPlayer(), p2 = new PongKeyboardPlayer();
         game = new Pong(p1, p2); // Initialize new pong game with the correct type of players.
 
-        // TODO streamline automatic keybindings handled in the actual KeyboardPlayer class later.
+        // TODO streamline automatic key bindings handled in the actual KeyboardPlayer class later.
         HashMap<KeyCode, PongKeyBinding> p2Bindings = new HashMap<>();
         p2Bindings.put(KeyCode.UP, PongKeyBinding.MOVE_UP);
         p2Bindings.put(KeyCode.DOWN, PongKeyBinding.MOVE_DOWN);
@@ -120,9 +120,9 @@ public class PongUI extends Pane implements Game {
     protected void setHeight(double value) {
         super.setHeight(value);
         // Only perform resizing if the ratio is dramatically off.
-        if (getWidth() / getHeight() - (double) game.getBoardWidth() / (double) game.getBoardHeight() > 1) {
+        if (getWidth() / getHeight() - game.getBoardWidth() / game.getBoardHeight() > 1) {
             // Calculate how much the height should be if we keep the same ratio between height and width.
-            setHeight((double) game.getBoardWidth() / (double) game.getBoardHeight() * getHeight());
+            setHeight(game.getBoardWidth() / game.getBoardHeight() * getHeight());
         }
         calculateScaleFactor();
     }
@@ -229,10 +229,10 @@ public class PongUI extends Pane implements Game {
                 newY = topLeftY;
                 break;
             case BOTTOM:
-                newY = topLeftY + (double) piece.getHeight();
+                newY = topLeftY + piece.getHeight();
                 break;
             case CENTER:
-                newY = topLeftY + (double) piece.getHeight() / 2;
+                newY = topLeftY + piece.getHeight() / 2;
                 break;
             default:
                 throw new IllegalArgumentException("Invalid selection for position.");

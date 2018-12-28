@@ -4,6 +4,7 @@ import com.sun.istack.internal.NotNull;
 
 /**
  * Class for representing collisions between the pong ball and other objects.
+ *
  * @author Kyle Anderson
  * ICS4U RST
  */
@@ -14,6 +15,7 @@ public class Collision {
 
     /**
      * Gets the x position of the collision.
+     *
      * @return x position of collision.
      */
     public int getX() {
@@ -22,6 +24,7 @@ public class Collision {
 
     /**
      * Sets the x position of the collision
+     *
      * @param x The x position of the collision
      */
     public void setX(int x) {
@@ -30,6 +33,7 @@ public class Collision {
 
     /**
      * Gets the y position of the collision.
+     *
      * @return y position of collision.
      */
     public int getY() {
@@ -38,6 +42,7 @@ public class Collision {
 
     /**
      * Sets the y position of the collision
+     *
      * @param y The y position of the collision
      */
     public void setY(int y) {
@@ -46,6 +51,7 @@ public class Collision {
 
     /**
      * Gets the type of collision that occurred.
+     *
      * @return The type of collision that occurred.
      */
     public CollisionType getType() {
@@ -54,6 +60,7 @@ public class Collision {
 
     /**
      * Sets the type of collision that occurred.
+     *
      * @param type The type of collision.
      */
     private void setType(CollisionType type) {
@@ -62,8 +69,9 @@ public class Collision {
 
     /**
      * Instantiates a new collision at the given location and with the given type.
-     * @param x The x-position of the collision.
-     * @param y The y-position of the collision.
+     *
+     * @param x    The x-position of the collision.
+     * @param y    The y-position of the collision.
      * @param type The type of collision.
      */
     public Collision(int x, int y, @NotNull CollisionType type) {

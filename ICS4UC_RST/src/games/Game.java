@@ -1,6 +1,5 @@
 package games;
 
-import games.player.Player;
 import javafx.scene.image.Image;
 
 /**
@@ -26,9 +25,10 @@ public interface Game {
 
     /**
      * Gets the score data from this game.
+     *
      * @return The Score data.
      */
-   Score getScore();
+    Score getScore();
 
     /**
      * Gets the cover image for the
@@ -41,6 +41,7 @@ public interface Game {
 
     /**
      * Determines if this game is a network game.
+     *
      * @return True if it's a network game, false otherwise.
      */
     boolean isNetworkGame();

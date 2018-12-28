@@ -44,6 +44,7 @@ public class Paddle implements PongPiece {
 
     /**
      * Gets the paddle's width.
+     *
      * @return The width of the paddle in units.
      */
     public double getWidth() {
@@ -52,6 +53,7 @@ public class Paddle implements PongPiece {
 
     /**
      * Gets the paddle's height.
+     *
      * @return The height of the paddle in units.
      */
     public double getHeight() {
@@ -60,6 +62,7 @@ public class Paddle implements PongPiece {
 
     /**
      * Gets the side on which the paddle is.
+     *
      * @return The side on which the paddle is.
      */
     public Side getSide() {
@@ -68,6 +71,7 @@ public class Paddle implements PongPiece {
 
     /**
      * Sets the side on which the paddle is.
+     *
      * @param side The side to which the paddle belongs.
      */
     public void setSide(Side side) {
@@ -183,6 +187,7 @@ public class Paddle implements PongPiece {
 
     /**
      * Gets the current horizontal velocity of the paddle in units/second.
+     *
      * @return The current velocity of the paddle.
      */
     public double getVelX() {
@@ -191,6 +196,7 @@ public class Paddle implements PongPiece {
 
     /**
      * Sets the current horizontal velocity of the paddle in units/second.
+     *
      * @param velX The current velocity of the paddle.
      */
     public void setVelX(double velX) {
@@ -199,6 +205,7 @@ public class Paddle implements PongPiece {
 
     /**
      * Gets the current vertical velocity of the paddle in units/second.
+     *
      * @return The current velocity of the paddle.
      */
     public double getVelY() {
@@ -207,6 +214,7 @@ public class Paddle implements PongPiece {
 
     /**
      * Sets the current vertical velocity of the paddle in units/second.
+     *
      * @param velY The current velocity of the paddle.
      */
     public void setVelY(double velY) {

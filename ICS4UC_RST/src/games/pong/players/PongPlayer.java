@@ -1,7 +1,6 @@
 package games.pong.players;
 
 import games.player.Player;
-import games.pong.Pong;
 import games.pong.pieces.Paddle;
 import games.pong.pieces.Side;
 
@@ -26,8 +25,8 @@ public interface PongPlayer extends Player {
      * Sets an action to be called when the player attempts to move his/her paddle down.
      *
      * @param action The action to be called when the event occurs. The first argument accepts the pong player
-     *      *               who is calling the method. The second indicates whether or not to move the paddle or to stop moving
-     *      *               it.
+     *               *               who is calling the method. The second indicates whether or not to move the paddle or to stop moving
+     *               *               it.
      */
     void setOnPaddleDown(BiConsumer<PongPlayer, Boolean> action);
 
@@ -75,11 +74,4 @@ public interface PongPlayer extends Player {
      * Sets this player's paddle.
      */
     void setPaddle(Paddle paddle);
-
-    /**
-     * Gets the game to which this player belongs.
-     *
-     * @return
-     */
-    Pong getGame();
 }

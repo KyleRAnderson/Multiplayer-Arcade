@@ -4,7 +4,6 @@ import games.KeyBinding;
 import javafx.scene.input.KeyCode;
 
 import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author Kyle Anderson
@@ -19,6 +18,7 @@ public abstract class KeyboardPlayer implements Player {
 
     /**
      * Gets this keyboard player's key bindings.
+     *
      * @return The player's key bindings.
      */
     public HashMap<KeyCode, ? extends KeyBinding> getKeyBindings() {
@@ -27,6 +27,7 @@ public abstract class KeyboardPlayer implements Player {
 
     /**
      * Sets the key bindings for this player.
+     *
      * @param bindings The player's bindings.
      */
     public void setKeyBindings(HashMap<KeyCode, ? extends KeyBinding> bindings) {

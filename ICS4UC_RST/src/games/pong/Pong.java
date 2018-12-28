@@ -22,10 +22,12 @@ public class Pong {
      */
     private static final double MAX_REBOUND_ANGLE = 75;
     // Ratios for distances and speeds.
-    private static double
-            BALL_RADIUS_RATIO = 0.01,
-            PADDLE__SCREEN_HEIGHT__RATIO = 0.15, // Ratio between the paddle size (height) and the screen height.
-            PADDLE_MOVEMENT_RATIO = 0.8; // How many units the paddle moves while the button is being held down.
+    @SuppressWarnings("FieldCanBeLocal")
+    private static final double BALL_RADIUS_RATIO = 0.01;
+    @SuppressWarnings("FieldCanBeLocal")
+    private static final double PADDLE__SCREEN_HEIGHT__RATIO = 0.15; // Ratio between the paddle size (height) and the screen height.
+    @SuppressWarnings("FieldCanBeLocal")
+    private static final double PADDLE_MOVEMENT_RATIO = 0.8; // How many units the paddle moves while the button is being held down.
 
     private final PongBall ball;
 

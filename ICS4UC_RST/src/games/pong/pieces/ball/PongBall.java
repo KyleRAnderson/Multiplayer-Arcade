@@ -63,6 +63,7 @@ public class PongBall implements PongPiece {
 
     /**
      * Determines the velocity of the ball.
+     *
      * @return The velocity of the ball, in units/second.
      */
     public double getVelocity() {

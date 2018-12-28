@@ -17,6 +17,7 @@ import javafx.stage.Stage;
 public class MainMenu extends Application {
     private static final int GAP = 15;
     private GridPane root;
+
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Arcade");
