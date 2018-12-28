@@ -1,5 +1,6 @@
 package games.pong.pieces.ball;
 
+import games.pong.Pong;
 import games.pong.pieces.PongPiece;
 import games.pong.pieces.Side;
 
@@ -10,11 +11,6 @@ import games.pong.pieces.Side;
  * ICS4U RST
  */
 public class PongBall implements PongPiece {
-    /**
-     * Velocity of the ball in units per second.
-     */
-    public static final double VELOCITY = 150;
-
     /* The velocities of the pong ball, in rise and runs per tick.
      * A positive rise means going up, a positive run means going left, opposite for negative rises and runs. */
     private double risePerSecond, runPerSecond;
@@ -272,9 +268,9 @@ public class PongBall implements PongPiece {
         // For those who don't like math, skip looking at this.
 
         // Velocity (hypotenuse) * cos(reboundAngle) = velocity's x component.
-        double vX = ((direction == Side.LEFT) ? -1 : 1) * VELOCITY * Math.cos(Math.toRadians(reboundAngle));
+        double vX = ((direction == Side.LEFT) ? -1 : 1) * Pong.PONG_BALL_VELOCITY * Math.cos(Math.toRadians(reboundAngle));
         // Velocity (hypotenuse) * sin(reboundAngle) = velocity's y component.
-        double vY = VELOCITY * Math.sin(Math.toRadians(reboundAngle));
+        double vY = Pong.PONG_BALL_VELOCITY * Math.sin(Math.toRadians(reboundAngle));
 
         // Set the velocity at the end.
         setVelocity(vY, vX);

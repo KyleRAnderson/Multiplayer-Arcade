@@ -14,20 +14,23 @@ import games.pong.players.PongPlayer;
  */
 public class Pong {
     // Default width and height for the pong game.
-    private static final int WIDTH = 200, HEIGHT = 150;
+    private static final int WIDTH = 512, HEIGHT = 256;
     // How far the paddles are from the side.
-    private static final int PADDLE_DISTANCE = 2;
+    private static final int PADDLE_DISTANCE = 5;
     /**
      * Maximum ball rebound angle, in degrees.
      */
     private static final double MAX_REBOUND_ANGLE = 75;
     // Ratios for distances and speeds.
     @SuppressWarnings("FieldCanBeLocal")
-    private static final double BALL_RADIUS_RATIO = 0.01;
+    private static final double BALL_RADIUS = 4;
     @SuppressWarnings("FieldCanBeLocal")
-    private static final double PADDLE__SCREEN_HEIGHT__RATIO = 0.15; // Ratio between the paddle size (height) and the screen height.
+    private static final double PADDLE_HEIGHT = 28; // Ratio between the paddle size (height) and the screen height.
     @SuppressWarnings("FieldCanBeLocal")
-    private static final double PADDLE_MOVEMENT_RATIO = 0.8; // How many units the paddle moves while the button is being held down.
+    // How many units per second the paddle moves while the button is being held down.
+    public static final double PADDLE_MOVEMENT_RATE = 150;
+    // Velocity of the pong ball in units per second.
+    public static final double PONG_BALL_VELOCITY = 200;
 
     private final PongBall ball;
 
@@ -79,7 +82,7 @@ public class Pong {
         this.player2 = player2;
 
         // The ball should be a certain ration to the size of the board's diagonal dimension.
-        ball = new PongBall((int) Math.floor(getScreenSize() * BALL_RADIUS_RATIO));
+        ball = new PongBall((int) Math.floor(BALL_RADIUS));
 
         // Ensure that the players have their sides set up.
 
@@ -136,10 +139,10 @@ public class Pong {
         PongPlayer leftPlayer = getLeftPlayer();
         PongPlayer rightPlayer = getRightPlayer();
         if (leftPlayer.getPaddle() == null) {
-            getLeftPlayer().setPaddle(new Paddle(PADDLE_DISTANCE, (int) Math.floor(getBoardHeight() * PADDLE__SCREEN_HEIGHT__RATIO), Side.LEFT));
+            getLeftPlayer().setPaddle(new Paddle(PADDLE_DISTANCE, PADDLE_HEIGHT, Side.LEFT));
         }
         if (rightPlayer.getPaddle() == null) {
-            getRightPlayer().setPaddle(new Paddle(PADDLE_DISTANCE, (int) Math.floor(getBoardHeight() * PADDLE__SCREEN_HEIGHT__RATIO), Side.RIGHT));
+            getRightPlayer().setPaddle(new Paddle(PADDLE_DISTANCE, PADDLE_HEIGHT, Side.RIGHT));
         }
 
         leftPlayer.getPaddle().setX(PADDLE_DISTANCE);
@@ -314,7 +317,7 @@ public class Pong {
 
         ball.setX(getBoardWidth() / 2, Side.CENTER);
         ball.setY(getBoardHeight() / 2, Side.CENTER);
-        ball.setVelocity(0, (scoringPlayer == Side.LEFT) ? -PongBall.VELOCITY : PongBall.VELOCITY);
+        ball.setVelocity(0, (scoringPlayer == Side.LEFT) ? -PONG_BALL_VELOCITY : PONG_BALL_VELOCITY);
     }
 
     /**
@@ -353,7 +356,7 @@ public class Pong {
      * @param paddle The paddle to be moved.
      */
     public void paddleDown(Paddle paddle) {
-        paddle.setY(paddle.getY() - getBoardHeight() * PADDLE_MOVEMENT_RATIO);
+        paddle.setY(paddle.getY() - PADDLE_MOVEMENT_RATE);
     }
 
     /**
@@ -390,14 +393,5 @@ public class Pong {
      */
     public Paddle getLeftPaddle() {
         return getLeftPlayer().getPaddle();
-    }
-
-    /**
-     * Gets the rate (in units/second) at which a paddle should rightly move up or down.
-     *
-     * @return The speed, in units/second.
-     */
-    public double getPaddleVelocity() {
-        return PADDLE_MOVEMENT_RATIO * getBoardHeight();
     }
 }

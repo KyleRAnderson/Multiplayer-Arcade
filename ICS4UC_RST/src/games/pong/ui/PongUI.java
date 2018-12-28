@@ -182,7 +182,7 @@ public class PongUI extends Pane implements Game {
      * @param move   True to move the paddle, false to stop moving the paddle.
      */
     private void movePaddleDown(Paddle paddle, boolean move) {
-        paddle.setVelY((move) ? -game.getPaddleVelocity() : 0);
+        paddle.setVelY((move) ? -Pong.PADDLE_MOVEMENT_RATE : 0);
     }
 
     /**
@@ -192,7 +192,7 @@ public class PongUI extends Pane implements Game {
      * @param move   True to move the paddle, false to stop moving the paddle.
      */
     private void movePaddleUp(Paddle paddle, boolean move) {
-        paddle.setVelY((move) ? game.getPaddleVelocity() : 0);
+        paddle.setVelY((move) ? Pong.PADDLE_MOVEMENT_RATE : 0);
     }
 
     /**
