@@ -12,7 +12,11 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 /**
+ * Main menu for users to use to launch whatever game they want to or to customize settings.
+ * Acts as a portal to the rest of the application's features.
+ *
  * @author Kyle Anderson
+ * ICS4U RST
  */
 public class MainMenu extends Application {
     private static final int GAP = 15;

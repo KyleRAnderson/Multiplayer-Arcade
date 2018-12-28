@@ -2,13 +2,15 @@ package games.pong;
 
 import com.sun.istack.internal.NotNull;
 import games.pong.pieces.Paddle;
+import games.pong.pieces.PongBall;
 import games.pong.pieces.PongPiece;
 import games.pong.pieces.Side;
-import games.pong.pieces.ball.PongBall;
 import games.pong.players.PongKeyboardPlayer;
 import games.pong.players.PongPlayer;
 
 /**
+ * Class to render all pong game calculations and logic.
+ *
  * @author Kyle Anderson
  * ICS4U RST
  */

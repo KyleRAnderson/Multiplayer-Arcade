@@ -8,6 +8,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
+ * Represents a player in the game of pong, whether it be a network (online) player, a physical player or a bot.
+ *
  * @author Kyle Anderson
  * ICS4U RST
  */

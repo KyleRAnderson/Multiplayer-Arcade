@@ -3,6 +3,8 @@ package games.player;
 import games.Game;
 
 /**
+ * Defines methods common to players of all games.
+ *
  * @author Kyle Anderson
  * ICS4U RST
  */

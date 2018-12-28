@@ -9,6 +9,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
+ * Represents a network player of the pong game.
+ *
  * @author Kyle Anderson
  * ICS4U RST
  */

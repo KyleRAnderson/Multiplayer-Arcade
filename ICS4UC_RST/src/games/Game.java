@@ -3,7 +3,10 @@ package games;
 import javafx.scene.image.Image;
 
 /**
+ * Enforces structure for games of all sort.
+ *
  * @author Kyle Anderson
+ * ICS4U RST
  */
 public interface Game {
     /**

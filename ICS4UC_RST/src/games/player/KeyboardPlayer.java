@@ -6,6 +6,8 @@ import javafx.scene.input.KeyCode;
 import java.util.HashMap;
 
 /**
+ * Physical player of the game of pong.
+ *
  * @author Kyle Anderson
  * ICS4U RST
  */

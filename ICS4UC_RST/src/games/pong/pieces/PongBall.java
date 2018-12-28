@@ -1,8 +1,6 @@
-package games.pong.pieces.ball;
+package games.pong.pieces;
 
 import games.pong.Pong;
-import games.pong.pieces.PongPiece;
-import games.pong.pieces.Side;
 
 /**
  * Class for representing and mimicking the behaviour of a pong ball.
