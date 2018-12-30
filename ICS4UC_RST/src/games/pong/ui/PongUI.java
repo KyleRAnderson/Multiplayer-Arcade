@@ -15,8 +15,12 @@ import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
+import javafx.scene.text.FontWeight;
 import javafx.util.Duration;
 
 import java.util.HashMap;
@@ -32,6 +36,8 @@ public class PongUI extends Pane implements Game {
     private static final double
             CYCLE_TIME = 5, // How long between ticks.
             FPS = 60; // Frames per second
+    // Font used around the UI.
+    private static final Font FONT = Font.font("Comic Sans MS", FontWeight.BOLD, FontPosture.REGULAR, 24);
     private Pong game;
     // How much the units in the pong game backend are scaled to make a nice looking UI.
     private double scaleFactor;
@@ -40,6 +46,10 @@ public class PongUI extends Pane implements Game {
 
     private Rectangle leftPaddle;
     private Rectangle rightPaddle;
+    private Scoreboard scoreboard;
+
+    // Timers to be used when rendering the game to the user.
+    private Timeline tickTimer, renderFrameTimer;
 
     /**
      * Constructs a new PongUI with the given width and height and Game object.
@@ -67,13 +77,44 @@ public class PongUI extends Pane implements Game {
         leftPaddle = new Rectangle();
         rightPaddle = new Rectangle();
         ball = new Circle();
-        getChildren().addAll(leftPaddle, rightPaddle, ball);
+        scoreboard = initializeScoreboard();
+        getChildren().addAll(leftPaddle, rightPaddle, ball, scoreboard);
         // Update the locations of the things we just created.
         updatePaddleLocations();
         updateBallLocation();
 
         setOnKeyPressed(this::keyPressed);
         setOnKeyReleased(this::keyReleased);
+
+        prefWidthProperty().addListener((observable, oldValue, newValue) -> {
+            // Only resize if the changed width is the same as the old width.
+            if (!oldValue.equals(newValue)) {
+                // Maintain the same height/width ratio.
+                setPrefHeight(game.getBoardHeight() / game.getBoardWidth() * getPrefWidth());
+            }
+        });
+
+        prefHeightProperty().addListener((observable, oldValue, newValue) -> {
+            // Only resize if the changed width is the same as the old width.
+            if (!oldValue.equals(newValue)) {
+                // Maintain the same height/width ratio.
+                setPrefWidth(game.getBoardWidth() / game.getBoardHeight() * getPrefHeight());
+            }
+        });
+    }
+
+    /**
+     * Initializes the scoreboard object to be used in the game.
+     *
+     * @return The Scoreboard object.
+     */
+    private Scoreboard initializeScoreboard() {
+        Scoreboard board = new Scoreboard();
+        board.setFont(FONT);
+        board.setFontFill(Color.RED);
+        board.setSpacing(20); // Set a certain amount of space between the numbers on the scoreboard.
+
+        return board;
     }
 
     /**
@@ -104,29 +145,6 @@ public class PongUI extends Pane implements Game {
         }
     }
 
-    @Override
-    protected void setWidth(double value) {
-        super.setWidth(value);
-        // Only perform resizing if the ratio is dramatically off.
-        if (getHeight() / getWidth() - game.getBoardHeight() / game.getBoardWidth() > 1) {
-            // Calculate how much the height should be if we keep the same ratio between height and width.
-            setHeight(game.getBoardHeight() / game.getBoardWidth() * getWidth());
-        }
-        calculateScaleFactor();
-    }
-
-
-    @Override
-    protected void setHeight(double value) {
-        super.setHeight(value);
-        // Only perform resizing if the ratio is dramatically off.
-        if (getWidth() / getHeight() - game.getBoardWidth() / game.getBoardHeight() > 1) {
-            // Calculate how much the height should be if we keep the same ratio between height and width.
-            setHeight(game.getBoardWidth() / game.getBoardHeight() * getHeight());
-        }
-        calculateScaleFactor();
-    }
-
     /**
      * Re-calculates the scale factor for rendering and such.
      */
@@ -138,6 +156,8 @@ public class PongUI extends Pane implements Game {
         rightPaddle.setWidth(game.getRightPaddle().getWidth() * scaleFactor);
         rightPaddle.setHeight(game.getRightPaddle().getHeight() * scaleFactor);
         ball.setRadius(game.getBall().getRadius() * scaleFactor);
+        scoreboard.setLayoutX(getWidth() / 2 - scoreboard.getWidth() / 2);
+        scoreboard.setLayoutY(getHeight() * 0.01);
 
         updatePaddleLocations();
         updateBallLocation();
@@ -150,9 +170,9 @@ public class PongUI extends Pane implements Game {
     public void start() {
         requestFocus();
         calculateScaleFactor();
-        Timeline tickTimer = new Timeline(new KeyFrame(Duration.millis(CYCLE_TIME), event -> tick()));
+        tickTimer = new Timeline(new KeyFrame(Duration.millis(CYCLE_TIME), event -> tick()));
         tickTimer.setCycleCount(Timeline.INDEFINITE);
-        Timeline renderFrameTimer = new Timeline(new KeyFrame(Duration.millis(1000.0 / FPS), event -> renderFrame()));
+        renderFrameTimer = new Timeline(new KeyFrame(Duration.millis(1000.0 / FPS), event -> renderFrame()));
         renderFrameTimer.setCycleCount(Timeline.INDEFINITE);
 
         // Start all timelines.
@@ -173,6 +193,15 @@ public class PongUI extends Pane implements Game {
     private void renderFrame() {
         updateBallLocation();
         updatePaddleLocations();
+        updateScoreboard();
+    }
+
+    /**
+     * Updates the scoreboard display with the correct scores.
+     */
+    private void updateScoreboard() {
+        scoreboard.setLeftScore(game.getLeftPlayer().getPoints());
+        scoreboard.setRightScore(game.getRightPlayer().getPoints());
     }
 
     /**
@@ -242,12 +271,9 @@ public class PongUI extends Pane implements Game {
     }
 
     @Override
-    public boolean isInProgress() {
-        return false;
-    }
-
-    @Override
     public void end() {
+        tickTimer.stop();
+        renderFrameTimer.stop();
     }
 
     @Override

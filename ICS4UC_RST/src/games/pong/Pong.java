@@ -30,9 +30,9 @@ public class Pong {
     private static final double PADDLE_HEIGHT = 28; // Ratio between the paddle size (height) and the screen height.
     @SuppressWarnings("FieldCanBeLocal")
     // How many units per second the paddle moves while the button is being held down.
-    public static final double PADDLE_MOVEMENT_RATE = 150;
+    public static final double PADDLE_MOVEMENT_RATE = 200;
     // Velocity of the pong ball in units per second.
-    public static final double PONG_BALL_VELOCITY = 200;
+    public static final double PONG_BALL_VELOCITY = 250;
 
     private final PongBall ball;
 
@@ -184,7 +184,7 @@ public class Pong {
     public void renderTick() {
         long tempLastTick = lastTickTime;
         lastTickTime = System.currentTimeMillis();
-        final long timeSinceLastTick = System.currentTimeMillis() - tempLastTick;
+        final long timeSinceLastTick = (tempLastTick > 0) ? System.currentTimeMillis() - tempLastTick : 0;
         ball.renderTick(timeSinceLastTick); // Render a tick for the ball.
 
         Paddle rightPaddle = getRightPaddle(), leftPaddle = getLeftPaddle();
@@ -273,12 +273,12 @@ public class Pong {
 
         // Now check to see if the ball has hit a vertical barrier.
         if (ball.getX(Side.LEFT) <= 0) {
-            getLeftPlayer().addPoint();
+            getRightPlayer().addPoint();
             resetBall(Side.LEFT);
         }
-        // If the ball hit the left side, then add to the player on the right.
+        // If the ball hit the right side, then add to the player on the left.
         else if (ball.getX(Side.RIGHT) >= WIDTH) {
-            getRightPlayer().addPoint();
+            getLeftPlayer().addPoint();
             resetBall(Side.RIGHT);
         }
     }
@@ -327,7 +327,7 @@ public class Pong {
      *
      * @return The player on the right side.
      */
-    private PongPlayer getRightPlayer() {
+    public PongPlayer getRightPlayer() {
         PongPlayer player;
         if (localPlayer.getSide() == Side.RIGHT) {
             player = localPlayer;
@@ -342,7 +342,7 @@ public class Pong {
      *
      * @return The player on the left side.
      */
-    private PongPlayer getLeftPlayer() {
+    public PongPlayer getLeftPlayer() {
         PongPlayer player;
         if (localPlayer.getSide() == Side.LEFT) {
             player = localPlayer;

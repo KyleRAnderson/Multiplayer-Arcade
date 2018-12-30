@@ -31,7 +31,6 @@ public class MainMenu extends Application {
         root.setHgap(GAP);
 
         PongUI pong = new PongUI();
-        pong.setPrefHeight(500);
         pong.setPrefWidth(1000);
         pong.setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
         root.add(pong, 0, 0);

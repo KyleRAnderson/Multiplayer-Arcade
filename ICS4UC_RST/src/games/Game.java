@@ -15,13 +15,6 @@ public interface Game {
     void start();
 
     /**
-     * Determines if this game is currently in progress or not.
-     *
-     * @return True if this game is currently being played, false otherwise.
-     */
-    boolean isInProgress();
-
-    /**
      * Ends the game.
      */
     void end();
