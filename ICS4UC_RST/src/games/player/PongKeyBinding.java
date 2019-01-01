@@ -12,7 +12,7 @@ import javafx.scene.input.KeyCode;
 public enum PongKeyBinding implements KeyBinding {
     MOVE_UP("Paddle Move Up", KeyCode.UP), MOVE_DOWN("Paddle Move Down", KeyCode.DOWN);
 
-    private KeyCode key;
+    private final KeyCode key;
     private final String name;
 
     PongKeyBinding(String name, KeyCode key) {

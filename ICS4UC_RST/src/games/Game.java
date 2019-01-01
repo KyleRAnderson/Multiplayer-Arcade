@@ -1,56 +1,44 @@
 package games;
 
-import javafx.scene.Parent;
 import javafx.scene.image.Image;
 
 /**
+ * Enforces structure for games of all sort.
+ *
  * @author Kyle Anderson
+ * ICS4U RST
  */
-public abstract class Game {
-    /**
-     * The name of this game, in plain english.
-     */
-    protected String gameName;
-
+public interface Game {
     /**
      * Begins a new instance of this game.
      */
-    public abstract void start();
-
-    /**
-     * Determines if this game is currently in progress or not.
-     *
-     * @return
-     */
-    public abstract boolean isInProgress();
+    void start();
 
     /**
      * Ends the game.
      */
-    public abstract void end();
+    void end();
 
     /**
      * Gets the score data from this game.
      *
      * @return The Score data.
      */
-    public abstract Score getScore();
+    Score getScore();
 
     /**
      * Gets the cover image for the
      *
-     * @return
+     * @return Gets the cover art for this game.
      */
-    public abstract Image getCoverArt();
+    Image getCoverArt();
 
-    public String getName() {
-        return gameName;
-    }
+    String getName();
 
     /**
-     * Gets the Parent for the game, which needs to be displayed to the user for it to work.
+     * Determines if this game is a network game.
      *
-     * @return The Parent window for this game.
+     * @return True if it's a network game, false otherwise.
      */
-    public abstract Parent getWindow();
+    boolean isNetworkGame();
 }
