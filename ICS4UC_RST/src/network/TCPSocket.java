@@ -11,7 +11,9 @@ import java.net.Socket;
  * Class for socket which can send/listen for data
  */
 
-class TCPSocket {
+public class TCPSocket {
+    public static final int DEFAULT_PORT = 3001;
+
     protected Socket stSocket;
 
     /**

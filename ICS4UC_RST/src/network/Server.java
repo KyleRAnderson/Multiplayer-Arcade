@@ -43,4 +43,14 @@ public class Server extends TCPSocket {
     public void closeServer() throws IOException {
         ssServer.close();
     }
+
+    /**
+     * Closes the server.
+     * @throws IOException Thrown if there is some sort of error.
+     */
+    @Override
+    public void close() throws IOException {
+        super.close();
+        closeServer();
+    }
 }

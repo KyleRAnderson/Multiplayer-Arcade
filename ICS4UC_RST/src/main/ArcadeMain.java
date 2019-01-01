@@ -3,12 +3,12 @@ package main;
 import menu.MainMenu;
 
 /**
- * Main class for the Arcade console.
+ * ArcadeMain class for the Arcade console.
  *
  * @author Kyle Anderson
  * ICS4U RST
  */
-public class Main {
+public class ArcadeMain {
     /**
      * @param args Command-line arguments
      */
