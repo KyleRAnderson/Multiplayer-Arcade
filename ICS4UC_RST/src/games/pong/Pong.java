@@ -94,7 +94,7 @@ public class Pong {
             } else if (player2.getSide() == Side.RIGHT) {
                 localPlayer.setSide(Side.LEFT);
             } else {
-                // Default first player to the le ft side.
+                // Default first player to the left side.
                 localPlayer.setSide(Side.LEFT);
             }
         }
