@@ -27,7 +27,8 @@ public class Server extends TCPSocket {
     }
 
     /**
-     * Method to accept a socket connection
+     * Method to accept a socket connection. Notice - Blocks the running of the rest of the application until
+     * another machine connects.
      *
      * @throws IOException Thrown when there is some sort of IO issue.
      */
@@ -46,6 +47,7 @@ public class Server extends TCPSocket {
 
     /**
      * Closes the server.
+     *
      * @throws IOException Thrown if there is some sort of error.
      */
     @Override

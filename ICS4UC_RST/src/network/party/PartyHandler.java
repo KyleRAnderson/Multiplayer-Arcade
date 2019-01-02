@@ -15,6 +15,7 @@ import java.io.IOException;
 public class PartyHandler {
     private static PartyRole role;
     private static TCPSocket socket;
+    private static Thread joinThread;
 
     /**
      * Begins a party session with the user at the given IP address.
@@ -45,7 +46,32 @@ public class PartyHandler {
     public static void host(final int port) throws IOException {
         if (!isConnected()) {
             socket = new Server(port);
+            allowJoining();
         }
+    }
+
+    /**
+     * Allows incoming requests to join the party, processing them in a separate thread.
+     */
+    private static void allowJoining() {
+        // Only do stuff if we're a server.
+        if (getRole() == PartyRole.SERVER) {
+            joinThread = new Thread(new Joiner(getServer()));
+            joinThread.start();
+        }
+    }
+
+    /**
+     * Determines if the joiner thread is still waiting for the other player to join.
+     *
+     * @return True if the thread is still waiting on the other player, false otherwise.
+     */
+    public static boolean isStillWaitingForOtherPlayer() {
+        try {
+            joinThread.join(0);
+        } catch (InterruptedException ignored) {
+        }
+        return joinThread.getState() != Thread.State.TERMINATED;
     }
 
     /**
