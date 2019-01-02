@@ -13,6 +13,10 @@ import java.net.Socket;
 
 class TCPSocket {
     protected Socket stSocket;
+    protected PrintWriter pwOut = null;
+    protected OutputStream osSocketOutputStream = null;
+    protected InputStreamReader isInputStreamReader = null;
+    protected BufferedReader brBufferedReader = null;
 
     /**
      * Listens for data being sent to this client.
@@ -25,17 +29,13 @@ class TCPSocket {
 
         // create variable for the sockets input stream
         InputStream isSocketInputStream = stSocket.getInputStream();
-        InputStreamReader isInputStreamReader = new InputStreamReader(isSocketInputStream);
+        isInputStreamReader = new InputStreamReader(isSocketInputStream);
 
         // create a new buffered reader of the socket input stream reader
-        BufferedReader brBufferedReader = new BufferedReader(new InputStreamReader(isSocketInputStream));
+        brBufferedReader = new BufferedReader(new InputStreamReader(isSocketInputStream));
 
         // get string received
         strData = brBufferedReader.readLine();
-
-        // close InputStream and Buffered reader
-        isInputStreamReader.close();
-        brBufferedReader.close();
 
         // return data received
         return strData;
@@ -49,22 +49,37 @@ class TCPSocket {
      */
     public void send(String data) throws IOException {
         // create a new output stream
-        OutputStream osSocketOutputStream = stSocket.getOutputStream();
+        osSocketOutputStream = stSocket.getOutputStream();
 
         // use PrintWriter to send a line of text to the outputStream
-        PrintWriter pwOut = new PrintWriter(osSocketOutputStream, true);
+        pwOut = new PrintWriter(osSocketOutputStream, true);
         pwOut.println(data);
-
-        // close printWriter
-        pwOut.close();
+        pwOut.flush();
     }
 
     /**
-     * Closes the socket in use.
+     * Closes the socket in use and other objects attached to it if they are defined.
      *
      * @throws IOException Thrown when there is an IO problem.
      */
-    public void close() throws IOException {
-        stSocket.close();
-    }
+	public void close() throws IOException {
+		if (pwOut != null) {
+			pwOut.close();
+		}
+
+		if (osSocketOutputStream != null) {
+			osSocketOutputStream.close();
+		}
+
+		if (isInputStreamReader != null) {
+			isInputStreamReader.close();
+		}
+
+		if (brBufferedReader != null) {
+			brBufferedReader.close();
+		}
+
+		stSocket.close();
+	}
+
 }
