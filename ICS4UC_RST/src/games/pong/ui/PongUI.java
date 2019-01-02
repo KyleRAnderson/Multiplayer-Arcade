@@ -11,6 +11,7 @@ import games.pong.players.PongKeyboardPlayer;
 import games.pong.players.PongNetworkPlayer;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.scene.Parent;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -21,6 +22,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
 import javafx.util.Duration;
 
 import java.util.HashMap;
@@ -283,12 +285,21 @@ public class PongUI extends Pane implements Game {
 
     @Override
     public Image getCoverArt() {
-        return null;
+        return new Image(getClass().getResource("/res/pong/coverart.png").toString());
     }
 
     @Override
     public String getName() {
         return "Pong";
+    }
+
+    @Override
+    public Text getTextDisplay() {
+        Text text = new Text(getName());
+        text.setFont(Font.font("Consolas", FontWeight.BLACK, FontPosture.REGULAR, 72));
+        text.setFill(Color.ORANGE);
+
+        return text;
     }
 
     /**
@@ -299,5 +310,15 @@ public class PongUI extends Pane implements Game {
     @Override
     public boolean isNetworkGame() {
         return game.getPlayer2() instanceof PongNetworkPlayer || game.getLocalPlayer() instanceof PongNetworkPlayer;
+    }
+
+    @Override
+    public PongUI createNew() {
+        return new PongUI();
+    }
+
+    @Override
+    public Parent getWindow() {
+        return this;
     }
 }

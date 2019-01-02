@@ -1,6 +1,8 @@
 package games;
 
+import javafx.scene.Parent;
 import javafx.scene.image.Image;
+import javafx.scene.text.Text;
 
 /**
  * Enforces structure for games of all sort.
@@ -36,9 +38,31 @@ public interface Game {
     String getName();
 
     /**
+     * Gets the text object to be displayed for this game on its menu.
+     *
+     * @return The text object.
+     */
+    Text getTextDisplay();
+
+    /**
      * Determines if this game is a network game.
      *
      * @return True if it's a network game, false otherwise.
      */
     boolean isNetworkGame();
+
+    /**
+     * Creates a new game to be played.
+     *
+     * @param <T> The type of the game.
+     * @return A new game instance.
+     */
+    <T extends Game> T createNew();
+
+    /**
+     * Gets the displaying window for the game.
+     *
+     * @return The display window for the game.
+     */
+    Parent getWindow();
 }

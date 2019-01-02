@@ -15,6 +15,7 @@ public class Joiner implements Runnable {
 
     /**
      * Instantiates a new joiner object.
+     *
      * @param server The server object which will be accepting the joining users.
      */
     public Joiner(Server server) {
