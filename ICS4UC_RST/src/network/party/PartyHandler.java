@@ -1,5 +1,6 @@
 package network.party;
 
+import advancedIO.AdvancedIO;
 import network.Client;
 import network.Server;
 import network.TCPSocket;
@@ -34,6 +35,9 @@ public class PartyHandler {
             } catch (IOException e) {
             }
         }
+        if (didConnect) {
+            role = PartyRole.CLIENT;
+        }
         return didConnect;
     }
 
@@ -45,6 +49,7 @@ public class PartyHandler {
      */
     public static void host(final int port) throws IOException {
         if (!isConnected()) {
+            role = PartyRole.SERVER;
             socket = new Server(port);
             allowJoining();
         }
@@ -68,7 +73,7 @@ public class PartyHandler {
      */
     public static boolean isStillWaitingForOtherPlayer() {
         try {
-            joinThread.join(0);
+            joinThread.join(10);
         } catch (InterruptedException ignored) {
         }
         return joinThread.getState() != Thread.State.TERMINATED;
@@ -121,5 +126,60 @@ public class PartyHandler {
      */
     public static Server getServer() {
         return (getRole() == PartyRole.SERVER && socket instanceof Server) ? (Server) socket : null;
+    }
+
+    /**
+     * Method for allowing this module to be tested and tried out without the rest of the application.
+     *
+     * @param args Command-line arguments.
+     * @throws IOException if there is some sort of IOException.
+     */
+    public static void main(String[] args) throws IOException, InterruptedException {
+        AdvancedIO.print("Arguments: [client/server (c for client, s for server)] [port] [ip address (if client)]");
+        if (args.length == 0) {
+            args = AdvancedIO.readStringArray("Enter arguments separated by spaces.\n-->", 2, 3);
+        }
+
+        if (!(2 <= args.length && args.length <= 3)) {
+            AdvancedIO.print("Invalid argument length.");
+        } else {
+            args[0] = args[0].toLowerCase();
+            int port = -1;
+            try {
+                port = Integer.parseInt(args[1]);
+            } catch (NumberFormatException ignored) {
+            }
+
+            if (port >= 0) {
+                switch (args[0]) {
+                    case "c":
+                        if (args.length == 3) {
+                            String ip = args[2];
+                            connect(ip, port);
+                        } else {
+                            AdvancedIO.print("Invalid number of arguments. Need all 3 arguments for client.");
+                        }
+                        break;
+                    case "s":
+                        host(port);
+
+                        boolean waiting;
+                        do {
+                            waiting = isStillWaitingForOtherPlayer();
+                            if (waiting) {
+                                AdvancedIO.print("Waiting for other user to join...");
+                            }
+                            Thread.sleep(1000);
+                        } while (waiting);
+
+                        break;
+                    default:
+                        AdvancedIO.print("Invalid selection of client or server. Enter \"c\" for client and \"s\" for server.");
+                        break;
+                }
+            } else {
+                AdvancedIO.print("Second argument must be an integer corresponding to the port.");
+            }
+        }
     }
 }

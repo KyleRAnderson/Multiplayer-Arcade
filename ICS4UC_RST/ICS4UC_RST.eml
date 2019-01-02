@@ -12,4 +12,10 @@
 	<lib name="xom-1.2.11.jar" scope="COMPILE">
 		<relative-module-cls project-related="jar://$PROJECT_DIR$/rst/ICS4UC_RST/lib/xom-1.2.11.jar!/"/>
 	</lib>
+	<lib name="AdvancedIO.jar" scope="COMPILE">
+		<srcroot url="jar://$MODULE_DIR$/lib/AdvancedIO.jar!/"/>
+		<relative-module-src project-related="jar://$PROJECT_DIR$/rst/ICS4UC_RST/lib/AdvancedIO.jar!/"/>
+		<relative-module-cls project-related="jar://$PROJECT_DIR$/rst/ICS4UC_RST/lib/AdvancedIO.jar!/"/>
+		<relative-module-javadoc project-related="jar://$PROJECT_DIR$/rst/ICS4UC_RST/lib/AdvancedIO.jar!/doc"/>
+	</lib>
 </component>
