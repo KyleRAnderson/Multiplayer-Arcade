@@ -2,21 +2,27 @@ package menu;
 
 import games.Game;
 import games.pong.ui.PongUI;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.*;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import network.TCPSocket;
+import network.party.PartyHandler;
+
+import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Main menu for users to use to launch whatever game they want to or to customize settings.
@@ -45,6 +51,8 @@ public class MainMenu extends Application {
             INPUT_FONT = Font.font("Book Antiqua", FontWeight.NORMAL, FontPosture.REGULAR, 12);
     private GridPane menuRoot;
     private Stage stage;
+
+    private PartyMenuItem hostMenuItem, connectMenuItem;
 
     // The game that's currently being played.
     private Game currentGame;
@@ -114,32 +122,32 @@ public class MainMenu extends Application {
         menuRoot.add(scores, 1, 1); // Add to (1, 1)
 
         // Connect to party button
-        PartyMenuItem connect = new PartyMenuItem("Connect", "Connecting...");
-        connect.setPadding(new Insets(15));
-        formatMenuItem(connect);
-        connect.setBackground(new Background(new BackgroundFill(Color.YELLOW, CornerRadii.EMPTY, Insets.EMPTY)));
-        Button connectButton = connect.getActionButton();
+        connectMenuItem = new PartyMenuItem("Connect", "Connecting...");
+        connectMenuItem.setPadding(new Insets(15));
+        formatMenuItem(connectMenuItem);
+        connectMenuItem.setBackground(new Background(new BackgroundFill(Color.YELLOW, CornerRadii.EMPTY, Insets.EMPTY)));
+        Button connectButton = connectMenuItem.getActionButton();
         connectButton.setFont(INPUT_FONT);
         connectButton.setBackground(new Background(new BackgroundFill(Color.rgb(77, 77, 255), CornerRadii.EMPTY, Insets.EMPTY)));
-        connect.setOnAction(event -> connectToParty());
+        connectMenuItem.setOnAction(event -> connectToParty());
         Text ipLabel = new Text("IP Address");
         ipLabel.setFont(INPUT_FONT);
-        connect.addIPField(ipLabel);
-        TextField addressField = connect.getIPField();
+        connectMenuItem.addIPField(ipLabel);
+        TextField addressField = connectMenuItem.getIPField();
         addressField.setFont(INPUT_FONT);
-        setupPort(connect);
-        menuRoot.add(connect, 0, 2); // Add to (0, 2)
+        setupPort(connectMenuItem);
+        menuRoot.add(connectMenuItem, 0, 2); // Add to (0, 2)
 
         // Host a party button
-        PartyMenuItem host = new PartyMenuItem("Host", "Waiting for Players...");
-        host.setPadding(new Insets(15));
-        formatMenuItem(host);
-        host.setBackground(new Background(new BackgroundFill(Color.RED, CornerRadii.EMPTY, Insets.EMPTY)));
-        Button hostButton = host.getActionButton();
+        hostMenuItem = new PartyMenuItem("Host", "Waiting for Players...");
+        hostMenuItem.setPadding(new Insets(15));
+        formatMenuItem(hostMenuItem);
+        hostMenuItem.setBackground(new Background(new BackgroundFill(Color.RED, CornerRadii.EMPTY, Insets.EMPTY)));
+        Button hostButton = hostMenuItem.getActionButton();
         hostButton.setBackground(new Background(new BackgroundFill(Color.rgb(255, 77, 255), CornerRadii.EMPTY, Insets.EMPTY)));
-        host.setOnAction(event -> hostParty());
-        setupPort(host);
-        menuRoot.add(host, 1, 2); // Add to (1, 2)
+        hostMenuItem.setOnAction(event -> hostParty());
+        setupPort(hostMenuItem);
+        menuRoot.add(hostMenuItem, 1, 2); // Add to (1, 2)
 
         // Now for the games themselves, held within a scroll pane.
         VBox games = new VBox(); // New VBox with no gap for displaying game menu items.
@@ -282,12 +290,54 @@ public class MainMenu extends Application {
      * Connects to a party at the currently set IP address and port.
      */
     private void connectToParty() {
+        hostMenuItem.setDisable(true);
+        // Need to connect in a separate thread.
+        ConnectTask task = new ConnectTask(connectMenuItem.getIpAddress(), connectMenuItem.getPort());
+        task.setOnFailed(event -> connectionOver(false));
+        task.setOnSucceeded(event -> connectionOver(task.getValue()));
+
+        ExecutorService executorService = Executors.newFixedThreadPool(1);
+        executorService.execute(task);
+        executorService.shutdown();
+    }
+
+    /**
+     * Called when the attempt to connect to a host user is ended.
+     * @param succeeded True if the connection attempt succeeded, false otherwise.
+     */
+    private void connectionOver(boolean succeeded) {
+        if (!PartyHandler.isConnected() || !succeeded) {
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR, "Failed to connect to host.", ButtonType.OK);
+            errorAlert.showAndWait();
+        }
+        hostMenuItem.setDisable(false);
+        connectMenuItem.setActive(false);
     }
 
     /**
      * Hosts a party on the currently set port.
      */
     private void hostParty() {
+        connectMenuItem.setDisable(true);
+        try {
+            PartyHandler.host(hostMenuItem.getPort());
+        } catch (IOException e) {
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR, "Failed to start host.", ButtonType.OK);
+            errorAlert.showAndWait();
+        }
 
+        Timeline checkTimeline = new Timeline(new KeyFrame(Duration.millis(500), event -> checkHost()));
+        checkTimeline.setCycleCount(Timeline.INDEFINITE);
+        checkTimeline.play();
+    }
+
+    /**
+     * Checks to see if the host has completed a connection with another player.
+     */
+    private void checkHost() {
+        if (!PartyHandler.isStillWaitingForOtherPlayer()) {
+            connectMenuItem.setDisable(false);
+            hostMenuItem.setActive(false);
+        }
     }
 }

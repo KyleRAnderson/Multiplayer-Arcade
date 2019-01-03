@@ -38,6 +38,7 @@ public class PartyHandler {
         if (didConnect) {
             role = PartyRole.CLIENT;
         }
+
         return didConnect;
     }
 
