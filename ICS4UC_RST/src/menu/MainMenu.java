@@ -3,19 +3,20 @@ package menu;
 import games.Game;
 import games.pong.ui.PongUI;
 import javafx.application.Application;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.*;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import network.TCPSocket;
 
 /**
  * Main menu for users to use to launch whatever game they want to or to customize settings.
@@ -39,7 +40,9 @@ public class MainMenu extends Application {
 
 
     private static final int GAP = 15;
-    private static final Font HEADER_FONT = Font.font("Times New Roman", FontWeight.BOLD, FontPosture.REGULAR, 48);
+    private static final Font
+            HEADER_FONT = Font.font("Times New Roman", FontWeight.BOLD, FontPosture.REGULAR, 48),
+            INPUT_FONT = Font.font("Book Antiqua", FontWeight.NORMAL, FontPosture.REGULAR, 12);
     private GridPane menuRoot;
     private Stage stage;
 
@@ -69,14 +72,17 @@ public class MainMenu extends Application {
         Text welcomeText = new Text("Welcome to the Arcade!");
         welcomeText.setTextAlignment(TextAlignment.CENTER);
         welcomeText.setFont(HEADER_FONT);
-        StackPane welcomeButton = getMenuItem(null);
+        StackPane welcomeButton = new StackPane();
+        formatMenuItem(welcomeButton);
         welcomeButton.getChildren().add(welcomeText);
         // Blue background.
         welcomeButton.setBackground(new Background(new BackgroundFill(Color.DODGERBLUE, CornerRadii.EMPTY, Insets.EMPTY)));
         menuRoot.add(welcomeButton, 0, 0, 2, 1); // (0, 0) with colspan of 2 to spread the entire width.
 
         // Now create the preferences menu item
-        StackPane preferences = getMenuItem(event -> displayPreferences());
+        StackPane preferences = new StackPane();
+        formatMenuItem(preferences);
+        preferences.setOnMouseClicked(event -> displayPreferences());
         HBox contents = new HBox(GAP);
         contents.setAlignment(Pos.CENTER);
         Text labelText = new Text("Preferences");
@@ -91,7 +97,9 @@ public class MainMenu extends Application {
         menuRoot.add(preferences, 0, 1); // Add to (0, 1)
 
         // Scores menu item.
-        StackPane scores = getMenuItem(event -> showScores());
+        StackPane scores = new StackPane();
+        formatMenuItem(scores);
+        scores.setOnMouseClicked(event -> showScores());
         HBox scoresContent = new HBox(GAP);
         scoresContent.setAlignment(Pos.CENTER);
         Text scoresLabel = new Text("Scores");
@@ -105,6 +113,34 @@ public class MainMenu extends Application {
         scores.setBackground(new Background(new BackgroundFill(Color.MEDIUMPURPLE, CornerRadii.EMPTY, Insets.EMPTY)));
         menuRoot.add(scores, 1, 1); // Add to (1, 1)
 
+        // Connect to party button
+        PartyMenuItem connect = new PartyMenuItem("Connect", "Connecting...");
+        connect.setPadding(new Insets(15));
+        formatMenuItem(connect);
+        connect.setBackground(new Background(new BackgroundFill(Color.YELLOW, CornerRadii.EMPTY, Insets.EMPTY)));
+        Button connectButton = connect.getActionButton();
+        connectButton.setFont(INPUT_FONT);
+        connectButton.setBackground(new Background(new BackgroundFill(Color.rgb(77, 77, 255), CornerRadii.EMPTY, Insets.EMPTY)));
+        connect.setOnAction(event -> connectToParty());
+        Text ipLabel = new Text("IP Address");
+        ipLabel.setFont(INPUT_FONT);
+        connect.addIPField(ipLabel);
+        TextField addressField = connect.getIPField();
+        addressField.setFont(INPUT_FONT);
+        setupPort(connect);
+        menuRoot.add(connect, 0, 2); // Add to (0, 2)
+
+        // Host a party button
+        PartyMenuItem host = new PartyMenuItem("Host", "Waiting for Players...");
+        host.setPadding(new Insets(15));
+        formatMenuItem(host);
+        host.setBackground(new Background(new BackgroundFill(Color.RED, CornerRadii.EMPTY, Insets.EMPTY)));
+        Button hostButton = host.getActionButton();
+        hostButton.setBackground(new Background(new BackgroundFill(Color.rgb(255, 77, 255), CornerRadii.EMPTY, Insets.EMPTY)));
+        host.setOnAction(event -> hostParty());
+        setupPort(host);
+        menuRoot.add(host, 1, 2); // Add to (1, 2)
+
         // Now for the games themselves, held within a scroll pane.
         VBox games = new VBox(); // New VBox with no gap for displaying game menu items.
         games.setAlignment(Pos.TOP_CENTER);
@@ -115,11 +151,13 @@ public class MainMenu extends Application {
         gamesScrollPane.setContent(games);
         GridPane.setHgrow(gamesScrollPane, Priority.ALWAYS);
         GridPane.setVgrow(gamesScrollPane, Priority.ALWAYS);
-        menuRoot.add(gamesScrollPane, 0, 2, 2, 1); // Add to (0, 2) with colspan and rowspan of 2.
+        menuRoot.add(gamesScrollPane, 0, 3, 2, 1); // Add to (0, 3) with colspan and rowspan of 2.
 
         // Now for adding all of the games to the list.
         for (Game game : this.games) {
-            StackPane menuItem = getMenuItem(event -> playGame(game));
+            StackPane menuItem = new StackPane();
+            formatMenuItem(menuItem);
+            menuItem.setOnMouseClicked(event -> playGame(game));
             Text menuText = game.getTextDisplay();
             menuText.setTextAlignment(TextAlignment.CENTER);
             VBox.setVgrow(menuItem, Priority.SOMETIMES);
@@ -142,14 +180,28 @@ public class MainMenu extends Application {
         // Column and row constraints.
         ColumnConstraints column1 = createColumnConstraints(50);
         ColumnConstraints column2 = createColumnConstraints(50);
-        RowConstraints row1 = createRowConstraints(25);
-        RowConstraints row2 = createRowConstraints(25);
-        RowConstraints row3 = createRowConstraints(50);
+        RowConstraints row1 = createRowConstraints(10);
+        RowConstraints row2 = createRowConstraints(20);
+        RowConstraints row3 = createRowConstraints(20);
+        RowConstraints row4 = createRowConstraints(50);
         menuRoot.getColumnConstraints().addAll(column1, column2);
-        menuRoot.getRowConstraints().addAll(row1, row2, row3);
+        menuRoot.getRowConstraints().addAll(row1, row2, row3, row4);
 
         // Set the scene at the end.
         setDisplay(menuRoot);
+    }
+
+    /**
+     * SEts up the port for the PartyMenuItem
+     * @param menuItem The PartyMenuItem for which the port should be set up.
+     */
+    private static void setupPort(PartyMenuItem menuItem) {
+        Text portLabel = new Text("Port");
+        portLabel.setFont(INPUT_FONT);
+        menuItem.addPortField(TCPSocket.DEFAULT_PORT, portLabel);
+        TextField portField = menuItem.getPortField();
+        portField.setFont(INPUT_FONT);
+        menuItem.setSpacing(GAP);
     }
 
     /**
@@ -173,19 +225,14 @@ public class MainMenu extends Application {
     }
 
     /**
-     * Gets a stackpane properly formatted for a menu item.
+     * Formats the provided stack pane in ordre to match styling for menu items.
      *
-     * @param clickAction The action to be called when the menu item is clicked.
-     * @return The created Stackpane.
+     * @param item The Stack Pane to be formatted to match a menu item's style.
      */
-    private static StackPane getMenuItem(EventHandler<MouseEvent> clickAction) {
-        StackPane pane = new StackPane();
-        pane.setOnMouseClicked(clickAction);
-        pane.setAlignment(Pos.CENTER);
-        GridPane.setHgrow(pane, Priority.ALWAYS);
-        GridPane.setVgrow(pane, Priority.ALWAYS);
-
-        return pane;
+    private static void formatMenuItem(StackPane item) {
+        item.setAlignment(Pos.CENTER);
+        GridPane.setHgrow(item, Priority.ALWAYS);
+        GridPane.setVgrow(item, Priority.ALWAYS);
     }
 
     /**
@@ -228,6 +275,19 @@ public class MainMenu extends Application {
      * Displays the user preferences menu.
      */
     private void displayPreferences() {
+
+    }
+
+    /**
+     * Connects to a party at the currently set IP address and port.
+     */
+    private void connectToParty() {
+    }
+
+    /**
+     * Hosts a party on the currently set port.
+     */
+    private void hostParty() {
 
     }
 }
