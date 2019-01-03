@@ -1,7 +1,7 @@
 package games;
 
-import javafx.scene.Parent;
 import javafx.scene.image.Image;
+import javafx.scene.layout.Region;
 import javafx.scene.text.Text;
 
 /**
@@ -64,5 +64,10 @@ public interface Game {
      *
      * @return The display window for the game.
      */
-    Parent getWindow();
+    Region getWindow();
+
+    /**
+     * Resets the game, readying it for another play instance.
+     */
+    void reset();
 }

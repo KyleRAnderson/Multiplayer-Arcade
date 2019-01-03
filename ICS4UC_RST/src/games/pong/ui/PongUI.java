@@ -1,5 +1,6 @@
 package games.pong.ui;
 
+import advancedIO.AdvancedIO;
 import games.Game;
 import games.Score;
 import games.player.PongKeyBinding;
@@ -11,7 +12,6 @@ import games.pong.players.PongKeyboardPlayer;
 import games.pong.players.PongNetworkPlayer;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
-import javafx.scene.Parent;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -57,33 +57,13 @@ public class PongUI extends Pane implements Game {
      * Constructs a new PongUI with the given width and height and Game object.
      */
     public PongUI() {
-        PongKeyboardPlayer p1 = new PongKeyboardPlayer(), p2 = new PongKeyboardPlayer();
-        game = new Pong(p1, p2); // Initialize new pong game with the correct type of players.
-
-        // TODO streamline automatic key bindings handled in the actual KeyboardPlayer class later.
-        HashMap<KeyCode, PongKeyBinding> p2Bindings = new HashMap<>();
-        p2Bindings.put(KeyCode.UP, PongKeyBinding.MOVE_UP);
-        p2Bindings.put(KeyCode.DOWN, PongKeyBinding.MOVE_DOWN);
-
-        HashMap<KeyCode, PongKeyBinding> p1Bindings = new HashMap<>();
-        p1Bindings.put(KeyCode.Q, PongKeyBinding.MOVE_UP);
-        p1Bindings.put(KeyCode.A, PongKeyBinding.MOVE_DOWN);
-        p1.setKeyBindings(p1Bindings);
-        p2.setKeyBindings(p2Bindings);
-
-        p1.setOnPaddleDown((pongPlayer, move) -> movePaddleDown(pongPlayer.getPaddle(), move));
-        p2.setOnPaddleDown((pongPlayer, move) -> movePaddleDown(pongPlayer.getPaddle(), move));
-        p1.setOnPaddleUp((pongPlayer, move) -> movePaddleUp(pongPlayer.getPaddle(), move));
-        p2.setOnPaddleUp((pongPlayer, move) -> movePaddleUp(pongPlayer.getPaddle(), move));
+        reset();
 
         leftPaddle = new Rectangle();
         rightPaddle = new Rectangle();
         ball = new Circle();
         scoreboard = initializeScoreboard();
         getChildren().addAll(leftPaddle, rightPaddle, ball, scoreboard);
-        // Update the locations of the things we just created.
-        updatePaddleLocations();
-        updateBallLocation();
 
         setOnKeyPressed(this::keyPressed);
         setOnKeyReleased(this::keyReleased);
@@ -93,6 +73,8 @@ public class PongUI extends Pane implements Game {
             if (!oldValue.equals(newValue)) {
                 // Maintain the same height/width ratio.
                 setPrefHeight(game.getBoardHeight() / game.getBoardWidth() * getPrefWidth());
+                setWidth(getPrefWidth()); // TODO determine if this is ok.
+                calculateScaleFactor();
             }
         });
 
@@ -101,6 +83,8 @@ public class PongUI extends Pane implements Game {
             if (!oldValue.equals(newValue)) {
                 // Maintain the same height/width ratio.
                 setPrefWidth(game.getBoardWidth() / game.getBoardHeight() * getPrefHeight());
+                setHeight(getPrefHeight()); // TODO determine if this is ok.
+                calculateScaleFactor();
             }
         });
     }
@@ -151,15 +135,15 @@ public class PongUI extends Pane implements Game {
      * Re-calculates the scale factor for rendering and such.
      */
     private void calculateScaleFactor() {
-        scaleFactor = getWidth() / game.getBoardWidth();
+        scaleFactor = getWorkingWidth() / game.getBoardWidth();
 
         leftPaddle.setWidth(game.getLeftPaddle().getWidth() * scaleFactor);
         leftPaddle.setHeight(game.getLeftPaddle().getHeight() * scaleFactor);
         rightPaddle.setWidth(game.getRightPaddle().getWidth() * scaleFactor);
         rightPaddle.setHeight(game.getRightPaddle().getHeight() * scaleFactor);
         ball.setRadius(game.getBall().getRadius() * scaleFactor);
-        scoreboard.setLayoutX(getWidth() / 2 - scoreboard.getWidth() / 2);
-        scoreboard.setLayoutY(getHeight() * 0.01);
+        scoreboard.setLayoutX(getWorkingWidth() / 2 - scoreboard.getWidth() / 2);
+        scoreboard.setLayoutY(getWorkingHeight() * 0.01);
 
         updatePaddleLocations();
         updateBallLocation();
@@ -170,6 +154,8 @@ public class PongUI extends Pane implements Game {
      */
     @Override
     public void start() {
+        AdvancedIO.print(getWorkingWidth()); // TODO remove
+
         requestFocus();
         calculateScaleFactor();
         tickTimer = new Timeline(new KeyFrame(Duration.millis(CYCLE_TIME), event -> tick()));
@@ -180,6 +166,24 @@ public class PongUI extends Pane implements Game {
         // Start all timelines.
         tickTimer.play();
         renderFrameTimer.play();
+    }
+
+    /**
+     * Gets the workable area of width for this game.
+     *
+     * @return The workable size of width.
+     */
+    private double getWorkingWidth() {
+        return getWidth();
+    }
+
+    /**
+     * Gets the workable area of height for this game.
+     *
+     * @return The workable size of height.
+     */
+    private double getWorkingHeight() {
+        return getHeight();
     }
 
     /**
@@ -318,7 +322,29 @@ public class PongUI extends Pane implements Game {
     }
 
     @Override
-    public Parent getWindow() {
+    public PongUI getWindow() {
         return this;
+    }
+
+    @Override
+    public void reset() {
+        PongKeyboardPlayer p1 = new PongKeyboardPlayer(), p2 = new PongKeyboardPlayer();
+        game = new Pong(p1, p2); // Initialize new pong game with the correct type of players.
+
+        // TODO streamline automatic key bindings handled in the actual KeyboardPlayer class later.
+        HashMap<KeyCode, PongKeyBinding> p2Bindings = new HashMap<>();
+        p2Bindings.put(KeyCode.UP, PongKeyBinding.MOVE_UP);
+        p2Bindings.put(KeyCode.DOWN, PongKeyBinding.MOVE_DOWN);
+
+        HashMap<KeyCode, PongKeyBinding> p1Bindings = new HashMap<>();
+        p1Bindings.put(KeyCode.Q, PongKeyBinding.MOVE_UP);
+        p1Bindings.put(KeyCode.A, PongKeyBinding.MOVE_DOWN);
+        p1.setKeyBindings(p1Bindings);
+        p2.setKeyBindings(p2Bindings);
+
+        p1.setOnPaddleDown((pongPlayer, move) -> movePaddleDown(pongPlayer.getPaddle(), move));
+        p2.setOnPaddleDown((pongPlayer, move) -> movePaddleDown(pongPlayer.getPaddle(), move));
+        p1.setOnPaddleUp((pongPlayer, move) -> movePaddleUp(pongPlayer.getPaddle(), move));
+        p2.setOnPaddleUp((pongPlayer, move) -> movePaddleUp(pongPlayer.getPaddle(), move));
     }
 }

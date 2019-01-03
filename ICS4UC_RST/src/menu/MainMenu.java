@@ -25,9 +25,26 @@ import javafx.stage.Stage;
  * ICS4U RST
  */
 public class MainMenu extends Application {
+    private static final double DEFAULT_WIDTH, DEFAULT_HEIGHT, SCREEN_HEIGHT, SCREEN_WIDTH, MIN_HEIGHT, MIN_WIDTH;
+
+    static {
+        Rectangle2D screenDimensions = Screen.getPrimary().getBounds();
+        SCREEN_HEIGHT = screenDimensions.getHeight();
+        SCREEN_WIDTH = screenDimensions.getWidth();
+        DEFAULT_WIDTH = SCREEN_WIDTH / 2;
+        DEFAULT_HEIGHT = SCREEN_HEIGHT / 2;
+        MIN_HEIGHT = SCREEN_HEIGHT / 5;
+        MIN_WIDTH = SCREEN_WIDTH / 5;
+    }
+
+
     private static final int GAP = 15;
     private static final Font HEADER_FONT = Font.font("Times New Roman", FontWeight.BOLD, FontPosture.REGULAR, 48);
-    private GridPane root;
+    private GridPane menuRoot;
+    private Stage stage;
+
+    // The game that's currently being played.
+    private Game currentGame;
 
     // Array of all the playable games.
     private Game[] games = new Game[]{
@@ -36,17 +53,17 @@ public class MainMenu extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        initializeElements(primaryStage);
+        this.stage = primaryStage;
+        initializeElements();
         primaryStage.show();
     }
 
     /**
      * Initializes all UI elements.
      */
-    private void initializeElements(Stage stage) {
+    private void initializeElements() {
         stage.setTitle("Arcade");
-
-        root = new GridPane();
+        menuRoot = new GridPane();
 
         // Create the welcome button at the top.
         Text welcomeText = new Text("Welcome to the Arcade!");
@@ -56,7 +73,7 @@ public class MainMenu extends Application {
         welcomeButton.getChildren().add(welcomeText);
         // Blue background.
         welcomeButton.setBackground(new Background(new BackgroundFill(Color.DODGERBLUE, CornerRadii.EMPTY, Insets.EMPTY)));
-        root.add(welcomeButton, 0, 0, 2, 1); // (0, 0) with colspan of 2 to spread the entire width.
+        menuRoot.add(welcomeButton, 0, 0, 2, 1); // (0, 0) with colspan of 2 to spread the entire width.
 
         // Now create the preferences menu item
         StackPane preferences = getMenuItem(event -> displayPreferences());
@@ -71,7 +88,7 @@ public class MainMenu extends Application {
         contents.getChildren().addAll(labelText, image);
         preferences.getChildren().add(contents);
         preferences.setBackground(new Background(new BackgroundFill(Color.ORANGE, CornerRadii.EMPTY, Insets.EMPTY)));
-        root.add(preferences, 0, 1); // Add to (0, 1)
+        menuRoot.add(preferences, 0, 1); // Add to (0, 1)
 
         // Scores menu item.
         StackPane scores = getMenuItem(event -> showScores());
@@ -86,7 +103,7 @@ public class MainMenu extends Application {
         scoresContent.getChildren().addAll(scoresImage, scoresLabel);
         scores.getChildren().add(scoresContent);
         scores.setBackground(new Background(new BackgroundFill(Color.MEDIUMPURPLE, CornerRadii.EMPTY, Insets.EMPTY)));
-        root.add(scores, 1, 1); // Add to (1, 1)
+        menuRoot.add(scores, 1, 1); // Add to (1, 1)
 
         // Now for the games themselves, held within a scroll pane.
         VBox games = new VBox(); // New VBox with no gap for displaying game menu items.
@@ -98,7 +115,7 @@ public class MainMenu extends Application {
         gamesScrollPane.setContent(games);
         GridPane.setHgrow(gamesScrollPane, Priority.ALWAYS);
         GridPane.setVgrow(gamesScrollPane, Priority.ALWAYS);
-        root.add(gamesScrollPane, 0, 2, 2, 1); // Add to (0, 2) with colspan and rowspan of 2.
+        menuRoot.add(gamesScrollPane, 0, 2, 2, 1); // Add to (0, 2) with colspan and rowspan of 2.
 
         // Now for adding all of the games to the list.
         for (Game game : this.games) {
@@ -115,25 +132,24 @@ public class MainMenu extends Application {
             games.getChildren().add(menuItem);
         }
 
-        Rectangle2D screenDimensions = Screen.getPrimary().getBounds();
+
         // Stage minimum size
-        stage.setMinHeight(screenDimensions.getHeight() / 5);
-        stage.setMinWidth(screenDimensions.getWidth() / 5);
+        stage.setMinHeight(MIN_HEIGHT);
+        stage.setMinWidth(MIN_WIDTH);
         // Create the scene and all.
-        root.setMaxSize(screenDimensions.getWidth(), screenDimensions.getHeight());
-        root.setMinSize(stage.getMinWidth(), stage.getMinHeight());
-        root.setPrefSize(screenDimensions.getWidth() / 2, screenDimensions.getHeight() / 2);
+        menuRoot.setMinSize(stage.getMinWidth(), stage.getMinHeight());
+        menuRoot.setPrefSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
         // Column and row constraints.
         ColumnConstraints column1 = createColumnConstraints(50);
         ColumnConstraints column2 = createColumnConstraints(50);
         RowConstraints row1 = createRowConstraints(25);
         RowConstraints row2 = createRowConstraints(25);
         RowConstraints row3 = createRowConstraints(50);
-        root.getColumnConstraints().addAll(column1, column2);
-        root.getRowConstraints().addAll(row1, row2, row3);
+        menuRoot.getColumnConstraints().addAll(column1, column2);
+        menuRoot.getRowConstraints().addAll(row1, row2, row3);
 
         // Set the scene at the end.
-        stage.setScene(new Scene(root));
+        setDisplay(menuRoot);
     }
 
     /**
@@ -142,7 +158,18 @@ public class MainMenu extends Application {
      * @param game The game to play.
      */
     private void playGame(Game game) {
+        currentGame = game;
+        currentGame.reset();
+        Region window = currentGame.getWindow();
+        window.setPrefWidth(menuRoot.getWidth());
+        window.setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
+        setDisplay(window);
+        currentGame.start();
+    }
 
+    private void setDisplay(Region parent) {
+        Scene newScene = new Scene(parent);
+        stage.setScene(newScene);
     }
 
     /**
