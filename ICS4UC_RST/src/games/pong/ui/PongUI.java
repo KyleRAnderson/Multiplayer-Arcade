@@ -73,7 +73,6 @@ public class PongUI extends Pane implements Game {
             if (!oldValue.equals(newValue)) {
                 // Maintain the same height/width ratio.
                 setPrefHeight(game.getBoardHeight() / game.getBoardWidth() * getPrefWidth());
-                setWidth(getPrefWidth()); // TODO determine if this is ok.
                 calculateScaleFactor();
             }
         });
@@ -83,7 +82,6 @@ public class PongUI extends Pane implements Game {
             if (!oldValue.equals(newValue)) {
                 // Maintain the same height/width ratio.
                 setPrefWidth(game.getBoardWidth() / game.getBoardHeight() * getPrefHeight());
-                setHeight(getPrefHeight()); // TODO determine if this is ok.
                 calculateScaleFactor();
             }
         });
@@ -154,8 +152,6 @@ public class PongUI extends Pane implements Game {
      */
     @Override
     public void start() {
-        AdvancedIO.print(getWorkingWidth()); // TODO remove
-
         requestFocus();
         calculateScaleFactor();
         tickTimer = new Timeline(new KeyFrame(Duration.millis(CYCLE_TIME), event -> tick()));
