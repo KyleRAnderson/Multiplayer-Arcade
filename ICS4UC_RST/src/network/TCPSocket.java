@@ -17,6 +17,14 @@ public class TCPSocket {
     protected Socket stSocket;
 
     /**
+     * Determines if this TCP socket is connected.
+     * @return True if connected, false otherwise.
+     */
+    public boolean isConnected() {
+        return stSocket != null && stSocket.isConnected();
+    }
+
+    /**
      * Listens for data being sent to this client.
      *
      * @return The string data sent to the client.

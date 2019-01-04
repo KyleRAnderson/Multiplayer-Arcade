@@ -2,8 +2,6 @@ package menu;
 
 import games.Game;
 import games.pong.ui.PongUI;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -16,7 +14,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.*;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
-import javafx.util.Duration;
 import network.TCPSocket;
 import network.party.PartyHandler;
 
@@ -320,22 +317,22 @@ public class MainMenu extends Application {
     private void hostParty() {
         connectMenuItem.setDisable(true);
         try {
-            PartyHandler.host(hostMenuItem.getPort());
+            PartyHandler.host(hostMenuItem.getPort(), runner -> checkHost());
         } catch (IOException e) {
             Alert errorAlert = new Alert(Alert.AlertType.ERROR, "Failed to start host.", ButtonType.OK);
             errorAlert.showAndWait();
         }
 
-        Timeline checkTimeline = new Timeline(new KeyFrame(Duration.millis(500), event -> checkHost()));
-        checkTimeline.setCycleCount(Timeline.INDEFINITE);
-        checkTimeline.play();
+//        Timeline checkTimeline = new Timeline(new KeyFrame(Duration.millis(500), event -> checkHost()));
+//        checkTimeline.setCycleCount(Timeline.INDEFINITE);
+//        checkTimeline.play(); // TODO remove this once things work.
     }
 
     /**
      * Checks to see if the host has completed a connection with another player.
      */
     private void checkHost() {
-        if (!PartyHandler.isStillWaitingForOtherPlayer()) {
+        if (PartyHandler.isOtherPlayerConnected()) {
             connectMenuItem.setDisable(false);
             hostMenuItem.setActive(false);
         }
