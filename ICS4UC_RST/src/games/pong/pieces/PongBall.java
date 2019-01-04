@@ -157,7 +157,7 @@ public class PongBall implements PongPiece {
      *
      * @param value The x-value.
      */
-    private void setX(double value) {
+    public void setX(double value) {
         this.x = value;
     }
 
@@ -189,7 +189,7 @@ public class PongBall implements PongPiece {
      *
      * @param value The new value.
      */
-    private void setY(double value) {
+    public void setY(double value) {
         this.y = value;
     }
 

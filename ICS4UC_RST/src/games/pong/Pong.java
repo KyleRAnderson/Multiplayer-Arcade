@@ -265,10 +265,12 @@ public class Pong {
      */
     private void checkBallBounds() {
         // Check the top and bottom points to ensure that the ball has not hit a horizontal barrier.
-        if (ball.getY(Side.TOP) >= HEIGHT) {
+        if (ball.getY(Side.TOP) >= getBoardHeight()) {
             ball.setVelocity(-Math.abs(ball.getRisePerSecond()), ball.getRunPerSecond());
+            ball.setY(2 * getBoardHeight() - ball.getY(Side.TOP), Side.TOP);
         } else if (ball.getY(Side.BOTTOM) <= 0) {
             ball.setVelocity(Math.abs(ball.getRisePerSecond()), ball.getRunPerSecond());
+            ball.setY(-ball.getY(Side.BOTTOM), Side.BOTTOM);
         }
 
         // Now check to see if the ball has hit a vertical barrier.
