@@ -17,7 +17,6 @@ import javafx.stage.Stage;
 import network.TCPSocket;
 import network.party.PartyHandler;
 
-import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -59,10 +58,26 @@ public class MainMenu extends Application {
             new PongUI()
     };
 
+    private static MainMenu currentInstance;
+
+    public static MainMenu getCurrentInstance() {
+        return currentInstance;
+    }
+
+    public Stage getStage() {
+        return this.stage;
+    }
+
+    public PartyMenuItem getConnectMenuItem() {
+        return connectMenuItem;
+    }
+
     @Override
     public void start(Stage primaryStage) {
+        currentInstance = this;
         this.stage = primaryStage;
         initializeElements();
+
         primaryStage.show();
     }
 
@@ -198,6 +213,7 @@ public class MainMenu extends Application {
 
     /**
      * SEts up the port for the PartyMenuItem
+     *
      * @param menuItem The PartyMenuItem for which the port should be set up.
      */
     private static void setupPort(PartyMenuItem menuItem) {
@@ -230,7 +246,7 @@ public class MainMenu extends Application {
     }
 
     /**
-     * Formats the provided stack pane in ordre to match styling for menu items.
+     * Formats the provided stack pane in order to match styling for menu items.
      *
      * @param item The Stack Pane to be formatted to match a menu item's style.
      */
@@ -300,6 +316,7 @@ public class MainMenu extends Application {
 
     /**
      * Called when the attempt to connect to a host user is ended.
+     *
      * @param succeeded True if the connection attempt succeeded, false otherwise.
      */
     private void connectionOver(boolean succeeded) {
@@ -315,26 +332,28 @@ public class MainMenu extends Application {
      * Hosts a party on the currently set port.
      */
     private void hostParty() {
-        connectMenuItem.setDisable(true);
-        try {
-            PartyHandler.host(hostMenuItem.getPort(), runner -> checkHost());
-        } catch (IOException e) {
-            Alert errorAlert = new Alert(Alert.AlertType.ERROR, "Failed to start host.", ButtonType.OK);
-            errorAlert.showAndWait();
-        }
+        HostTask task = new HostTask(hostMenuItem.getPort());
+        task.setOnFailed(event -> hostingFailed());
+        task.setOnSucceeded(event -> hostSuccessful());
 
-//        Timeline checkTimeline = new Timeline(new KeyFrame(Duration.millis(500), event -> checkHost()));
-//        checkTimeline.setCycleCount(Timeline.INDEFINITE);
-//        checkTimeline.play(); // TODO remove this once things work.
+        ExecutorService executorService = Executors.newFixedThreadPool(1);
+        executorService.execute(task);
+        executorService.shutdown();
+    }
+
+    /**
+     * Called when the application fails to host.
+     */
+    private void hostingFailed() {
+        Alert errorAlert = new Alert(Alert.AlertType.ERROR, "Failed to start host.", ButtonType.OK);
+        errorAlert.showAndWait();
     }
 
     /**
      * Checks to see if the host has completed a connection with another player.
      */
-    private void checkHost() {
-        if (PartyHandler.isOtherPlayerConnected()) {
-            connectMenuItem.setDisable(false);
-            hostMenuItem.setActive(false);
-        }
+    private void hostSuccessful() {
+        connectMenuItem.setDisable(false);
+        hostMenuItem.setActive(false);
     }
 }

@@ -2,6 +2,7 @@ package network;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.Socket;
 
 /**
  * @author s405751 (Nicolas Hawrysh)

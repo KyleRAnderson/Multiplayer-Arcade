@@ -1,6 +1,5 @@
 package network.party;
 
-import main.NotifyingRunnable;
 import network.Server;
 
 import java.io.IOException;
@@ -11,7 +10,7 @@ import java.io.IOException;
  * @author Kyle Anderson
  * ICS4U RST
  */
-public class Joiner extends NotifyingRunnable {
+public class Joiner implements Runnable {
     private Server server;
 
     /**
@@ -27,7 +26,7 @@ public class Joiner extends NotifyingRunnable {
      * Runs the main action.
      */
     @Override
-    public void doWork() {
+    public void run() {
         try {
             server.accept();
         } catch (IOException e) {

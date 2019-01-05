@@ -52,7 +52,7 @@ public class TCPSocket {
     }
 
     /**
-     * Sends data to the clienet.
+     * Sends data to the client.
      *
      * @param data The string data to be set.
      * @throws IOException Thrown when there is some sort of IO problem.

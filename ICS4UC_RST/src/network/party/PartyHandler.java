@@ -1,7 +1,6 @@
 package network.party;
 
 import advancedIO.AdvancedIO;
-import main.ThreadListener;
 import network.Client;
 import network.Server;
 import network.TCPSocket;
@@ -46,40 +45,15 @@ public class PartyHandler {
     /**
      * Begins to host a party on this user's machine.
      *
-     * @param port The port on which the hosting should be done.
+     * @param port   The port on which the hosting should be done.
      * @throws IOException if creating the server fails.
      */
     public static void host(final int port) throws IOException {
-        host(port, null);
-    }
-
-    /**
-     * Begins to host a party on this user's machine.
-     *
-     * @param port   The port on which the hosting should be done.
-     * @param onJoin ThreadListener interface to be called when someone joins the party.
-     * @throws IOException if creating the server fails.
-     */
-    public static void host(final int port, ThreadListener onJoin) throws IOException {
         if (!isConnected()) {
             role = PartyRole.SERVER;
-            socket = new Server(port);
-            allowJoining(onJoin);
-        }
-    }
-
-    /**
-     * Allows incoming requests to join the party, processing them in a separate thread.
-     *
-     * @param onJoin ThreadListener interface to be called when someone joins the party.
-     */
-    private static void allowJoining(ThreadListener onJoin) {
-        // Only do stuff if we're a server.
-        if (getRole() == PartyRole.SERVER) {
-            Joiner joiner = new Joiner(getServer());
-            joiner.addListener(onJoin);
-            joinThread = new Thread(joiner);
-            joinThread.start();
+            Server server = new Server(port);
+            socket = server;
+            server.accept();
         }
     }
 
