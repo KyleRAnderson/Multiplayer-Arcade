@@ -16,12 +16,7 @@ import java.util.function.Consumer;
  */
 public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
     @Override
-    public void setOnPaddleUp(BiConsumer<PongPlayer, Boolean> action) {
-
-    }
-
-    @Override
-    public void setOnPaddleDown(BiConsumer<PongPlayer, Boolean> action) {
+    public void setOnActionChanged(BiConsumer<PongPlayer, Action> listener) {
 
     }
 

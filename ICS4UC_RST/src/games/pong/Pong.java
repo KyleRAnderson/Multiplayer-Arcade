@@ -296,15 +296,19 @@ public class Pong {
         for (Paddle paddle : paddles) {
             if (paddle.getY(Side.TOP) > getBoardHeight()) {
                 paddle.setY(getBoardHeight(), Side.TOP);
+                paddle.setVelY(0); // Get rid of velocity so the paddle isn't constantly trying to go off screen.
             }
             if (paddle.getY(Side.BOTTOM) < 0) {
                 paddle.setY(0, Side.BOTTOM);
+                paddle.setVelY(0); // Get rid of velocity
             }
             if (paddle.getX(Side.RIGHT) > getBoardWidth()) {
                 paddle.setX(getBoardWidth(), Side.RIGHT);
+                paddle.setVelX(0); // Get rid of velocity once the paddle hits the side.
             }
             if (paddle.getX(Side.LEFT) < 0) {
                 paddle.setX(0, Side.LEFT);
+                paddle.setVelX(0);
             }
         }
     }

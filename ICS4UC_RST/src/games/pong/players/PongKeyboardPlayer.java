@@ -7,6 +7,7 @@ import games.pong.pieces.Paddle;
 import games.pong.pieces.Side;
 import javafx.scene.input.KeyCode;
 
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -54,20 +55,6 @@ public class PongKeyboardPlayer extends KeyboardPlayer implements PongPlayer {
         return this.side;
     }
 
-    private BiConsumer<PongPlayer, Boolean> paddleUpListener;
-
-    @Override
-    public void setOnPaddleUp(BiConsumer<PongPlayer, Boolean> action) {
-        paddleUpListener = action;
-    }
-
-    private BiConsumer<PongPlayer, Boolean> paddleDownListener;
-
-    @Override
-    public void setOnPaddleDown(BiConsumer<PongPlayer, Boolean> action) {
-        paddleDownListener = action;
-    }
-
     @Override
     public void setOnPause(Consumer<PongPlayer> action) {
 
@@ -78,86 +65,54 @@ public class PongKeyboardPlayer extends KeyboardPlayer implements PongPlayer {
 
     }
 
-    /**
-     * Calls the listeners for the pong player's paddle moving down.
-     */
-    private void moveDown() {
-        if (paddleDownListener != null) {
-            paddleDownListener.accept(this, true);
-        }
-    }
-
-    /**
-     * Calls the listeners for the pong player's paddle moving up.
-     */
-    private void moveUp() {
-        if (paddleUpListener != null) {
-            paddleUpListener.accept(this, true);
-        }
-    }
-
-    /**
-     * Calls the listeners for the pong player's cancel paddle moving down.
-     */
-    private void cancelMoveDown() {
-        if (paddleDownListener != null) {
-            paddleDownListener.accept(this, false);
-        }
-    }
-
-    /**
-     * Calls the listeners for the pong player's cancel paddle moving up.
-     */
-    private void cancelMoveUp() {
-        if (paddleUpListener != null) {
-            paddleUpListener.accept(this, false);
-        }
-    }
-
     @Override
     public String getName() {
         return null;
     }
 
-    /**
-     * Called by the UI when a key is pressed to determine what action should ensue.
-     *
-     * @param keyPressed The key that was pressed.
-     * @return The binding that will be invoked on this key press.
-     */
-    public PongKeyBinding onKeyPressed(KeyCode keyPressed) {
-        PongKeyBinding binding = (PongKeyBinding) getKeyBindings().get(keyPressed);
-        if (binding != null) {
-            switch (binding) {
-                case MOVE_DOWN:
-                    moveDown();
-                    break;
-                case MOVE_UP:
-                    moveUp();
-                    break;
-                default:
-                    break;
-            }
-        }
+    private BiConsumer<PongPlayer, Action> actionListener;
 
-        return binding;
+    /**
+     * Sets a method to be called when the player's paddle's action should change.
+     * @param actionListener The listener to be called.
+     */
+    @Override
+    public void setOnActionChanged(BiConsumer<PongPlayer, Action> actionListener) {
+        this.actionListener = actionListener;
     }
 
-    public PongKeyBinding onKeyReleased(KeyCode keyReleased) {
-        PongKeyBinding binding = (PongKeyBinding) getKeyBindings().get(keyReleased);
-        if (binding != null) {
+    /**
+     * Called when the player's action should change.
+     * @param newAction The new action that the player should take.
+     */
+    private void actionChanged(Action newAction) {
+        if (actionListener != null) {
+            actionListener.accept(this, newAction);
+        }
+    }
+
+    /**
+     * Sets the keys that are currently being pressed down.
+     * @param keysDown The keys that are currently pressed down.
+     */
+    public void setKeysDown(List<KeyCode> keysDown) {
+        Action newAction;
+        if (keysDown.size() > 0) {
+            PongKeyBinding binding = (PongKeyBinding) getKeyBindings().get(keysDown.get(keysDown.size() - 1));
             switch (binding) {
                 case MOVE_DOWN:
-                    cancelMoveDown();
+                    newAction = Action.MOVE_DOWN;
                     break;
                 case MOVE_UP:
-                    cancelMoveUp();
+                    newAction = Action.MOVE_UP;
                     break;
                 default:
+                    newAction = Action.STOP;
                     break;
             }
+        } else {
+            newAction = Action.STOP;
         }
-
-        return binding;
+        actionChanged(newAction);
     }
 }
