@@ -14,5 +14,6 @@
 			<attribute name="javadoc_location" value="jar:platform:/resource/ICS4UC_RST/lib/AdvancedIO.jar!/doc"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="lib/gson-2.6.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

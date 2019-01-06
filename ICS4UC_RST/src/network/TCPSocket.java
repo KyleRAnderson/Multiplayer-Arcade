@@ -16,6 +16,10 @@ public class TCPSocket {
 
     protected Socket stSocket;
 
+    private InputStreamReader isInputStreamReader;
+    private BufferedReader brBufferedReader;
+    private PrintWriter pwOut;
+
     /**
      * Determines if this TCP socket is connected.
      * @return True if connected, false otherwise.
@@ -25,30 +29,43 @@ public class TCPSocket {
     }
 
     /**
+     * Sets up the buffered reader.
+     * @throws IOException Thrown if there's an issue.
+     */
+    private void setupBufferedReader() throws IOException {
+        // create variable for the sockets input stream
+        InputStream isSocketInputStream = stSocket.getInputStream();
+        isInputStreamReader = new InputStreamReader(isSocketInputStream);
+
+        // create a new buffered reader of the socket input stream reader
+        brBufferedReader = new BufferedReader(new InputStreamReader(isSocketInputStream));
+    }
+
+    /**
      * Listens for data being sent to this client.
      *
      * @return The string data sent to the client.
      * @throws IOException Thrown when there is some sort of IO problem.
      */
     public String listenForData() throws IOException {
-        String strData;
-
-        // create variable for the sockets input stream
-        InputStream isSocketInputStream = stSocket.getInputStream();
-        InputStreamReader isInputStreamReader = new InputStreamReader(isSocketInputStream);
-
-        // create a new buffered reader of the socket input stream reader
-        BufferedReader brBufferedReader = new BufferedReader(new InputStreamReader(isSocketInputStream));
-
-        // get string received
-        strData = brBufferedReader.readLine();
-
-        // close InputStream and Buffered reader
-        isInputStreamReader.close();
-        brBufferedReader.close();
+        if (brBufferedReader == null) {
+            setupBufferedReader();
+        }
 
         // return data received
-        return strData;
+        return brBufferedReader.readLine();
+    }
+
+    /**
+     * Sets up the print writer for outputting to the socket.
+     * @throws IOException Thrown when there is some sort of problem.
+     */
+    private void setupPrintWriter() throws IOException {
+        // create a new output stream
+        OutputStream osSocketOutputStream = stSocket.getOutputStream();
+
+        // use PrintWriter to send a line of text to the outputStream
+        pwOut = new PrintWriter(osSocketOutputStream, true);
     }
 
     /**
@@ -58,15 +75,12 @@ public class TCPSocket {
      * @throws IOException Thrown when there is some sort of IO problem.
      */
     public void send(String data) throws IOException {
-        // create a new output stream
-        OutputStream osSocketOutputStream = stSocket.getOutputStream();
+        if (pwOut == null) {
+            setupPrintWriter();
+        }
 
-        // use PrintWriter to send a line of text to the outputStream
-        PrintWriter pwOut = new PrintWriter(osSocketOutputStream, true);
         pwOut.println(data);
-
-        // close printWriter
-        pwOut.close();
+        pwOut.flush();
     }
 
     /**
@@ -75,6 +89,10 @@ public class TCPSocket {
      * @throws IOException Thrown when there is an IO problem.
      */
     public void close() throws IOException {
+        // close InputStream and Buffered reader
+        isInputStreamReader.close();
+        brBufferedReader.close();
         stSocket.close();
+        pwOut.close();
     }
 }

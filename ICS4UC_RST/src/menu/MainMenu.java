@@ -1,5 +1,6 @@
 package menu;
 
+import advancedIO.AdvancedIO;
 import games.Game;
 import games.pong.ui.PongUI;
 import javafx.application.Application;
@@ -16,6 +17,9 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import network.TCPSocket;
 import network.party.PartyHandler;
+import network.party.network.HostStatus;
+import network.party.network.NetworkMessage;
+import network.party.network.ReceivedDataEvent;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -58,26 +62,17 @@ public class MainMenu extends Application {
             new PongUI()
     };
 
-    private static MainMenu currentInstance;
-
-    public static MainMenu getCurrentInstance() {
-        return currentInstance;
-    }
-
-    public Stage getStage() {
-        return this.stage;
-    }
-
-    public PartyMenuItem getConnectMenuItem() {
-        return connectMenuItem;
+    /**
+     * Constructs a new main menu object.
+     */
+    public MainMenu() {
+        PartyHandler.setIncomingMessageListener(receivedDataEvent -> dataReceived(receivedDataEvent));
     }
 
     @Override
     public void start(Stage primaryStage) {
-        currentInstance = this;
         this.stage = primaryStage;
         initializeElements();
-
         primaryStage.show();
     }
 
@@ -233,11 +228,22 @@ public class MainMenu extends Application {
     private void playGame(Game game) {
         currentGame = game;
         currentGame.reset();
+        currentGame.setOnGameDataSend(this::sendGameData);
         Region window = currentGame.getWindow();
         window.setPrefWidth(menuRoot.getWidth());
         window.setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
         setDisplay(window);
         currentGame.start();
+    }
+
+    /**
+     * Quits the current game, if there is one being played.
+     */
+    public void quitGame() {
+        if (currentGame != null) {
+            currentGame.end();
+            currentGame = null;
+        }
     }
 
     private void setDisplay(Region parent) {
@@ -303,6 +309,7 @@ public class MainMenu extends Application {
      * Connects to a party at the currently set IP address and port.
      */
     private void connectToParty() {
+        System.out.println("Connecting..."); // TODO remove
         hostMenuItem.setDisable(true);
         // Need to connect in a separate thread.
         ConnectTask task = new ConnectTask(connectMenuItem.getIpAddress(), connectMenuItem.getPort());
@@ -320,11 +327,16 @@ public class MainMenu extends Application {
      * @param succeeded True if the connection attempt succeeded, false otherwise.
      */
     private void connectionOver(boolean succeeded) {
-        if (!PartyHandler.isConnected() || !succeeded) {
+        final boolean allGood = PartyHandler.isConnected() && succeeded;
+        if (!allGood) {
             Alert errorAlert = new Alert(Alert.AlertType.ERROR, "Failed to connect to host.", ButtonType.OK);
             errorAlert.showAndWait();
+        } else {
+            onConnection();
         }
-        hostMenuItem.setDisable(false);
+        // Disable the connection stuff once connected.
+        hostMenuItem.setDisable(allGood);
+        connectMenuItem.setDisable(allGood);
         connectMenuItem.setActive(false);
     }
 
@@ -332,6 +344,8 @@ public class MainMenu extends Application {
      * Hosts a party on the currently set port.
      */
     private void hostParty() {
+        connectMenuItem.setDisable(true);
+        System.out.println("Hosting..."); // TODO remove
         HostTask task = new HostTask(hostMenuItem.getPort());
         task.setOnFailed(event -> hostingFailed());
         task.setOnSucceeded(event -> hostSuccessful());
@@ -350,10 +364,79 @@ public class MainMenu extends Application {
     }
 
     /**
-     * Checks to see if the host has completed a connection with another player.
+     * Called when after hosting a party a player connects to the lobby.
      */
     private void hostSuccessful() {
-        connectMenuItem.setDisable(false);
         hostMenuItem.setActive(false);
+        hostMenuItem.setDisable(true);
+        onConnection();
+    }
+
+    /**
+     * Called when connecting to another client has succeeded.
+     */
+    private void onConnection() {
+        // TODO get working host name.
+        NetworkMessage message = new NetworkMessage("Testing", HostStatus.CONNECTED);
+        PartyHandler.sendMessage(message.toJsonString());
+    }
+
+    /**
+     * Called when data is received from the other client.
+     *
+     * @param receivedEvent The event of the received data.
+     */
+    public void dataReceived(ReceivedDataEvent receivedEvent) {
+        if (receivedEvent == ReceivedDataEvent.RECEIVED_DATA) {
+            while (PartyHandler.hasIncomingMessages()) {
+                NetworkMessage receivedMessage = NetworkMessage.fromJson(PartyHandler.pollIncoming());
+                // Determine if some of the data should be passed to the current game.
+                final boolean shouldSendToGame = currentGame != null && currentGame.isNetworkGame();
+
+                switch (receivedMessage.getHostStatus()) {
+                    case IN_GAME:
+                        if (shouldSendToGame) {
+                            currentGame.receiveData(receivedMessage);
+                        }
+                        break;
+                    case DISCONNECTING:
+                        if (shouldSendToGame) {
+                            currentGame.hostDisconnecting();
+                        }
+                        break;
+                    case PENDING_GAME_INVITE:
+                        break;
+                    case CONNECTED:
+                        // TODO make official
+                        System.out.println("Host name of connected client: " + receivedMessage.getHostName());
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Called when a game wishes to send game data to the connected client.
+     * @param gameData The string data to be sent.
+     */
+    private void sendGameData(final String gameData) {
+        if (PartyHandler.isConnected()) {
+            // TODO implement working host name.
+            final String hostName = "Test";
+            NetworkMessage message = new NetworkMessage(hostName, HostStatus.IN_GAME, gameData);
+            PartyHandler.sendMessage(message.toJsonString());
+        }
+
+    }
+
+    /**
+     * Main method for the program.
+     *
+     * @param args Command-line arguments.
+     */
+    public static void main(String[] args) {
+        launch(args);
     }
 }

@@ -3,6 +3,9 @@ package games;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Region;
 import javafx.scene.text.Text;
+import network.party.network.NetworkMessage;
+
+import java.util.function.Consumer;
 
 /**
  * Enforces structure for games of all sort.
@@ -70,4 +73,21 @@ public interface Game {
      * Resets the game, readying it for another play instance.
      */
     void reset();
+
+    /**
+     * Should be called when a client sends this client data over the multiplayer network.
+     * @param data The data received.
+     */
+    void receiveData(NetworkMessage data);
+
+    /**
+     * Should be called when a host connected to this host is or has disconnected.
+     */
+    void hostDisconnecting();
+
+    /**
+     * Sets a method to be called when this game wants to send game data to the connected host.
+     * @param listener The listener to accept the game data to be sent.
+     */
+    void setOnGameDataSend(Consumer<String> listener);
 }

@@ -24,8 +24,10 @@ import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
+import network.party.network.NetworkMessage;
 
 import java.util.HashMap;
+import java.util.function.Consumer;
 
 /**
  * UI class for the pong game, for actually rendering the game for the user.
@@ -342,5 +344,20 @@ public class PongUI extends Pane implements Game {
         p2.setOnPaddleDown((pongPlayer, move) -> movePaddleDown(pongPlayer.getPaddle(), move));
         p1.setOnPaddleUp((pongPlayer, move) -> movePaddleUp(pongPlayer.getPaddle(), move));
         p2.setOnPaddleUp((pongPlayer, move) -> movePaddleUp(pongPlayer.getPaddle(), move));
+    }
+
+    @Override
+    public void receiveData(NetworkMessage data) {
+
+    }
+
+    @Override
+    public void hostDisconnecting() {
+
+    }
+
+    @Override
+    public void setOnGameDataSend(Consumer<String> listener) {
+
     }
 }
