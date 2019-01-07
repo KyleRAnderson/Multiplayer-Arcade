@@ -61,7 +61,7 @@ public class MainMenu extends Application {
     private Game currentGame;
 
     // Array of all the playable games.
-    private Game[] games = new Game[]{
+    private final Game[] games = new Game[]{
             new PongUI()
     };
 
@@ -309,6 +309,7 @@ public class MainMenu extends Application {
      * @param percentWidth The percent height for the row.
      * @return The created row constraints object.
      */
+    @SuppressWarnings("SameParameterValue")
     private static ColumnConstraints createColumnConstraints(final int percentWidth) {
         ColumnConstraints constraints = new ColumnConstraints();
         constraints.setPercentWidth(percentWidth);
@@ -492,7 +493,7 @@ public class MainMenu extends Application {
      * Invites this user to play a game initiated by the other user.
      *
      * @param otherPlayerName The gamer tag of the player inviting this player to play the game.
-     * @param game The game to which the user was invited.
+     * @param game            The game to which the user was invited.
      * @return True if this user accepts playing the game, false otherwise.
      */
     private boolean gameInvite(final String otherPlayerName, final Game game) {

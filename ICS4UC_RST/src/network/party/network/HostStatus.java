@@ -2,6 +2,7 @@ package network.party.network;
 
 /**
  * Enum for representing the status of a host.
+ *
  * @author Kyle Anderson
  * ICS4U RST
  */

@@ -36,6 +36,10 @@ public interface Game {
      */
     Image getCoverArt();
 
+    /**
+     * Gets the name of the game.
+     * @return The game's nice english name.
+     */
     String getName();
 
     /**
@@ -74,6 +78,7 @@ public interface Game {
 
     /**
      * Gets the network player playing this game.
+     *
      * @return The network player in this game. Null if there isn't one.
      */
     NetworkPlayer getNetworkPlayer();

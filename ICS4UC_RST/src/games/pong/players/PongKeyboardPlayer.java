@@ -3,7 +3,6 @@ package games.pong.players;
 import games.Game;
 import games.player.KeyboardPlayer;
 import games.player.PongKeyBinding;
-import games.pong.pieces.Paddle;
 import games.pong.pieces.Side;
 import javafx.scene.input.KeyCode;
 
@@ -114,7 +113,7 @@ public class PongKeyboardPlayer extends KeyboardPlayer implements PongPlayer {
      * @param keyPressed The key that was pressed.
      * @return The binding that will be invoked on this key press.
      */
-    public PongKeyBinding onKeyPressed(KeyCode keyPressed) {
+    public void onKeyPressed(KeyCode keyPressed) {
         PongKeyBinding binding = (PongKeyBinding) getKeyBindings().get(keyPressed);
         if (binding != null) {
             switch (binding) {
@@ -129,10 +128,9 @@ public class PongKeyboardPlayer extends KeyboardPlayer implements PongPlayer {
             }
         }
 
-        return binding;
     }
 
-    public PongKeyBinding onKeyReleased(KeyCode keyReleased) {
+    public void onKeyReleased(KeyCode keyReleased) {
         PongKeyBinding binding = (PongKeyBinding) getKeyBindings().get(keyReleased);
         if (binding != null) {
             switch (binding) {
@@ -147,6 +145,5 @@ public class PongKeyboardPlayer extends KeyboardPlayer implements PongPlayer {
             }
         }
 
-        return binding;
     }
 }

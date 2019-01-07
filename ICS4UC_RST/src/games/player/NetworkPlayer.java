@@ -15,6 +15,7 @@ public abstract class NetworkPlayer implements Player {
 
     /**
      * Should be called when a client sends this client data over the multiplayer network.
+     *
      * @param data The data received.
      */
     public abstract void receiveData(NetworkMessage data);
@@ -26,6 +27,7 @@ public abstract class NetworkPlayer implements Player {
 
     /**
      * Sets a method to be called when this game wants to send game data to the connected host.
+     *
      * @param listener The listener to accept the game data to be sent.
      */
     public void setOnGameDataSend(Consumer<String> listener) {

@@ -13,7 +13,7 @@ public class HostTask extends Task {
     final int port;
 
     /**
-     * Instantiates a host taks with the given port.
+     * Instantiates a host task with the given port.
      *
      * @param port The port on which to host.
      */

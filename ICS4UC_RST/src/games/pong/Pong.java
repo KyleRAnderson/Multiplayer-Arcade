@@ -24,11 +24,8 @@ public class Pong {
      */
     private static final double MAX_REBOUND_ANGLE = 75;
     // Ratios for distances and speeds.
-    @SuppressWarnings("FieldCanBeLocal")
     private static final double BALL_RADIUS = 4;
-    @SuppressWarnings("FieldCanBeLocal")
     private static final double PADDLE_HEIGHT = 28; // Ratio between the paddle size (height) and the screen height.
-    @SuppressWarnings("FieldCanBeLocal")
     // How many units per second the paddle moves while the button is being held down.
     public static final double PADDLE_MOVEMENT_RATE = 200;
     // Velocity of the pong ball in units per second.
@@ -78,8 +75,8 @@ public class Pong {
     /**
      * Instantiates a new pong game.
      *
-     * @param width       The width of the board.
-     * @param height      The height of the board.
+     * @param width  The width of the board.
+     * @param height The height of the board.
      */
     public Pong(final int width, final int height) {
         this.width = width;
@@ -131,6 +128,7 @@ public class Pong {
 
     /**
      * Sets the PongPlayer for the local player.
+     *
      * @param player The local player.
      */
     public void setLocalPlayer(PongPlayer player) {
@@ -148,6 +146,7 @@ public class Pong {
 
     /**
      * Sets the second player.
+     *
      * @param player The second player.
      */
     public void setPlayer2(PongPlayer player) {
@@ -437,6 +436,7 @@ public class Pong {
 
     /**
      * Gets the pong paddle belonging to the given player.
+     *
      * @param player The player.
      * @return The paddle belonging to the player.
      */

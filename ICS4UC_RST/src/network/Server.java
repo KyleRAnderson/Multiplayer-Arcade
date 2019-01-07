@@ -48,7 +48,7 @@ public class Server extends TCPSocket {
         super.close();
         ssServer.close();
     }
-    
+
     /**
      * Method to get the host IP
      *

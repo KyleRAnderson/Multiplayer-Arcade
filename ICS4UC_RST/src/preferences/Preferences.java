@@ -2,6 +2,7 @@ package preferences;
 
 /**
  * Utility class for a singleton object for modifying preferences.
+ *
  * @author Kyle Anderson
  * ICS4U RST
  */
@@ -10,6 +11,7 @@ public class Preferences {
 
     /**
      * Gets the current instance of the preferences.
+     *
      * @return The current preferences instance.
      */
     public static Preferences getInstance() {
@@ -30,6 +32,7 @@ public class Preferences {
 
     /**
      * Gets the host name (user name) of the user.
+     *
      * @return The user's host name.
      */
     public String getHostName() {
@@ -38,6 +41,7 @@ public class Preferences {
 
     /**
      * Sets the host name (user name) for the user.
+     *
      * @param hostName The user's profile name.
      */
     public void setHostName(String hostName) {

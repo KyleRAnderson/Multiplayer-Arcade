@@ -22,6 +22,7 @@ public class TCPSocket {
 
     /**
      * Determines if this TCP socket is connected.
+     *
      * @return True if connected, false otherwise.
      */
     public boolean isConnected() {
@@ -30,6 +31,7 @@ public class TCPSocket {
 
     /**
      * Sets up the buffered reader.
+     *
      * @throws IOException Thrown if there's an issue.
      */
     private void setupBufferedReader() throws IOException {
@@ -58,6 +60,7 @@ public class TCPSocket {
 
     /**
      * Sets up the print writer for outputting to the socket.
+     *
      * @throws IOException Thrown when there is some sort of problem.
      */
     private void setupPrintWriter() throws IOException {

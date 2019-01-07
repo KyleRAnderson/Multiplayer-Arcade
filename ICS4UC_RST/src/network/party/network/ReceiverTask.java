@@ -1,10 +1,7 @@
 package network.party.network;
 
 import javafx.application.Platform;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.concurrent.Task;
-import network.Server;
 import network.TCPSocket;
 import network.party.PartyHandler;
 
@@ -26,8 +23,9 @@ public class ReceiverTask extends Task<ReceivedDataEvent> {
 
     /**
      * Constructs a new ReceiverTask for creating a thread to monitor the multiplayer network.
+     *
      * @param incoming The queue to convey incoming messages.
-     * @param socket The socket on which data will be set.
+     * @param socket   The socket on which data will be set.
      */
     public ReceiverTask(TCPSocket socket, Queue<String> incoming) {
         this.socket = socket;

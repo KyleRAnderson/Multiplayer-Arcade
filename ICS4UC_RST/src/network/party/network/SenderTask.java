@@ -1,7 +1,6 @@
 package network.party.network;
 
 import javafx.concurrent.Task;
-import network.Server;
 import network.TCPSocket;
 import network.party.PartyHandler;
 
@@ -9,16 +8,18 @@ import java.util.Queue;
 
 /**
  * Task for easily sending updates to the multiplayer network.
+ *
  * @author Kyle Anderson
  * ICS4U RST
  */
 public class SenderTask extends Task<Void> {
-    private TCPSocket socket;
-    private Queue<String> queue;
+    private final TCPSocket socket;
+    private final Queue<String> queue;
 
     /**
      * Instantiates a new sender task for the provided socket and with the given queue.
-     * @param socket The socket.
+     *
+     * @param socket   The socket.
      * @param outgoing The queue.
      */
     public SenderTask(TCPSocket socket, Queue<String> outgoing) {

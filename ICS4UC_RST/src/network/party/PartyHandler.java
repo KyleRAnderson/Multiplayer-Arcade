@@ -27,7 +27,6 @@ public class PartyHandler {
 
     // Queues for communicating cross-thread.
     private static Queue<String> outgoingQueue, incomingQueue;
-    private static SenderTask outgoingTask;
     private static ReceiverTask incomingTask;
     private static Consumer<ReceivedDataEvent> incomingListener;
 
@@ -46,7 +45,7 @@ public class PartyHandler {
                 client.connect(ip, port);
                 didConnect = true;
                 socket = client;
-            } catch (IOException e) {
+            } catch (IOException ignored) {
             }
         }
         if (didConnect) {
@@ -60,7 +59,7 @@ public class PartyHandler {
     /**
      * Begins to host a party on this user's machine. NOTE - Will hang machine, so run in separate thread.
      *
-     * @param port   The port on which the hosting should be done.
+     * @param port The port on which the hosting should be done.
      * @throws IOException if creating the server fails.
      */
     public static void host(final int port) throws IOException {
@@ -135,6 +134,7 @@ public class PartyHandler {
 
     /**
      * Gets the TCP socket object for the party.
+     *
      * @return The TCP socket object.
      */
     public static TCPSocket getTCPSocket() {
@@ -143,6 +143,7 @@ public class PartyHandler {
 
     /**
      * Sends a message to the other client.
+     *
      * @param message The string to be sent.
      */
     public static void sendMessage(String message) {
@@ -151,6 +152,7 @@ public class PartyHandler {
 
     /**
      * Polls for incoming messages from the other client, removing them once accessed.
+     *
      * @return The incoming message.
      */
     public static String pollIncoming() {
@@ -159,6 +161,7 @@ public class PartyHandler {
 
     /**
      * Determines if there are incoming messages from the other client waiting.
+     *
      * @return The incoming messages to be read.
      */
     public static boolean hasIncomingMessages() {
@@ -167,6 +170,7 @@ public class PartyHandler {
 
     /**
      * Adds a listener which will be called when the application receives data from the other client.
+     *
      * @param listener The listener to be called when data is received.
      */
     public static void setIncomingMessageListener(Consumer<ReceivedDataEvent> listener) {
@@ -181,13 +185,13 @@ public class PartyHandler {
      */
     private static void setupConnection() {
         outgoingQueue = new ArrayBlockingQueue<>(15);
-        outgoingTask = new SenderTask(getTCPSocket(), outgoingQueue);
+        SenderTask outgoingTask = new SenderTask(getTCPSocket(), outgoingQueue);
 
         incomingQueue = new ArrayBlockingQueue<>(15);
         incomingTask = new ReceiverTask(getTCPSocket(), incomingQueue);
         incomingTask.setOnSucceeded(event -> receiverClosed());
         if (incomingListener != null) {
-            incomingTask.addListener(incomingListener::accept);
+            incomingTask.addListener(incomingListener);
         }
 
         ExecutorService executorService = Executors.newFixedThreadPool(2);

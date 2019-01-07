@@ -51,11 +51,11 @@ public class PongUI extends Pane implements Game {
     // How much the units in the pong game backend are scaled to make a nice looking UI.
     private double scaleFactor;
 
-    private Circle ball;
+    private final Circle ball;
 
-    private Rectangle leftPaddle;
-    private Rectangle rightPaddle;
-    private Scoreboard scoreboard;
+    private final Rectangle leftPaddle;
+    private final Rectangle rightPaddle;
+    private final Scoreboard scoreboard;
 
     // Set up key bindings list.
     private ArrayList<HashMap<KeyCode, PongKeyBinding>> keyBindings;
@@ -295,6 +295,7 @@ public class PongUI extends Pane implements Game {
 
     @Override
     public Image getCoverArt() {
+        //noinspection SpellCheckingInspection
         return new Image(getClass().getResource("/res/pong/coverart.png").toString());
     }
 
@@ -306,6 +307,7 @@ public class PongUI extends Pane implements Game {
     @Override
     public Text getTextDisplay() {
         Text text = new Text(getName());
+        //noinspection SpellCheckingInspection
         text.setFont(Font.font("Consolas", FontWeight.BLACK, FontPosture.REGULAR, 72));
         text.setFill(Color.ORANGE);
 
@@ -388,6 +390,7 @@ public class PongUI extends Pane implements Game {
 
     /**
      * Sets up key bindings for the given player.
+     *
      * @param player The player to set up.
      */
     private void setupBindings(PongKeyboardPlayer player) {
@@ -414,13 +417,14 @@ public class PongUI extends Pane implements Game {
 
     /**
      * Gets the network player playing this game.
+     *
      * @return The PongNetworkPlayer in this game, or null if there isn't one.
      */
     @Override
     public PongNetworkPlayer getNetworkPlayer() {
         PongNetworkPlayer player = null;
         if (isNetworkGame()) {
-            player = (PongNetworkPlayer)game.getPlayer2();
+            player = (PongNetworkPlayer) game.getPlayer2();
         }
         return player;
     }
