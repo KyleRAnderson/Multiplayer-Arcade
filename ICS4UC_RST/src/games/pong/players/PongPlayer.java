@@ -1,7 +1,6 @@
 package games.pong.players;
 
 import games.player.Player;
-import games.pong.pieces.Paddle;
 import games.pong.pieces.Side;
 
 import java.util.function.BiConsumer;
@@ -53,16 +52,4 @@ public interface PongPlayer extends Player {
      * @return The number of points for this player.
      */
     int getPoints();
-
-    /**
-     * Gets this player's paddle.
-     *
-     * @return The player's paddle.
-     */
-    Paddle getPaddle();
-
-    /**
-     * Sets this player's paddle.
-     */
-    void setPaddle(Paddle paddle);
 }

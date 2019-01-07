@@ -3,7 +3,6 @@ package menu;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -26,9 +25,9 @@ public class PartyMenuItem extends StackPane {
     private static final Pattern IP_VALIDATOR = Pattern.compile("\\A((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\z");
 
 
-    private Button actionButton;
-    private ProgressIndicator loadingAnimation;
-    private GridPane organizer;
+    private final Button actionButton;
+    private final ProgressIndicator loadingAnimation;
+    private final GridPane organizer;
     private final String inactiveText, activeText;
     private boolean active;
 
@@ -41,7 +40,8 @@ public class PartyMenuItem extends StackPane {
 
     /**
      * Constructs a new Party Menu Item with the provided text for the action button when active and inactive.
-     * @param actionButtonText The text displayed on the action button while inactive.
+     *
+     * @param actionButtonText       The text displayed on the action button while inactive.
      * @param activeActionButtonText The text displayed on the action button while active.
      */
     public PartyMenuItem(String actionButtonText, String activeActionButtonText) {
@@ -60,6 +60,7 @@ public class PartyMenuItem extends StackPane {
 
     /**
      * Gets the action button. Warning - Don't modify things which may interfere with the operation of this menu item.
+     *
      * @return The action button.
      */
     public Button getActionButton() {
@@ -78,6 +79,7 @@ public class PartyMenuItem extends StackPane {
     /**
      * Sets the active state of this menu item. Active state is when the button has been pressed
      * and the application is now loading whatever Party operation is was requested to do.
+     *
      * @param active True to be active, false otherwise.
      */
     public void setActive(boolean active) {
@@ -104,6 +106,7 @@ public class PartyMenuItem extends StackPane {
 
     /**
      * Adds a port field to the menu item.
+     *
      * @param defaultPort The default port to be displayed.
      */
     public void addPortField(final int defaultPort, Text portLabel) {
@@ -123,6 +126,7 @@ public class PartyMenuItem extends StackPane {
 
     /**
      * Gets the port field.
+     *
      * @return The port text field object.
      */
     public TextField getPortField() {
@@ -145,6 +149,7 @@ public class PartyMenuItem extends StackPane {
 
     /**
      * Swaps the provided field elements into a position.
+     *
      * @param label The label.
      * @param field The actual field.
      */
@@ -157,6 +162,7 @@ public class PartyMenuItem extends StackPane {
 
     /**
      * Gets the IP address field.
+     *
      * @return The ip address text field object.
      */
     public TextField getIPField() {
@@ -165,6 +171,7 @@ public class PartyMenuItem extends StackPane {
 
     /**
      * Determines if the provided port is a valid port number.
+     *
      * @param port The string port.
      * @return True if the port is valid, false otherwise.
      */
@@ -182,6 +189,7 @@ public class PartyMenuItem extends StackPane {
 
     /**
      * Determines if the provided port is a valid port number.
+     *
      * @param port The port.
      * @return True if the port is valid, false otherwise.
      */
@@ -192,6 +200,7 @@ public class PartyMenuItem extends StackPane {
     /**
      * Determines if the provided IP address is a valid looking ip address (doesn't actually check using network,
      * only checks formatting).
+     *
      * @param ip The ip address to be checked.
      * @return True if the IP address is valid, false otherwise.
      */
@@ -202,6 +211,7 @@ public class PartyMenuItem extends StackPane {
     /**
      * Determines if the provided IP address is a valid looking ip address or if it is a partial match (as in
      * it might be a match if it had more).
+     *
      * @param ip The ip address to be tested.
      * @return True if the ip address is a match or partial match, false otherwise.
      */
@@ -212,6 +222,7 @@ public class PartyMenuItem extends StackPane {
 
     /**
      * Gets the port currently set.
+     *
      * @return The port.
      */
     public int getPort() {
@@ -221,6 +232,7 @@ public class PartyMenuItem extends StackPane {
 
     /**
      * Gets the ip address currently set.
+     *
      * @return The ip address.
      */
     public String getIpAddress() {
@@ -229,6 +241,7 @@ public class PartyMenuItem extends StackPane {
 
     /**
      * Sets the gap for the GridPane organizer.
+     *
      * @param spacing The amount of spacing between rows and columns.
      */
     public void setSpacing(double spacing) {

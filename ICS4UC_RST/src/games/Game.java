@@ -1,5 +1,6 @@
 package games;
 
+import games.player.NetworkPlayer;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Region;
 import javafx.scene.text.Text;
@@ -35,6 +36,10 @@ public interface Game {
      */
     Image getCoverArt();
 
+    /**
+     * Gets the name of the game.
+     * @return The game's nice english name.
+     */
     String getName();
 
     /**
@@ -70,4 +75,21 @@ public interface Game {
      * Resets the game, readying it for another play instance.
      */
     void reset();
+
+    /**
+     * Gets the network player playing this game.
+     *
+     * @return The network player in this game. Null if there isn't one.
+     */
+    NetworkPlayer getNetworkPlayer();
+
+    /**
+     * Tells this game to be a network game, therefore making it skip any game type selection process.
+     */
+    void setNetworkGame();
+
+    /**
+     * Sets up players before starting the game.
+     */
+    void initializePlayers();
 }

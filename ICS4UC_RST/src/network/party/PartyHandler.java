@@ -4,8 +4,16 @@ import advancedIO.AdvancedIO;
 import network.Client;
 import network.Server;
 import network.TCPSocket;
+import network.party.network.ReceivedDataEvent;
+import network.party.network.ReceiverTask;
+import network.party.network.SenderTask;
 
 import java.io.IOException;
+import java.util.Queue;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 
 /**
  * Class for handling a party with another user.
@@ -16,7 +24,11 @@ import java.io.IOException;
 public class PartyHandler {
     private static PartyRole role;
     private static TCPSocket socket;
-    private static Thread joinThread;
+
+    // Queues for communicating cross-thread.
+    private static Queue<String> outgoingQueue, incomingQueue;
+    private static ReceiverTask incomingTask;
+    private static Consumer<ReceivedDataEvent> incomingListener;
 
     /**
      * Begins a party session with the user at the given IP address.
@@ -28,22 +40,24 @@ public class PartyHandler {
     public static boolean connect(final String ip, final int port) {
         boolean didConnect = false;
         if (!isConnected()) {
-            socket = new Client();
             try {
-                ((Client) socket).connect(ip, port);
+                Client client = new Client();
+                client.connect(ip, port);
                 didConnect = true;
-            } catch (IOException e) {
+                socket = client;
+            } catch (IOException ignored) {
             }
         }
         if (didConnect) {
             role = PartyRole.CLIENT;
+            setupConnection();
         }
 
         return didConnect;
     }
 
     /**
-     * Begins to host a party on this user's machine.
+     * Begins to host a party on this user's machine. NOTE - Will hang machine, so run in separate thread.
      *
      * @param port The port on which the hosting should be done.
      * @throws IOException if creating the server fails.
@@ -51,33 +65,22 @@ public class PartyHandler {
     public static void host(final int port) throws IOException {
         if (!isConnected()) {
             role = PartyRole.SERVER;
-            socket = new Server(port);
-            allowJoining();
+            Server server = new Server(port);
+            socket = server;
+            server.accept();
+            if (isConnected()) {
+                setupConnection();
+            }
         }
     }
 
     /**
-     * Allows incoming requests to join the party, processing them in a separate thread.
-     */
-    private static void allowJoining() {
-        // Only do stuff if we're a server.
-        if (getRole() == PartyRole.SERVER) {
-            joinThread = new Thread(new Joiner(getServer()));
-            joinThread.start();
-        }
-    }
-
-    /**
-     * Determines if the joiner thread is still waiting for the other player to join.
+     * Determines if the other player is connected.
      *
-     * @return True if the thread is still waiting on the other player, false otherwise.
+     * @return True if the other player is connected, false otherwise.
      */
-    public static boolean isStillWaitingForOtherPlayer() {
-        try {
-            joinThread.join(10);
-        } catch (InterruptedException ignored) {
-        }
-        return joinThread.getState() != Thread.State.TERMINATED;
+    public static boolean isOtherPlayerConnected() {
+        return socket.isConnected();
     }
 
     /**
@@ -130,6 +133,85 @@ public class PartyHandler {
     }
 
     /**
+     * Gets the TCP socket object for the party.
+     *
+     * @return The TCP socket object.
+     */
+    public static TCPSocket getTCPSocket() {
+        return socket;
+    }
+
+    /**
+     * Sends a message to the other client.
+     *
+     * @param message The string to be sent.
+     */
+    public static void sendMessage(String message) {
+        outgoingQueue.add(message);
+    }
+
+    /**
+     * Polls for incoming messages from the other client, removing them once accessed.
+     *
+     * @return The incoming message.
+     */
+    public static String pollIncoming() {
+        return incomingQueue.poll();
+    }
+
+    /**
+     * Determines if there are incoming messages from the other client waiting.
+     *
+     * @return The incoming messages to be read.
+     */
+    public static boolean hasIncomingMessages() {
+        return !incomingQueue.isEmpty();
+    }
+
+    /**
+     * Adds a listener which will be called when the application receives data from the other client.
+     *
+     * @param listener The listener to be called when data is received.
+     */
+    public static void setIncomingMessageListener(Consumer<ReceivedDataEvent> listener) {
+        incomingListener = listener;
+        if (incomingTask != null) {
+            incomingTask.valueProperty().addListener((observable, oldValue, newValue) -> listener.accept(newValue));
+        }
+    }
+
+    /**
+     * Sets up everything necessary for the multiplayer connection to be monitored.
+     */
+    private static void setupConnection() {
+        outgoingQueue = new ArrayBlockingQueue<>(15);
+        SenderTask outgoingTask = new SenderTask(getTCPSocket(), outgoingQueue);
+
+        incomingQueue = new ArrayBlockingQueue<>(15);
+        incomingTask = new ReceiverTask(getTCPSocket(), incomingQueue);
+        incomingTask.setOnSucceeded(event -> receiverClosed());
+        if (incomingListener != null) {
+            incomingTask.addListener(incomingListener);
+        }
+
+        ExecutorService executorService = Executors.newFixedThreadPool(2);
+        executorService.execute(outgoingTask);
+        executorService.execute(incomingTask);
+        executorService.shutdown();
+    }
+
+    /**
+     * Called when the incoming messages task closes.
+     */
+    private static void receiverClosed() {
+        try {
+            disconnect();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * Method for allowing this module to be tested and tried out without the rest of the application.
      *
      * @param args Command-line arguments.
@@ -166,7 +248,7 @@ public class PartyHandler {
 
                         boolean waiting;
                         do {
-                            waiting = isStillWaitingForOtherPlayer();
+                            waiting = isOtherPlayerConnected();
                             if (waiting) {
                                 AdvancedIO.print("Waiting for other user to join...");
                             }

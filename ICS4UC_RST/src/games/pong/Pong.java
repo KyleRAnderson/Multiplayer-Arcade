@@ -24,11 +24,8 @@ public class Pong {
      */
     private static final double MAX_REBOUND_ANGLE = 75;
     // Ratios for distances and speeds.
-    @SuppressWarnings("FieldCanBeLocal")
     private static final double BALL_RADIUS = 4;
-    @SuppressWarnings("FieldCanBeLocal")
     private static final double PADDLE_HEIGHT = 28; // Ratio between the paddle size (height) and the screen height.
-    @SuppressWarnings("FieldCanBeLocal")
     // How many units per second the paddle moves while the button is being held down.
     public static final double PADDLE_MOVEMENT_RATE = 200;
     // Velocity of the pong ball in units per second.
@@ -36,26 +33,11 @@ public class Pong {
 
     private final PongBall ball;
 
-    /**
-     * Gets the local player for the game.
-     *
-     * @return The local game player.
-     */
-    public PongPlayer getLocalPlayer() {
-        return localPlayer;
-    }
+    private PongPlayer localPlayer;
+    private PongPlayer player2;
 
-    /**
-     * Gets the second player in the game.
-     *
-     * @return The second player.
-     */
-    public PongPlayer getPlayer2() {
-        return player2;
-    }
-
-    private final PongPlayer localPlayer;
-    private final PongPlayer player2;
+    private Paddle leftPaddle;
+    private Paddle rightPaddle;
 
     private final double width, height;
 
@@ -70,6 +52,13 @@ public class Pong {
     }
 
     /**
+     * Initializes the most basic game of pong.
+     */
+    public Pong() {
+        this(WIDTH, HEIGHT);
+    }
+
+    /**
      * Instantiates a new pong game.
      *
      * @param localPlayer The local player (the player playing on this computer).
@@ -77,17 +66,35 @@ public class Pong {
      * @param width       The width of the board.
      * @param height      The height of the board.
      */
-    public Pong(@NotNull PongPlayer localPlayer, @NotNull PongPlayer player2, int width, int height) {
+    public Pong(@NotNull PongPlayer localPlayer, @NotNull PongPlayer player2, final int width, final int height) {
+        this(width, height);
+        setLocalPlayer(localPlayer);
+        setPlayer2(player2);
+    }
+
+    /**
+     * Instantiates a new pong game.
+     *
+     * @param width  The width of the board.
+     * @param height The height of the board.
+     */
+    public Pong(final int width, final int height) {
         this.width = width;
         this.height = height;
-        this.localPlayer = localPlayer;
-        this.player2 = player2;
 
         // The ball should be a certain ration to the size of the board's diagonal dimension.
         ball = new PongBall((int) Math.floor(BALL_RADIUS));
 
-        // Ensure that the players have their sides set up.
+        setupPaddles();
+        // Send the ball to the person on the right first
+        resetBall(Side.RIGHT);
+    }
 
+    /**
+     * Initializes the pong game, setting up anything that needs to be set before playing the game.
+     */
+    public void initialize() {
+        // Ensure that the players have their sides set up.
         if (localPlayer.getSide() == null) {
             if (player2.getSide() == Side.LEFT) {
                 localPlayer.setSide(Side.RIGHT);
@@ -108,11 +115,42 @@ public class Pong {
                 player2.setSide(Side.RIGHT);
             }
         }
+    }
 
-        // Needs to be called after players have a side.
-        setupPaddles();
-        // Send the ball to the person on the right first
-        resetBall(Side.RIGHT);
+    /**
+     * Gets the local player for the game.
+     *
+     * @return The local game player.
+     */
+    public PongPlayer getLocalPlayer() {
+        return localPlayer;
+    }
+
+    /**
+     * Sets the PongPlayer for the local player.
+     *
+     * @param player The local player.
+     */
+    public void setLocalPlayer(PongPlayer player) {
+        this.localPlayer = player;
+    }
+
+    /**
+     * Gets the second player in the game.
+     *
+     * @return The second player.
+     */
+    public PongPlayer getPlayer2() {
+        return player2;
+    }
+
+    /**
+     * Sets the second player.
+     *
+     * @param player The second player.
+     */
+    public void setPlayer2(PongPlayer player) {
+        this.player2 = player;
     }
 
     /**
@@ -138,19 +176,17 @@ public class Pong {
      * start (center) position.
      */
     private void setupPaddles() {
-        PongPlayer leftPlayer = getLeftPlayer();
-        PongPlayer rightPlayer = getRightPlayer();
-        if (leftPlayer.getPaddle() == null) {
-            getLeftPlayer().setPaddle(new Paddle(PADDLE_DISTANCE, PADDLE_HEIGHT, Side.LEFT));
+        if (leftPaddle == null) {
+            leftPaddle = new Paddle(PADDLE_DISTANCE, PADDLE_HEIGHT, Side.LEFT);
         }
-        if (rightPlayer.getPaddle() == null) {
-            getRightPlayer().setPaddle(new Paddle(PADDLE_DISTANCE, PADDLE_HEIGHT, Side.RIGHT));
+        if (rightPaddle == null) {
+            rightPaddle = new Paddle(PADDLE_DISTANCE, PADDLE_HEIGHT, Side.RIGHT);
         }
 
-        leftPlayer.getPaddle().setX(PADDLE_DISTANCE);
-        leftPlayer.getPaddle().setY(getBoardHeight() / 2, Side.CENTER);
-        rightPlayer.getPaddle().setX(getBoardWidth() - PADDLE_DISTANCE, Side.RIGHT);
-        rightPlayer.getPaddle().setY(getBoardHeight() / 2, Side.CENTER);
+        leftPaddle.setX(PADDLE_DISTANCE);
+        leftPaddle.setY(getBoardHeight() / 2, Side.CENTER);
+        rightPaddle.setX(getBoardWidth() - PADDLE_DISTANCE, Side.RIGHT);
+        rightPaddle.setY(getBoardHeight() / 2, Side.CENTER);
     }
 
     /**
@@ -207,9 +243,9 @@ public class Pong {
      */
     private void renderBallCollision() {
         Paddle touchedPaddle;
-        if (doesIntersect(ball, touchedPaddle = getLeftPlayer().getPaddle())) {
+        if (doesIntersect(ball, touchedPaddle = leftPaddle)) {
             applyNewBallVelocity(touchedPaddle);
-        } else if (doesIntersect(ball, touchedPaddle = getRightPlayer().getPaddle())) {
+        } else if (doesIntersect(ball, touchedPaddle = rightPaddle)) {
             applyNewBallVelocity(touchedPaddle);
         }
     }
@@ -391,7 +427,7 @@ public class Pong {
      * @return The right paddle.
      */
     public Paddle getRightPaddle() {
-        return getRightPlayer().getPaddle();
+        return rightPaddle;
     }
 
     /**
@@ -400,6 +436,29 @@ public class Pong {
      * @return The paddle on the left of the board.
      */
     public Paddle getLeftPaddle() {
-        return getLeftPlayer().getPaddle();
+        return leftPaddle;
+    }
+
+
+    /**
+     * Gets the pong paddle belonging to the given player.
+     *
+     * @param player The player.
+     * @return The paddle belonging to the player.
+     */
+    public Paddle getPaddle(PongPlayer player) {
+        Paddle paddle;
+        switch (player.getSide()) {
+            case LEFT:
+                paddle = getLeftPaddle();
+                break;
+            case RIGHT:
+                paddle = getRightPaddle();
+                break;
+            default:
+                paddle = null;
+                break;
+        }
+        return paddle;
     }
 }

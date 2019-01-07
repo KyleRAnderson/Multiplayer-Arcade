@@ -2,8 +2,6 @@ package menu;
 
 import games.Game;
 import games.pong.ui.PongUI;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -16,13 +14,18 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.*;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
-import javafx.util.Duration;
 import network.TCPSocket;
 import network.party.PartyHandler;
+import network.party.network.HostStatus;
+import network.party.network.NetworkMessage;
+import network.party.network.ReceivedDataEvent;
+import preferences.Preferences;
 
-import java.io.IOException;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import static javafx.scene.control.ButtonType.YES;
 
 /**
  * Main menu for users to use to launch whatever game they want to or to customize settings.
@@ -58,9 +61,16 @@ public class MainMenu extends Application {
     private Game currentGame;
 
     // Array of all the playable games.
-    private Game[] games = new Game[]{
+    private final Game[] games = new Game[]{
             new PongUI()
     };
+
+    /**
+     * Constructs a new main menu object.
+     */
+    public MainMenu() {
+        PartyHandler.setIncomingMessageListener(this::messageReceived);
+    }
 
     @Override
     public void start(Stage primaryStage) {
@@ -201,6 +211,7 @@ public class MainMenu extends Application {
 
     /**
      * SEts up the port for the PartyMenuItem
+     *
      * @param menuItem The PartyMenuItem for which the port should be set up.
      */
     private static void setupPort(PartyMenuItem menuItem) {
@@ -215,16 +226,51 @@ public class MainMenu extends Application {
     /**
      * Begins playing the provided game.
      *
+     * @param game       The game to play.
+     * @param wasInvited True if the player was invited to play this game and accepted the invite.
+     */
+    private void playGame(Game game, boolean wasInvited) {
+        // If the party is connected, prepare for launching the game.
+        if (PartyHandler.isConnected() && !wasInvited) {
+            NetworkMessage message = new NetworkMessage(HostStatus.PENDING_GAME_INVITE);
+            message.setCurrentGame(game.getClass().toString());
+            sendNetworkMessage(message);
+            Alert inviteSent = new Alert(Alert.AlertType.INFORMATION, "Game invite sent.", ButtonType.OK);
+            inviteSent.showAndWait();
+        } else {
+            currentGame = game;
+            currentGame.reset();
+            Region window = currentGame.getWindow();
+            window.setPrefWidth(menuRoot.getWidth());
+            if (wasInvited) {
+                currentGame.setNetworkGame();
+            }
+            if (currentGame.isNetworkGame()) {
+                currentGame.getNetworkPlayer().setOnGameDataSend(this::sendGameData);
+            }
+            setDisplay(window);
+            currentGame.initializePlayers();
+            currentGame.start();
+        }
+    }
+
+    /**
+     * Begins playing the provided game.
+     *
      * @param game The game to play.
      */
     private void playGame(Game game) {
-        currentGame = game;
-        currentGame.reset();
-        Region window = currentGame.getWindow();
-        window.setPrefWidth(menuRoot.getWidth());
-        window.setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
-        setDisplay(window);
-        currentGame.start();
+        playGame(game, false);
+    }
+
+    /**
+     * Quits the current game, if there is one being played.
+     */
+    public void quitGame() {
+        if (currentGame != null) {
+            currentGame.end();
+            currentGame = null;
+        }
     }
 
     private void setDisplay(Region parent) {
@@ -233,7 +279,7 @@ public class MainMenu extends Application {
     }
 
     /**
-     * Formats the provided stack pane in ordre to match styling for menu items.
+     * Formats the provided stack pane in order to match styling for menu items.
      *
      * @param item The Stack Pane to be formatted to match a menu item's style.
      */
@@ -263,6 +309,7 @@ public class MainMenu extends Application {
      * @param percentWidth The percent height for the row.
      * @return The created row constraints object.
      */
+    @SuppressWarnings("SameParameterValue")
     private static ColumnConstraints createColumnConstraints(final int percentWidth) {
         ColumnConstraints constraints = new ColumnConstraints();
         constraints.setPercentWidth(percentWidth);
@@ -283,7 +330,14 @@ public class MainMenu extends Application {
      * Displays the user preferences menu.
      */
     private void displayPreferences() {
+        // TODO the code below is all temporary, eventually will make real preferences.
+        TextInputDialog inputDialog = new TextInputDialog(Preferences.getInstance().getHostName());
+        inputDialog.setHeaderText("Preferences");
+        inputDialog.setTitle("Preferences");
+        inputDialog.setContentText("User Name: ");
+        Optional<String> result = inputDialog.showAndWait();
 
+        result.ifPresent(s -> Preferences.getInstance().setHostName(s));
     }
 
     /**
@@ -303,14 +357,20 @@ public class MainMenu extends Application {
 
     /**
      * Called when the attempt to connect to a host user is ended.
+     *
      * @param succeeded True if the connection attempt succeeded, false otherwise.
      */
     private void connectionOver(boolean succeeded) {
-        if (!PartyHandler.isConnected() || !succeeded) {
+        final boolean allGood = PartyHandler.isConnected() && succeeded;
+        if (!allGood) {
             Alert errorAlert = new Alert(Alert.AlertType.ERROR, "Failed to connect to host.", ButtonType.OK);
             errorAlert.showAndWait();
+        } else {
+            onConnection();
         }
-        hostMenuItem.setDisable(false);
+        // Disable the connection stuff once connected.
+        hostMenuItem.setDisable(allGood);
+        connectMenuItem.setDisable(allGood);
         connectMenuItem.setActive(false);
     }
 
@@ -319,25 +379,160 @@ public class MainMenu extends Application {
      */
     private void hostParty() {
         connectMenuItem.setDisable(true);
-        try {
-            PartyHandler.host(hostMenuItem.getPort());
-        } catch (IOException e) {
-            Alert errorAlert = new Alert(Alert.AlertType.ERROR, "Failed to start host.", ButtonType.OK);
-            errorAlert.showAndWait();
-        }
+        HostTask task = new HostTask(hostMenuItem.getPort());
+        task.setOnFailed(event -> hostingFailed());
+        task.setOnSucceeded(event -> hostSuccessful());
 
-        Timeline checkTimeline = new Timeline(new KeyFrame(Duration.millis(500), event -> checkHost()));
-        checkTimeline.setCycleCount(Timeline.INDEFINITE);
-        checkTimeline.play();
+        ExecutorService executorService = Executors.newFixedThreadPool(1);
+        executorService.execute(task);
+        executorService.shutdown();
     }
 
     /**
-     * Checks to see if the host has completed a connection with another player.
+     * Called when the application fails to host.
      */
-    private void checkHost() {
-        if (!PartyHandler.isStillWaitingForOtherPlayer()) {
-            connectMenuItem.setDisable(false);
-            hostMenuItem.setActive(false);
+    private void hostingFailed() {
+        Alert errorAlert = new Alert(Alert.AlertType.ERROR, "Failed to start host.", ButtonType.OK);
+        errorAlert.showAndWait();
+    }
+
+    /**
+     * Called when after hosting a party a player connects to the lobby.
+     */
+    private void hostSuccessful() {
+        hostMenuItem.setActive(false);
+        hostMenuItem.setDisable(true);
+        onConnection();
+    }
+
+    /**
+     * Prepares a network message for sending.
+     *
+     * @param message The message to be sent.
+     */
+    private void sendNetworkMessage(NetworkMessage message) {
+        if (currentGame != null) {
+            message.setCurrentGame(currentGame.getClass().toString());
         }
+        message.setHostName(Preferences.getInstance().getHostName());
+        PartyHandler.sendMessage(message.toJsonString());
+    }
+
+    /**
+     * Called when connecting to another client has succeeded.
+     */
+    private void onConnection() {
+        sendNetworkMessage(new NetworkMessage(HostStatus.CONNECTED));
+    }
+
+    /**
+     * Called when data is received from the other client.
+     *
+     * @param receivedEvent The event of the received data.
+     */
+    public void messageReceived(ReceivedDataEvent receivedEvent) {
+        if (receivedEvent == ReceivedDataEvent.RECEIVED_DATA) {
+            while (PartyHandler.hasIncomingMessages()) {
+                NetworkMessage receivedMessage = NetworkMessage.fromJson(PartyHandler.pollIncoming());
+                // Determine if some of the data should be passed to the current game.
+                final boolean shouldSendToGame = currentGame != null && currentGame.isNetworkGame();
+
+                switch (receivedMessage.getHostStatus()) {
+                    case IN_GAME:
+                        if (shouldSendToGame) {
+                            currentGame.getNetworkPlayer().receiveData(receivedMessage);
+                        }
+                        break;
+                    case DISCONNECTING:
+                        if (shouldSendToGame) {
+                            currentGame.getNetworkPlayer().hostDisconnecting();
+                        }
+                        break;
+                    case PENDING_GAME_INVITE:
+                        // If the user accepts the game invite, we need to do certain things.
+                        Game invitedGame = findGame(receivedMessage.getCurrentGame());
+                        boolean userAccepted = gameInvite(receivedMessage.getHostName(), invitedGame);
+                        HostStatus newStatus = (userAccepted) ? HostStatus.ACCEPTED_GAME_INVITE : HostStatus.DECLINED_GAME_INVITE;
+                        NetworkMessage newMessage = new NetworkMessage(newStatus);
+                        if (userAccepted) {
+                            newMessage.setCurrentGame(receivedMessage.getCurrentGame());
+                        }
+                        sendNetworkMessage(newMessage);
+                        if (userAccepted) {
+                            playGame(invitedGame, true);
+                        }
+                        break;
+                    case ACCEPTED_GAME_INVITE:
+                        playGame(findGame(receivedMessage.getCurrentGame()), true);
+                        break;
+                    case DECLINED_GAME_INVITE:
+                        // Show the user an error about the game invitation.
+                        Alert declineAlert = new Alert(Alert.AlertType.INFORMATION, String.format("%s declined your invite to play. To play solo disconnect from the party.", receivedMessage.getHostName()), ButtonType.OK);
+                        declineAlert.showAndWait();
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Called when a game wishes to send game data to the connected client.
+     *
+     * @param gameData The string data to be sent.
+     */
+    private void sendGameData(final String gameData) {
+        if (PartyHandler.isConnected()) {
+            sendNetworkMessage(new NetworkMessage(HostStatus.IN_GAME, gameData));
+        }
+
+    }
+
+    /**
+     * Invites this user to play a game initiated by the other user.
+     *
+     * @param otherPlayerName The gamer tag of the player inviting this player to play the game.
+     * @param game            The game to which the user was invited.
+     * @return True if this user accepts playing the game, false otherwise.
+     */
+    private boolean gameInvite(final String otherPlayerName, final Game game) {
+        boolean userAccepted = false;
+        if (game != null) {
+            Alert inviteAlert = new Alert(Alert.AlertType.CONFIRMATION, String.format("%s has invited you to play %s. Do you accept?", otherPlayerName, game.getName()), YES, ButtonType.NO);
+            Optional<ButtonType> result = inviteAlert.showAndWait();
+            if (result.isPresent()) {
+                ButtonType type = result.get();
+                userAccepted = type == YES;
+            }
+        }
+
+        return userAccepted;
+    }
+
+    /**
+     * Finds the game based off of the class name.
+     *
+     * @param gameClassName The game's class name.
+     * @return The game corresponding to the class name.
+     */
+    private Game findGame(final String gameClassName) {
+        Game foundGame = null;
+        for (Game game : games) {
+            if (game.getClass().toString().equals(gameClassName)) {
+                foundGame = game;
+                break;
+            }
+        }
+        return foundGame;
+    }
+
+    /**
+     * Main method for the program.
+     *
+     * @param args Command-line arguments.
+     */
+    public static void main(String[] args) {
+        launch(args);
     }
 }

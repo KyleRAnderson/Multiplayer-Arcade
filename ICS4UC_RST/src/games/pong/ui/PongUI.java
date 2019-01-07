@@ -1,6 +1,5 @@
 package games.pong.ui;
 
-import advancedIO.AdvancedIO;
 import games.Game;
 import games.Score;
 import games.player.PongKeyBinding;
@@ -14,9 +13,13 @@ import games.pong.players.PongNetworkPlayer;
 import games.pong.players.PongPlayer;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.geometry.Insets;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -26,6 +29,8 @@ import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
+import network.party.PartyHandler;
+import network.party.PartyRole;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,12 +52,14 @@ public class PongUI extends Pane implements Game {
     // How much the units in the pong game backend are scaled to make a nice looking UI.
     private double scaleFactor;
 
-    private Circle ball;
+    private final Circle ball;
 
-    private Rectangle leftPaddle;
-    private Rectangle rightPaddle;
-    private Scoreboard scoreboard;
+    private final Rectangle leftPaddle;
+    private final Rectangle rightPaddle;
+    private final Scoreboard scoreboard;
 
+    // Set up key bindings list.
+    private ArrayList<HashMap<KeyCode, PongKeyBinding>> keyBindings;
     // Timers to be used when rendering the game to the user.
     private Timeline tickTimer, renderFrameTimer;
 
@@ -70,6 +77,7 @@ public class PongUI extends Pane implements Game {
         ball = new Circle();
         scoreboard = initializeScoreboard();
         getChildren().addAll(leftPaddle, rightPaddle, ball, scoreboard);
+        setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
 
         setOnKeyPressed(this::keyPressed);
         setOnKeyReleased(this::keyReleased);
@@ -299,6 +307,7 @@ public class PongUI extends Pane implements Game {
 
     @Override
     public Image getCoverArt() {
+        //noinspection SpellCheckingInspection
         return new Image(getClass().getResource("/res/pong/coverart.png").toString());
     }
 
@@ -310,6 +319,7 @@ public class PongUI extends Pane implements Game {
     @Override
     public Text getTextDisplay() {
         Text text = new Text(getName());
+        //noinspection SpellCheckingInspection
         text.setFont(Font.font("Consolas", FontWeight.BLACK, FontPosture.REGULAR, 72));
         text.setFill(Color.ORANGE);
 
@@ -323,7 +333,7 @@ public class PongUI extends Pane implements Game {
      */
     @Override
     public boolean isNetworkGame() {
-        return game.getPlayer2() instanceof PongNetworkPlayer || game.getLocalPlayer() instanceof PongNetworkPlayer;
+        return game.getPlayer2() instanceof PongNetworkPlayer;
     }
 
     @Override
@@ -338,26 +348,30 @@ public class PongUI extends Pane implements Game {
 
     @Override
     public void reset() {
-        PongKeyboardPlayer p1 = new PongKeyboardPlayer(), p2 = new PongKeyboardPlayer();
-        game = new Pong(p1, p2); // Initialize new pong game with the correct type of players.
+        game = new Pong(); // Initialize new pong game with the correct type of players
+        resetKeyBindings();
+    }
 
-        // TODO streamline automatic key bindings handled in the actual KeyboardPlayer class later.
-        HashMap<KeyCode, PongKeyBinding> p2Bindings = new HashMap<>();
-        p2Bindings.put(KeyCode.UP, PongKeyBinding.MOVE_UP);
-        p2Bindings.put(KeyCode.DOWN, PongKeyBinding.MOVE_DOWN);
+    /**
+     * Resets the key bindings.
+     */
+    private void resetKeyBindings() {
+        keyBindings = new ArrayList<>();
 
         HashMap<KeyCode, PongKeyBinding> p1Bindings = new HashMap<>();
-        p1Bindings.put(KeyCode.Q, PongKeyBinding.MOVE_UP);
-        p1Bindings.put(KeyCode.A, PongKeyBinding.MOVE_DOWN);
-        p1.setKeyBindings(p1Bindings);
-        p2.setKeyBindings(p2Bindings);
+        p1Bindings.put(KeyCode.UP, PongKeyBinding.MOVE_UP);
+        p1Bindings.put(KeyCode.DOWN, PongKeyBinding.MOVE_DOWN);
 
-        p1.setOnActionChanged(this::actionChanged);
-        p2.setOnActionChanged(this::actionChanged);
+        HashMap<KeyCode, PongKeyBinding> p2Bindings = new HashMap<>();
+        p2Bindings.put(KeyCode.Q, PongKeyBinding.MOVE_UP);
+        p2Bindings.put(KeyCode.A, PongKeyBinding.MOVE_DOWN);
+
+        keyBindings.add(p1Bindings);
+        keyBindings.add(p2Bindings);
     }
 
     private void actionChanged(PongPlayer affectedPlayer, Action newAction) {
-        Paddle paddle = affectedPlayer.getPaddle();
+        Paddle paddle = game.getPaddle(affectedPlayer);
 
         switch (newAction) {
             case MOVE_DOWN:
@@ -370,5 +384,74 @@ public class PongUI extends Pane implements Game {
                 paddle.setVelY(0);
                 break;
         }
+    }
+
+    /**
+     * Initializes the players in the game, if not already done.
+     */
+    @Override
+    public void initializePlayers() {
+        PongPlayer p1 = game.getLocalPlayer(), p2 = game.getPlayer2();
+
+        if (p1 == null) {
+            p1 = new PongKeyboardPlayer();
+            game.setLocalPlayer(p1);
+        }
+        if (p2 == null) {
+            p2 = new PongKeyboardPlayer();
+            game.setPlayer2(p2);
+        }
+        if (p1 instanceof PongKeyboardPlayer) {
+            setupBindings((PongKeyboardPlayer) p1);
+        }
+        if (p2 instanceof PongKeyboardPlayer) {
+            setupBindings((PongKeyboardPlayer) p2);
+        }
+
+        game.initialize(); // Initialize pong game now that players are set up.
+
+        p1.setOnActionChanged(this::actionChanged);
+        p2.setOnActionChanged(this::actionChanged);
+    }
+
+    /**
+     * Sets up key bindings for the given player.
+     *
+     * @param player The player to set up.
+     */
+    private void setupBindings(PongKeyboardPlayer player) {
+        HashMap<KeyCode, PongKeyBinding> bindings = keyBindings.get(0);
+        keyBindings.remove(0);
+        player.setKeyBindings(bindings);
+    }
+
+    @Override
+    public void setNetworkGame() {
+        PongKeyboardPlayer p1 = new PongKeyboardPlayer();
+        PongNetworkPlayer p2 = new PongNetworkPlayer();
+
+        game.setLocalPlayer(p1);
+        game.setPlayer2(p2);
+
+        // Set the side depending on who's hosting.
+        if (PartyHandler.getRole() == PartyRole.SERVER) {
+            game.getLocalPlayer().setSide(Side.RIGHT);
+        } else {
+            game.getLocalPlayer().setSide(Side.LEFT);
+        }
+    }
+
+    /**
+     * Gets the network player playing this game.
+     *
+     * @return The PongNetworkPlayer in this game, or null if there isn't one.
+     */
+    @Override
+    public PongNetworkPlayer getNetworkPlayer() {
+        PongNetworkPlayer player = null;
+        if (isNetworkGame()) {
+            player = (PongNetworkPlayer) game.getPlayer2();
+        }
+        return player;
     }
 }

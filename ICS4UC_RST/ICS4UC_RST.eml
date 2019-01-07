@@ -18,4 +18,7 @@
 		<relative-module-cls project-related="jar://$PROJECT_DIR$/rst/ICS4UC_RST/lib/AdvancedIO.jar!/"/>
 		<relative-module-javadoc project-related="jar://$PROJECT_DIR$/rst/ICS4UC_RST/lib/AdvancedIO.jar!/doc"/>
 	</lib>
+	<lib name="gson-2.6.2.jar" scope="COMPILE">
+		<relative-module-cls project-related="jar://$PROJECT_DIR$/rst/ICS4UC_RST/lib/gson-2.6.2.jar!/"/>
+	</lib>
 </component>
