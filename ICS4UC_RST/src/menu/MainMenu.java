@@ -309,7 +309,6 @@ public class MainMenu extends Application {
      * Connects to a party at the currently set IP address and port.
      */
     private void connectToParty() {
-        System.out.println("Connecting..."); // TODO remove
         hostMenuItem.setDisable(true);
         // Need to connect in a separate thread.
         ConnectTask task = new ConnectTask(connectMenuItem.getIpAddress(), connectMenuItem.getPort());
@@ -345,7 +344,6 @@ public class MainMenu extends Application {
      */
     private void hostParty() {
         connectMenuItem.setDisable(true);
-        System.out.println("Hosting..."); // TODO remove
         HostTask task = new HostTask(hostMenuItem.getPort());
         task.setOnFailed(event -> hostingFailed());
         task.setOnSucceeded(event -> hostSuccessful());

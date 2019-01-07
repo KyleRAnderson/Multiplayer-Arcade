@@ -29,15 +29,12 @@ public class SenderTask extends Task<Void> {
 
     @Override
     protected Void call() throws Exception {
-        System.out.println("Entered sender loop..."); // TODO remove
         while (PartyHandler.isConnected()) {
             String message = queue.poll();
             if (message != null) {
-                System.out.println("Sending: " + message + " Time: " + System.currentTimeMillis()); // TODO Remove.
                 socket.send(message);
             }
         }
-        System.out.println("Exited sender loop..."); // TODO remove
         return null;
     }
 }

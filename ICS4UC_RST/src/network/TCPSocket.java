@@ -90,9 +90,17 @@ public class TCPSocket {
      */
     public void close() throws IOException {
         // close InputStream and Buffered reader
-        isInputStreamReader.close();
-        brBufferedReader.close();
-        stSocket.close();
-        pwOut.close();
+        if (isInputStreamReader != null) {
+            isInputStreamReader.close();
+        }
+        if (brBufferedReader != null) {
+            brBufferedReader.close();
+        }
+        if (stSocket != null) {
+            stSocket.close();
+        }
+        if (pwOut != null) {
+            pwOut.close();
+        }
     }
 }

@@ -27,15 +27,11 @@ public class ReceiverTask extends Task<ReceivedDataEvent> {
 
     @Override
     protected ReceivedDataEvent call() throws Exception {
-        System.out.println("Entered receiver loop..."); // TODO remove.
         while (PartyHandler.isConnected()) {
-            System.out.println("Listening for data." + System.currentTimeMillis()); // TODO remove
             String receivedMessage = socket.listenForData();
-            System.out.println("Received: " + receivedMessage); // TODO Remove
             queue.add(receivedMessage);
             updateValue(ReceivedDataEvent.RECEIVED_DATA); // Update the value, triggering possible listeners.
         }
-        System.out.println("Exited receiver loop..."); // TODO remove
         return ReceivedDataEvent.DISCONNECTED;
     }
 }

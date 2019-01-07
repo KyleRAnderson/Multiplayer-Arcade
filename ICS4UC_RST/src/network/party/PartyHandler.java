@@ -92,7 +92,6 @@ public class PartyHandler {
     public static void disconnect() throws IOException {
         // Only try to disconnect if connected.
         if (isConnected()) {
-            System.out.println("Disconnect."); // TODO remove.
             socket.close();
         }
         role = null;
@@ -201,7 +200,6 @@ public class PartyHandler {
      * Called when the incoming messages task closes.
      */
     private static void receiverClosed() {
-        System.out.println("Hit receiverClosed()"); // TODO Remove
         try {
             disconnect();
         } catch (IOException e) {
