@@ -366,21 +366,17 @@ public class PongUI extends Pane implements Game {
 
         if (p1 == null) {
             p1 = new PongKeyboardPlayer();
+            game.setLocalPlayer(p1);
         }
         if (p2 == null) {
             p2 = new PongKeyboardPlayer();
+            game.setPlayer2(p2);
         }
         if (p1 instanceof PongKeyboardPlayer) {
-            PongKeyboardPlayer player = new PongKeyboardPlayer();
-            setupBindings(player);
-            p1 = player;
-            game.setLocalPlayer(p1);
+            setupBindings((PongKeyboardPlayer) p1);
         }
         if (p2 instanceof PongKeyboardPlayer) {
-            PongKeyboardPlayer player = new PongKeyboardPlayer();
-            setupBindings(player);
-            p2 = player;
-            game.setPlayer2(p2);
+            setupBindings((PongKeyboardPlayer) p2);
         }
 
         game.initialize(); // Initialize pong game now that players are set up.
