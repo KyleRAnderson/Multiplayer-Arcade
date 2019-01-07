@@ -187,7 +187,7 @@ public class PartyHandler {
         incomingTask = new ReceiverTask(getTCPSocket(), incomingQueue);
         incomingTask.setOnSucceeded(event -> receiverClosed());
         if (incomingListener != null) {
-            incomingTask.valueProperty().addListener((observable, oldValue, newValue) -> incomingListener.accept(newValue));
+            incomingTask.addListener(incomingListener::accept);
         }
 
         ExecutorService executorService = Executors.newFixedThreadPool(2);

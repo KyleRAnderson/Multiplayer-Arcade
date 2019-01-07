@@ -64,16 +64,4 @@ public interface PongPlayer extends Player {
      * @return The number of points for this player.
      */
     int getPoints();
-
-    /**
-     * Gets this player's paddle.
-     *
-     * @return The player's paddle.
-     */
-    Paddle getPaddle();
-
-    /**
-     * Sets this player's paddle.
-     */
-    void setPaddle(Paddle paddle);
 }

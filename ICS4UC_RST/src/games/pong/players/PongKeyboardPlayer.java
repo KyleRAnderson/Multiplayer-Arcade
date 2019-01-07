@@ -19,7 +19,6 @@ import java.util.function.Consumer;
 public class PongKeyboardPlayer extends KeyboardPlayer implements PongPlayer {
     private Side side;
     private int points;
-    private Paddle paddle;
 
     public PongKeyboardPlayer() {
     }
@@ -37,16 +36,6 @@ public class PongKeyboardPlayer extends KeyboardPlayer implements PongPlayer {
     @Override
     public int getPoints() {
         return this.points;
-    }
-
-    @Override
-    public Paddle getPaddle() {
-        return this.paddle;
-    }
-
-    @Override
-    public void setPaddle(Paddle paddle) {
-        this.paddle = paddle;
     }
 
     @Override

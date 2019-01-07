@@ -1,6 +1,5 @@
 package menu;
 
-import advancedIO.AdvancedIO;
 import games.Game;
 import games.pong.ui.PongUI;
 import javafx.application.Application;
@@ -20,9 +19,13 @@ import network.party.PartyHandler;
 import network.party.network.HostStatus;
 import network.party.network.NetworkMessage;
 import network.party.network.ReceivedDataEvent;
+import preferences.Preferences;
 
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import static javafx.scene.control.ButtonType.YES;
 
 /**
  * Main menu for users to use to launch whatever game they want to or to customize settings.
@@ -66,7 +69,7 @@ public class MainMenu extends Application {
      * Constructs a new main menu object.
      */
     public MainMenu() {
-        PartyHandler.setIncomingMessageListener(receivedDataEvent -> dataReceived(receivedDataEvent));
+        PartyHandler.setIncomingMessageListener(this::messageReceived);
     }
 
     @Override
@@ -223,17 +226,41 @@ public class MainMenu extends Application {
     /**
      * Begins playing the provided game.
      *
+     * @param game       The game to play.
+     * @param wasInvited True if the player was invited to play this game and accepted the invite.
+     */
+    private void playGame(Game game, boolean wasInvited) {
+        // If the party is connected, prepare for launching the game.
+        if (PartyHandler.isConnected() && !wasInvited) {
+            NetworkMessage message = new NetworkMessage(HostStatus.PENDING_GAME_INVITE);
+            message.setCurrentGame(game.getClass().toString());
+            sendNetworkMessage(message);
+            Alert inviteSent = new Alert(Alert.AlertType.INFORMATION, "Game invite sent.", ButtonType.OK);
+            inviteSent.showAndWait();
+        } else {
+            currentGame = game;
+            currentGame.reset();
+            Region window = currentGame.getWindow();
+            window.setPrefWidth(menuRoot.getWidth());
+            if (wasInvited) {
+                currentGame.setNetworkGame();
+            }
+            if (currentGame.isNetworkGame()) {
+                currentGame.getNetworkPlayer().setOnGameDataSend(this::sendGameData);
+            }
+            setDisplay(window);
+            currentGame.initializePlayers();
+            currentGame.start();
+        }
+    }
+
+    /**
+     * Begins playing the provided game.
+     *
      * @param game The game to play.
      */
     private void playGame(Game game) {
-        currentGame = game;
-        currentGame.reset();
-        currentGame.setOnGameDataSend(this::sendGameData);
-        Region window = currentGame.getWindow();
-        window.setPrefWidth(menuRoot.getWidth());
-        window.setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
-        setDisplay(window);
-        currentGame.start();
+        playGame(game, false);
     }
 
     /**
@@ -302,7 +329,14 @@ public class MainMenu extends Application {
      * Displays the user preferences menu.
      */
     private void displayPreferences() {
+        // TODO the code below is all temporary, eventually will make real preferences.
+        TextInputDialog inputDialog = new TextInputDialog(Preferences.getInstance().getHostName());
+        inputDialog.setHeaderText("Preferences");
+        inputDialog.setTitle("Preferences");
+        inputDialog.setContentText("User Name: ");
+        Optional<String> result = inputDialog.showAndWait();
 
+        result.ifPresent(s -> Preferences.getInstance().setHostName(s));
     }
 
     /**
@@ -371,12 +405,23 @@ public class MainMenu extends Application {
     }
 
     /**
+     * Prepares a network message for sending.
+     *
+     * @param message The message to be sent.
+     */
+    private void sendNetworkMessage(NetworkMessage message) {
+        if (currentGame != null) {
+            message.setCurrentGame(currentGame.getClass().toString());
+        }
+        message.setHostName(Preferences.getInstance().getHostName());
+        PartyHandler.sendMessage(message.toJsonString());
+    }
+
+    /**
      * Called when connecting to another client has succeeded.
      */
     private void onConnection() {
-        // TODO get working host name.
-        NetworkMessage message = new NetworkMessage("Testing", HostStatus.CONNECTED);
-        PartyHandler.sendMessage(message.toJsonString());
+        sendNetworkMessage(new NetworkMessage(HostStatus.CONNECTED));
     }
 
     /**
@@ -384,7 +429,7 @@ public class MainMenu extends Application {
      *
      * @param receivedEvent The event of the received data.
      */
-    public void dataReceived(ReceivedDataEvent receivedEvent) {
+    public void messageReceived(ReceivedDataEvent receivedEvent) {
         if (receivedEvent == ReceivedDataEvent.RECEIVED_DATA) {
             while (PartyHandler.hasIncomingMessages()) {
                 NetworkMessage receivedMessage = NetworkMessage.fromJson(PartyHandler.pollIncoming());
@@ -394,19 +439,35 @@ public class MainMenu extends Application {
                 switch (receivedMessage.getHostStatus()) {
                     case IN_GAME:
                         if (shouldSendToGame) {
-                            currentGame.receiveData(receivedMessage);
+                            currentGame.getNetworkPlayer().receiveData(receivedMessage);
                         }
                         break;
                     case DISCONNECTING:
                         if (shouldSendToGame) {
-                            currentGame.hostDisconnecting();
+                            currentGame.getNetworkPlayer().hostDisconnecting();
                         }
                         break;
                     case PENDING_GAME_INVITE:
+                        // If the user accepts the game invite, we need to do certain things.
+                        Game invitedGame = findGame(receivedMessage.getCurrentGame());
+                        boolean userAccepted = gameInvite(receivedMessage.getHostName(), invitedGame);
+                        HostStatus newStatus = (userAccepted) ? HostStatus.ACCEPTED_GAME_INVITE : HostStatus.DECLINED_GAME_INVITE;
+                        NetworkMessage newMessage = new NetworkMessage(newStatus);
+                        if (userAccepted) {
+                            newMessage.setCurrentGame(receivedMessage.getCurrentGame());
+                        }
+                        sendNetworkMessage(newMessage);
+                        if (userAccepted) {
+                            playGame(invitedGame, true);
+                        }
                         break;
-                    case CONNECTED:
-                        // TODO make official
-                        System.out.println("Host name of connected client: " + receivedMessage.getHostName());
+                    case ACCEPTED_GAME_INVITE:
+                        playGame(findGame(receivedMessage.getCurrentGame()), true);
+                        break;
+                    case DECLINED_GAME_INVITE:
+                        // Show the user an error about the game invitation.
+                        Alert declineAlert = new Alert(Alert.AlertType.INFORMATION, String.format("%s declined your invite to play. To play solo disconnect from the party.", receivedMessage.getHostName()), ButtonType.OK);
+                        declineAlert.showAndWait();
                         break;
                     default:
                         break;
@@ -417,16 +478,52 @@ public class MainMenu extends Application {
 
     /**
      * Called when a game wishes to send game data to the connected client.
+     *
      * @param gameData The string data to be sent.
      */
     private void sendGameData(final String gameData) {
         if (PartyHandler.isConnected()) {
-            // TODO implement working host name.
-            final String hostName = "Test";
-            NetworkMessage message = new NetworkMessage(hostName, HostStatus.IN_GAME, gameData);
-            PartyHandler.sendMessage(message.toJsonString());
+            sendNetworkMessage(new NetworkMessage(HostStatus.IN_GAME, gameData));
         }
 
+    }
+
+    /**
+     * Invites this user to play a game initiated by the other user.
+     *
+     * @param otherPlayerName The gamer tag of the player inviting this player to play the game.
+     * @param game The game to which the user was invited.
+     * @return True if this user accepts playing the game, false otherwise.
+     */
+    private boolean gameInvite(final String otherPlayerName, final Game game) {
+        boolean userAccepted = false;
+        if (game != null) {
+            Alert inviteAlert = new Alert(Alert.AlertType.CONFIRMATION, String.format("%s has invited you to play %s. Do you accept?", otherPlayerName, game.getName()), YES, ButtonType.NO);
+            Optional<ButtonType> result = inviteAlert.showAndWait();
+            if (result.isPresent()) {
+                ButtonType type = result.get();
+                userAccepted = type == YES;
+            }
+        }
+
+        return userAccepted;
+    }
+
+    /**
+     * Finds the game based off of the class name.
+     *
+     * @param gameClassName The game's class name.
+     * @return The game corresponding to the class name.
+     */
+    private Game findGame(final String gameClassName) {
+        Game foundGame = null;
+        for (Game game : games) {
+            if (game.getClass().toString().equals(gameClassName)) {
+                foundGame = game;
+                break;
+            }
+        }
+        return foundGame;
     }
 
     /**

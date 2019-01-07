@@ -1,5 +1,6 @@
 package games;
 
+import games.player.NetworkPlayer;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Region;
 import javafx.scene.text.Text;
@@ -75,19 +76,20 @@ public interface Game {
     void reset();
 
     /**
-     * Should be called when a client sends this client data over the multiplayer network.
-     * @param data The data received.
+     * Gets the network player playing this game.
+     * @param <T> The type for all network players.
+     * @return The network player in this game. Null if there isn't one.
      */
-    void receiveData(NetworkMessage data);
+    NetworkPlayer getNetworkPlayer();
 
     /**
-     * Should be called when a host connected to this host is or has disconnected.
+     * Tells this game to be a network game, therefore making it skip any game type selection process.
      */
-    void hostDisconnecting();
+    void setNetworkGame();
 
     /**
-     * Sets a method to be called when this game wants to send game data to the connected host.
-     * @param listener The listener to accept the game data to be sent.
+     * Sets up players before starting the game.
      */
-    void setOnGameDataSend(Consumer<String> listener);
+    void initializePlayers();
+
 }

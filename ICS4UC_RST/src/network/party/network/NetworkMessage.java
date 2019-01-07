@@ -12,6 +12,9 @@ public class NetworkMessage {
     private HostStatus hostStatus;
     private String gameData;
 
+    // The game that the user is currently playing.
+    private String currentGame;
+
     /**
      * Constructs a new NetworkMessage object.
      * @param hostName The host name.
@@ -26,11 +29,28 @@ public class NetworkMessage {
 
     /**
      * Constructs a new NetworkMessage object.
+     * @param status The current status.
+     * @param gameData The game data to be sent.
+     */
+    public NetworkMessage(HostStatus status, String gameData) {
+        this(null, status, gameData);
+    }
+
+    /**
+     * Constructs a new NetworkMessage object.
      * @param hostName The host name.
      * @param status The status of the application.
      */
     public NetworkMessage(String hostName, HostStatus status) {
         this(hostName, status, null);
+    }
+
+    /**
+     * Constructs a new network message with the given host status.
+     * @param status The status to be sent.
+     */
+    public NetworkMessage(HostStatus status) {
+        setHostStatus(status);
     }
 
     /**
@@ -71,6 +91,22 @@ public class NetworkMessage {
 
     public void setHostStatus(HostStatus hostStatus) {
         this.hostStatus = hostStatus;
+    }
+
+    /**
+     * Gets the name of the game that the user is currently playing. Should be result of {@code gameClass.toString()}.
+     * @return The name of the game. Should be the result of {@code gameClass.toString()}.
+     */
+    public String getCurrentGame() {
+        return currentGame;
+    }
+
+    /**
+     * Sets the game that the player is currently playing.
+     * @param currentGame The name of the game. Should be the result of {@code gameClass.toString()}.
+     */
+    public void setCurrentGame(String currentGame) {
+        this.currentGame = currentGame;
     }
 
     /**
