@@ -22,6 +22,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.util.Duration;
+import menu.MainMenu;
 
 import java.util.HashMap;
 
@@ -36,13 +37,20 @@ public class PongUI extends Pane implements Game {
     private static final double
             CYCLE_TIME = 5, // How long between ticks.
             FPS = 60; // Frames per second
+    
+    // load custom blocky font
+    static {
+    	Font.loadFont(MainMenu.class.getResource("../res/pong/pong.ttf").toExternalForm(), 10);
+    }
+    
     // Font used around the UI.
-    private static final Font FONT = Font.font("Comic Sans MS", FontWeight.BOLD, FontPosture.REGULAR, 24);
+    private static final Font FONT = Font.font("Bit5x3", FontWeight.BOLD, FontPosture.REGULAR, 120);
     private Pong game;
     // How much the units in the pong game backend are scaled to make a nice looking UI.
     private double scaleFactor;
 
     private Circle ball;
+    private Divider divider;
 
     private Rectangle leftPaddle;
     private Rectangle rightPaddle;
@@ -78,6 +86,9 @@ public class PongUI extends Pane implements Game {
         rightPaddle = new Rectangle();
         ball = new Circle();
         scoreboard = initializeScoreboard();
+        divider.create(100, 0, 600);
+        divider.draw();
+        
         getChildren().addAll(leftPaddle, rightPaddle, ball, scoreboard);
         // Update the locations of the things we just created.
         updatePaddleLocations();
@@ -111,8 +122,7 @@ public class PongUI extends Pane implements Game {
     private Scoreboard initializeScoreboard() {
         Scoreboard board = new Scoreboard();
         board.setFont(FONT);
-        board.setFontFill(Color.RED);
-        board.setSpacing(20); // Set a certain amount of space between the numbers on the scoreboard.
+        board.setFontFill(Color.WHITE);
 
         return board;
     }
@@ -158,7 +168,7 @@ public class PongUI extends Pane implements Game {
         ball.setRadius(game.getBall().getRadius() * scaleFactor);
         scoreboard.setLayoutX(getWidth() / 2 - scoreboard.getWidth() / 2);
         scoreboard.setLayoutY(getHeight() * 0.01);
-
+        scoreboard.setSpacing(getWidth() * 0.2);
         updatePaddleLocations();
         updateBallLocation();
     }
