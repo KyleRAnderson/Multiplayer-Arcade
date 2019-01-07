@@ -52,8 +52,8 @@ public class Server extends TCPSocket {
      * @return the local IP address
      * @throws UnknownHostException if there is no host
      */
-    public String getDefaultHostIP() throws UnknownHostException {   	
-		String strIP = InetAddress.getLocalHost().getHostAddress().toString();
+    public static String getDefaultHostIP() throws UnknownHostException {
+		String strIP = InetAddress.getLocalHost().getHostAddress();
     	
     	return strIP;
     }
