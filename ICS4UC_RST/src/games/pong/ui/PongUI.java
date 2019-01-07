@@ -59,7 +59,6 @@ public class PongUI extends Pane implements Game {
 
     // Set up key bindings list.
     private ArrayList<HashMap<KeyCode, PongKeyBinding>> keyBindings;
-
     // Timers to be used when rendering the game to the user.
     private Timeline tickTimer, renderFrameTimer;
 

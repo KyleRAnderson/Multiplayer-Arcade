@@ -1,8 +1,9 @@
 package network;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.UnknownHostException;
 
 /**
  * @author s405751 (Nicolas Hawrysh)
@@ -38,15 +39,6 @@ public class Server extends TCPSocket {
     }
 
     /**
-     * Method to close the server
-     *
-     * @throws IOException Thrown when there is some sort of IO issue.
-     */
-    public void closeServer() throws IOException {
-        ssServer.close();
-    }
-
-    /**
      * Closes the server.
      *
      * @throws IOException Thrown if there is some sort of error.
@@ -54,6 +46,16 @@ public class Server extends TCPSocket {
     @Override
     public void close() throws IOException {
         super.close();
-        closeServer();
+        ssServer.close();
+    }
+    
+    /**
+     * Method to get the host IP
+     *
+     * @return the local IP address
+     * @throws UnknownHostException if there is no host
+     */
+    public static String getDefaultHostIP() throws UnknownHostException {
+        return InetAddress.getLocalHost().getHostAddress();
     }
 }

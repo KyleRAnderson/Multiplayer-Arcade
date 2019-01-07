@@ -2,7 +2,6 @@ package games.pong.players;
 
 import games.Game;
 import games.player.NetworkPlayer;
-import games.pong.pieces.Paddle;
 import games.pong.pieces.Side;
 import network.party.network.NetworkMessage;
 
@@ -68,6 +67,5 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
 
     @Override
     public void hostDisconnecting() {
-
     }
 }

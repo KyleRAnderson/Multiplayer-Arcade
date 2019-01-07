@@ -1,7 +1,6 @@
 package games.pong.players;
 
 import games.player.Player;
-import games.pong.pieces.Paddle;
 import games.pong.pieces.Side;
 
 import java.util.function.BiConsumer;

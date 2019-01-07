@@ -4,9 +4,6 @@ import games.player.NetworkPlayer;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Region;
 import javafx.scene.text.Text;
-import network.party.network.NetworkMessage;
-
-import java.util.function.Consumer;
 
 /**
  * Enforces structure for games of all sort.
@@ -77,7 +74,6 @@ public interface Game {
 
     /**
      * Gets the network player playing this game.
-     * @param <T> The type for all network players.
      * @return The network player in this game. Null if there isn't one.
      */
     NetworkPlayer getNetworkPlayer();
@@ -91,5 +87,4 @@ public interface Game {
      * Sets up players before starting the game.
      */
     void initializePlayers();
-
 }

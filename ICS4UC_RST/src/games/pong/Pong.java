@@ -54,7 +54,6 @@ public class Pong {
         this(localPlayer, player2, WIDTH, HEIGHT);
     }
 
-
     /**
      * Initializes the most basic game of pong.
      */
