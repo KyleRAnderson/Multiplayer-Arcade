@@ -29,7 +29,8 @@ public class Server extends TCPSocket {
     }
 
     /**
-     * Method to accept a socket connection
+     * Method to accept a socket connection. Notice - Blocks the running of the rest of the application until
+     * another machine connects.
      *
      * @throws IOException Thrown when there is some sort of IO issue.
      */
@@ -38,14 +39,16 @@ public class Server extends TCPSocket {
     }
 
     /**
-     * Method to close the server
+     * Closes the server.
      *
-     * @throws IOException Thrown when there is some sort of IO issue.
+     * @throws IOException Thrown if there is some sort of error.
      */
-    public void closeServer() throws IOException {
+    @Override
+    public void close() throws IOException {
+        super.close();
         ssServer.close();
     }
-    
+
     /**
      * Method to get the host IP
      *
@@ -53,18 +56,6 @@ public class Server extends TCPSocket {
      * @throws UnknownHostException if there is no host
      */
     public static String getDefaultHostIP() throws UnknownHostException {
-		String strIP = InetAddress.getLocalHost().getHostAddress();
-    	
-    	return strIP;
-    }
-    
-    
-    /**
-     * Method to get the client's IP
-     *
-     * @return the clients IP as string
-     */
-    public String getClientIP() {
-    	return stSocket.getInetAddress().getHostAddress();
+        return InetAddress.getLocalHost().getHostAddress();
     }
 }

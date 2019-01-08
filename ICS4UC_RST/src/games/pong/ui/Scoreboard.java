@@ -13,8 +13,8 @@ import javafx.scene.text.Text;
  */
 public class Scoreboard extends HBox {
     // Text objects for the scores.
-    private Text leftScore;
-    private Text rightScore;
+    private final Text leftScore;
+    private final Text rightScore;
 
     /**
      * Instantiates a new Scoreboard object.

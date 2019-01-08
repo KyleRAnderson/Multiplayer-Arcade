@@ -12,7 +12,6 @@ import java.net.UnknownHostException;
  * Class for network client
  */
 public class Client extends TCPSocket {
-
     /**
      * Method for connecting to a server.
      *
