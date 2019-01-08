@@ -21,18 +21,20 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
+import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
-import menu.MainMenu;
 import network.party.PartyHandler;
 import network.party.PartyRole;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 /**
@@ -46,14 +48,22 @@ public class PongUI extends Pane implements Game {
     private static final double
             CYCLE_TIME = 5, // How long between ticks.
             FPS = 60; // Frames per second
-    
-    // load custom blocky font
+
+    // Load custom blocky font
     static {
-    	Font.loadFont(MainMenu.class.getResource("../res/pong/pong.ttf").toExternalForm(), 10);
+        InputStream stream = PongUI.class.getResourceAsStream("/res/pong/pong.ttf");
+        Font.loadFont(stream, 10);
+        try {
+            stream.close();
+        } catch (IOException e) {
+            // Output error.
+            System.err.println(String.format("Failed to close font loading stream.\n%s", Arrays.toString(e.getStackTrace())));
+        }
     }
-    
+
     // Font used around the UI.
     private static final Font FONT = Font.font("Bit5x3", FontWeight.BOLD, FontPosture.REGULAR, 120);
+    private static final Paint BACKGROUND_COLOUR = Color.BLACK, FOREGROUND_COLOUR = Color.WHITE;
     private Pong game;
     // How much the units in the pong game backend are scaled to make a nice looking UI.
     private double scaleFactor;
@@ -74,26 +84,26 @@ public class PongUI extends Pane implements Game {
      * Constructs a new PongUI with the given width and height and Game object.
      */
     public PongUI() {
-    	// set background
-        setBackground(new Background(new BackgroundFill(Color.BLACK, CornerRadii.EMPTY, Insets.EMPTY)));
+        // Set the background to the proper background colour.
+        setBackground(new Background(new BackgroundFill(BACKGROUND_COLOUR, CornerRadii.EMPTY, Insets.EMPTY)));
+        // Reset and set up game.
         reset();
 
         // init paddles, ball and scoreboard
         leftPaddle = new Rectangle();
-        leftPaddle.setFill(Color.WHITE);
+        leftPaddle.setFill(FOREGROUND_COLOUR);
         rightPaddle = new Rectangle();
-        rightPaddle.setFill(Color.WHITE);
-        
-        divider = new Divider(Color.WHITE);
-        
+        rightPaddle.setFill(FOREGROUND_COLOUR);
+
+        divider = new Divider(FOREGROUND_COLOUR);
+
         ball = new Rectangle();
-        ball.setFill(Color.WHITE);
+        ball.setFill(FOREGROUND_COLOUR);
+
         scoreboard = initializeScoreboard();
-        
-        
+
         getChildren().addAll(divider.getChildren());
         getChildren().addAll(leftPaddle, rightPaddle, ball, scoreboard);
-        setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
 
         setOnKeyPressed(this::keyPressed);
         setOnKeyReleased(this::keyReleased);

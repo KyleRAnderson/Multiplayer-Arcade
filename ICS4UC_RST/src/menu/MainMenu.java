@@ -65,8 +65,7 @@ public class MainMenu extends Application {
             new PongUI()
     };
 
-    /**
-     * Constructs a new main menu object.
+    /**     * Constructs a new main menu object.
      */
     public MainMenu() {
         PartyHandler.setIncomingMessageListener(this::messageReceived);
@@ -273,6 +272,11 @@ public class MainMenu extends Application {
         }
     }
 
+    /**
+     * Sets the display to be shown on the screen.
+     *
+     * @param parent The window to be shown.
+     */
     private void setDisplay(Region parent) {
         Scene newScene = new Scene(parent);
         stage.setScene(newScene);
