@@ -25,13 +25,13 @@ public class Divider extends Group {
      */
     public Divider(Paint fill) {
         arrSquares = new Rectangle[NUMBER_OF_DASHES];
-        
+
         // create new squares depending on constant and set fill to be color
         for (int intCounter = 0; intCounter < arrSquares.length; intCounter++) {
             arrSquares[intCounter] = new Rectangle();
             arrSquares[intCounter].setFill(fill);
         }
-        
+
         getChildren().addAll(arrSquares);
     }
 
@@ -42,12 +42,12 @@ public class Divider extends Group {
      * @param screenHeight The height of screen.
      */
     public void calculate(final double screenWidth, final double screenHeight) {
-    	// calculate number of squares * 2 for the space in between
+        // calculate number of squares * 2 for the space in between
         final double dimensions = screenHeight / (double) (NUMBER_OF_DASHES * 2 - 1);
         // calculate the startX which is the center of the screen
         final double startX = screenWidth / 2 - dimensions / 2;
         int index = 0;
-        
+
         // create squares to fill screenHeight
         for (double y = 0; y < screenHeight; y += dimensions * 2) {
             Rectangle rect = arrSquares[index++];

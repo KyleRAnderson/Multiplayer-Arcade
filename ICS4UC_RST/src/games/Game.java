@@ -39,6 +39,7 @@ public interface Game {
 
     /**
      * Gets the name of the game.
+     *
      * @return The game's nice english name.
      */
     String getName();
@@ -96,6 +97,7 @@ public interface Game {
 
     /**
      * Gets the scene associated with this game.
+     *
      * @return The game's scene.
      */
     Scene getWorkingScene();

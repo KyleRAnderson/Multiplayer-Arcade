@@ -3,7 +3,6 @@ package menu;
 import games.Game;
 import games.pong.ui.PongUI;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
@@ -66,7 +65,8 @@ public class MainMenu extends Application {
             new PongUI()
     };
 
-    /**     * Constructs a new main menu object.
+    /**
+     * Constructs a new main menu object.
      */
     public MainMenu() {
         PartyHandler.setIncomingMessageListener(this::messageReceived);
