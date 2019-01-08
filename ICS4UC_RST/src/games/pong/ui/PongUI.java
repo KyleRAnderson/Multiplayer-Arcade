@@ -265,7 +265,7 @@ public class PongUI extends Pane implements Game {
      * Updates hte on-screen location of the pong ball.
      */
     private void updateBallLocation() {
-        ball.setX(game.getBall().getX(Side.RIGHT) * scaleFactor);
+        ball.setX(game.getBall().getX(Side.LEFT) * scaleFactor);
         ball.setY(transformY(game.getBoardHeight(), game.getBall(), Side.TOP) * scaleFactor);
     }
 
