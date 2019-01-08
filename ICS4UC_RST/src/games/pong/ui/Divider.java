@@ -1,13 +1,11 @@
 /**
- * 
+ *
  */
 package games.pong.ui;
 
-import java.util.ArrayList;
-
 import javafx.scene.Group;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Line;
+import javafx.scene.paint.Paint;
+import javafx.scene.shape.Rectangle;
 
 /**
  * Dashed line Divider
@@ -16,19 +14,48 @@ import javafx.scene.shape.Line;
  * ICS4U RST
  */
 public class Divider extends Group {
-	private ArrayList<Line> line;
-	
-	public void create(int startX, int startY, int end) {
-		for (int intCounter = 0; intCounter < end; intCounter++) {
-		    line.add(new Line(startX, startY, intCounter, end));
-		    line.get(intCounter).setStroke(Color.WHITE);
-		}
-	}
-	
-	public void draw() {
-		for (int intCounter = 0; intCounter < line.size(); intCounter++) {
-			getChildren().addAll(line);
-		}
-	}
+    // Number of squares that we want.
+    private static final int NUMBER_OF_DASHES = 20;
+
+    private final Rectangle[] arrSquares;
+
+    /**
+     * Constructs a new pong divider with the given fill color.
+     * @param fill The fill color.
+     */
+    public Divider(Paint fill) {
+        arrSquares = new Rectangle[NUMBER_OF_DASHES];
+        
+        // create new squares depending on constant and set fill to be color
+        for (int intCounter = 0; intCounter < arrSquares.length; intCounter++) {
+            arrSquares[intCounter] = new Rectangle();
+            arrSquares[intCounter].setFill(fill);
+        }
+        
+        getChildren().addAll(arrSquares);
+    }
+
+
+    /**
+     * Calculates and fixes the positioning of all the squares making up the line.
+     * @param screenWidth The width of screen.
+     * @param screenHeight The height of screen.
+     */
+    public void calculate(final double screenWidth, final double screenHeight) {
+    	// calculate number of squares * 2 for the space in between
+        final double dbDimensions = screenHeight / (double) (NUMBER_OF_DASHES * 2 - 1);
+        // calculate the startX which is the center of the screen
+        final double dbStartX = screenWidth / 2 - dbDimensions / 2;
+        int index = 0;
+        
+        // create squares to fill screenHeight
+        for (double dbY = 0; dbY < screenHeight; dbY += dbDimensions * 2) {
+            Rectangle rect = arrSquares[index++];
+            rect.setX(dbStartX);
+            rect.setWidth(dbDimensions);
+            rect.setY(dbY);
+            rect.setHeight(dbDimensions);
+        }
+    }
 
 }

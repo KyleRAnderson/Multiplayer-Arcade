@@ -49,7 +49,7 @@ public class PongUI extends Pane implements Game {
     // How much the units in the pong game backend are scaled to make a nice looking UI.
     private double scaleFactor;
 
-    private Circle ball;
+    private Rectangle ball;
     private Divider divider;
 
     private Rectangle leftPaddle;
@@ -82,13 +82,22 @@ public class PongUI extends Pane implements Game {
         p1.setOnPaddleUp((pongPlayer, move) -> movePaddleUp(pongPlayer.getPaddle(), move));
         p2.setOnPaddleUp((pongPlayer, move) -> movePaddleUp(pongPlayer.getPaddle(), move));
 
+        // init paddles, ball and scoreboard
         leftPaddle = new Rectangle();
+        leftPaddle.setFill(Color.WHITE);
         rightPaddle = new Rectangle();
-        ball = new Circle();
-        scoreboard = initializeScoreboard();
-        divider.create(100, 0, 600);
-        divider.draw();
+        rightPaddle.setFill(Color.WHITE);
         
+        divider = new Divider(Color.WHITE);
+        
+        ball = new Rectangle();
+        ball.setFill(Color.WHITE);
+        scoreboard = initializeScoreboard();
+        
+        // set the color for the paddles and ball
+        
+        
+        getChildren().addAll(divider.getChildren());
         getChildren().addAll(leftPaddle, rightPaddle, ball, scoreboard);
         // Update the locations of the things we just created.
         updatePaddleLocations();
@@ -160,15 +169,16 @@ public class PongUI extends Pane implements Game {
      */
     private void calculateScaleFactor() {
         scaleFactor = getWidth() / game.getBoardWidth();
-
         leftPaddle.setWidth(game.getLeftPaddle().getWidth() * scaleFactor);
         leftPaddle.setHeight(game.getLeftPaddle().getHeight() * scaleFactor);
         rightPaddle.setWidth(game.getRightPaddle().getWidth() * scaleFactor);
         rightPaddle.setHeight(game.getRightPaddle().getHeight() * scaleFactor);
-        ball.setRadius(game.getBall().getRadius() * scaleFactor);
+        ball.setWidth(game.getBall().getWidth() * scaleFactor);
+        ball.setHeight(game.getBall().getHeight() * scaleFactor);
         scoreboard.setLayoutX(getWidth() / 2 - scoreboard.getWidth() / 2);
         scoreboard.setLayoutY(getHeight() * 0.01);
         scoreboard.setSpacing(getWidth() * 0.2);
+        divider.calculate(getWidth(), getHeight());
         updatePaddleLocations();
         updateBallLocation();
     }
@@ -248,8 +258,8 @@ public class PongUI extends Pane implements Game {
      * Updates hte on-screen location of the pong ball.
      */
     private void updateBallLocation() {
-        ball.setCenterX(game.getBall().getX(Side.CENTER) * scaleFactor);
-        ball.setCenterY(transformY(game.getBoardHeight(), game.getBall(), Side.CENTER) * scaleFactor);
+        ball.setX(game.getBall().getX(Side.RIGHT) * scaleFactor);
+        ball.setY(transformY(game.getBoardHeight(), game.getBall(), Side.TOP) * scaleFactor);
     }
 
     /**
