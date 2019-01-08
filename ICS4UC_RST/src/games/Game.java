@@ -1,6 +1,7 @@
 package games;
 
 import games.player.NetworkPlayer;
+import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Region;
 import javafx.scene.text.Text;
@@ -92,4 +93,10 @@ public interface Game {
      * Sets up players before starting the game.
      */
     void initializePlayers();
+
+    /**
+     * Gets the scene associated with this game.
+     * @return The game's scene.
+     */
+    Scene getWorkingScene();
 }

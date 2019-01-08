@@ -13,6 +13,7 @@ import games.pong.players.PongPlayer;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.geometry.Insets;
+import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -22,6 +23,7 @@ import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
+import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
@@ -48,6 +50,8 @@ public class PongUI extends Pane implements Game {
     private static final double
             CYCLE_TIME = 5, // How long between ticks.
             FPS = 60; // Frames per second
+
+    private final Scene scene;
 
     // Load custom blocky font
     static {
@@ -84,6 +88,7 @@ public class PongUI extends Pane implements Game {
      * Constructs a new PongUI with the given width and height and Game object.
      */
     public PongUI() {
+        this.scene = new Scene(this);
         // Set the background to the proper background colour.
         setBackground(new Background(new BackgroundFill(BACKGROUND_COLOUR, CornerRadii.EMPTY, Insets.EMPTY)));
         // Reset and set up game.
@@ -102,8 +107,7 @@ public class PongUI extends Pane implements Game {
 
         scoreboard = initializeScoreboard();
 
-        getChildren().addAll(divider.getChildren());
-        getChildren().addAll(leftPaddle, rightPaddle, ball, scoreboard);
+        getChildren().addAll(divider, leftPaddle, rightPaddle, ball, scoreboard);
 
         setOnKeyPressed(this::keyPressed);
         setOnKeyReleased(this::keyReleased);
@@ -180,10 +184,8 @@ public class PongUI extends Pane implements Game {
         rightPaddle.setHeight(game.getRightPaddle().getHeight() * scaleFactor);
         ball.setWidth(game.getBall().getWidth() * scaleFactor);
         ball.setHeight(game.getBall().getHeight() * scaleFactor);
-        scoreboard.setLayoutX(getWidth() / 2 - scoreboard.getWidth() / 2);
-        scoreboard.setLayoutY(getHeight() * 0.01);
-        scoreboard.setSpacing(getWidth() * 0.2);
-        divider.calculate(getWidth(), getHeight());
+        scoreboard.calculate(getWorkingWidth(), getWorkingHeight());
+        divider.calculate(getWorkingWidth(), getWorkingHeight());
         updatePaddleLocations();
         updateBallLocation();
     }
@@ -417,6 +419,11 @@ public class PongUI extends Pane implements Game {
         p2.setOnPaddleDown((pongPlayer, move) -> movePaddleDown(game.getPaddle(pongPlayer), move));
         p1.setOnPaddleUp((pongPlayer, move) -> movePaddleUp(game.getPaddle(pongPlayer), move));
         p2.setOnPaddleUp((pongPlayer, move) -> movePaddleUp(game.getPaddle(pongPlayer), move));
+    }
+
+    @Override
+    public Scene getWorkingScene() {
+        return this.scene;
     }
 
     /**

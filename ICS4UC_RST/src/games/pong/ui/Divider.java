@@ -43,18 +43,18 @@ public class Divider extends Group {
      */
     public void calculate(final double screenWidth, final double screenHeight) {
     	// calculate number of squares * 2 for the space in between
-        final double dbDimensions = screenHeight / (double) (NUMBER_OF_DASHES * 2 - 1);
+        final double dimensions = screenHeight / (double) (NUMBER_OF_DASHES * 2 - 1);
         // calculate the startX which is the center of the screen
-        final double dbStartX = screenWidth / 2 - dbDimensions / 2;
+        final double startX = screenWidth / 2 - dimensions / 2;
         int index = 0;
         
         // create squares to fill screenHeight
-        for (double dbY = 0; dbY < screenHeight; dbY += dbDimensions * 2) {
+        for (double y = 0; y < screenHeight; y += dimensions * 2) {
             Rectangle rect = arrSquares[index++];
-            rect.setX(dbStartX);
-            rect.setWidth(dbDimensions);
-            rect.setY(dbY);
-            rect.setHeight(dbDimensions);
+            rect.setX(startX);
+            rect.setWidth(dimensions);
+            rect.setY(y);
+            rect.setHeight(dimensions);
         }
     }
 

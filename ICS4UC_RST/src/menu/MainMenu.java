@@ -3,6 +3,7 @@ package menu;
 import games.Game;
 import games.pong.ui.PongUI;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
@@ -205,7 +206,8 @@ public class MainMenu extends Application {
         menuRoot.getRowConstraints().addAll(row1, row2, row3, row4);
 
         // Set the scene at the end.
-        setDisplay(menuRoot);
+        Scene scene = new Scene(menuRoot);
+        setDisplay(scene);
     }
 
     /**
@@ -247,7 +249,8 @@ public class MainMenu extends Application {
             if (currentGame.isNetworkGame()) {
                 currentGame.getNetworkPlayer().setOnGameDataSend(this::sendGameData);
             }
-            setDisplay(window);
+//            setDisplay(window);
+            setDisplay(currentGame.getWorkingScene());
             currentGame.initializePlayers();
             currentGame.start();
         }
@@ -275,11 +278,10 @@ public class MainMenu extends Application {
     /**
      * Sets the display to be shown on the screen.
      *
-     * @param parent The window to be shown.
+     * @param scene The scene to be shown.
      */
-    private void setDisplay(Region parent) {
-        Scene newScene = new Scene(parent);
-        stage.setScene(newScene);
+    private void setDisplay(Scene scene) {
+        stage.setScene(scene);
     }
 
     /**
