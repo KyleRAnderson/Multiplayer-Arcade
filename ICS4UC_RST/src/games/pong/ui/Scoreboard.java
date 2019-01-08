@@ -1,10 +1,9 @@
 package games.pong.ui;
 
-import javafx.geometry.Pos;
-import javafx.scene.layout.HBox;
+import javafx.scene.Group;
+import javafx.scene.control.Label;
 import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
-import javafx.scene.text.Text;
 
 /**
  * Scoreboard for the pong game's UI.
@@ -12,20 +11,37 @@ import javafx.scene.text.Text;
  * @author Kyle Anderson
  * ICS4U RST
  */
-public class Scoreboard extends HBox {
+public class Scoreboard extends Group {
     // Text objects for the scores.
-    private final Text leftScore;
-    private final Text rightScore;
+    private final Label leftScore;
+    private final Label rightScore;
+
+    /**
+     * The distance the text parts of the scoreboard will be from the centre of the game.
+     */
+    private static final double PERCENTAGE_DIST_FROM_CENTRE = 0.05;
 
     /**
      * Instantiates a new Scoreboard object.
      */
     public Scoreboard() {
-        setAlignment(Pos.CENTER);
-        leftScore = new Text();
-        rightScore = new Text();
+        leftScore = new Label("0");
+        rightScore = new Label("0");
 
         getChildren().addAll(leftScore, rightScore);
+    }
+
+    /**
+     * Calculates the positioning of the elements with the updated information about the screen dimensions.
+     *
+     * @param screenWidth  The width of the screen.
+     * @param screenHeight The height of the screen.
+     */
+    public void calculate(final double screenWidth, final double screenHeight) {
+        final double height = screenHeight * 0.1; // Universal height for both text boxes.
+
+        leftScore.relocate(screenWidth / 2 - screenWidth * PERCENTAGE_DIST_FROM_CENTRE - leftScore.getWidth() * 0.75, height);
+        rightScore.relocate(screenWidth / 2 + screenWidth * PERCENTAGE_DIST_FROM_CENTRE, height);
     }
 
     /**
@@ -44,8 +60,8 @@ public class Scoreboard extends HBox {
      * @param value The fill color for the text.
      */
     public void setFontFill(Paint value) {
-        leftScore.setFill(value);
-        rightScore.setFill(value);
+        leftScore.setTextFill(value);
+        rightScore.setTextFill(value);
     }
 
     /**
@@ -53,7 +69,7 @@ public class Scoreboard extends HBox {
      *
      * @return The left score text object.
      */
-    public Text getLeftScoreText() {
+    public Label getLeftScoreText() {
         return leftScore;
     }
 
@@ -62,7 +78,7 @@ public class Scoreboard extends HBox {
      *
      * @return The right score text object.
      */
-    public Text getRightScoreText() {
+    public Label getRightScoreText() {
         return rightScore;
     }
 
@@ -82,13 +98,5 @@ public class Scoreboard extends HBox {
      */
     public void setRightScore(final int score) {
         rightScore.setText(String.valueOf(score));
-    }
-
-    /**
-     * Sets the center position of this elements.
-     * @param x The x position.
-     */
-    public void setCenterX(double x) {
-        setLayoutY(x - getWidth() / 2);
     }
 }

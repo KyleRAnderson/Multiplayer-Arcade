@@ -14,6 +14,7 @@ import games.pong.players.PongPlayer;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.geometry.Insets;
+import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -22,7 +23,7 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
+import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
@@ -32,7 +33,10 @@ import javafx.util.Duration;
 import network.party.PartyHandler;
 import network.party.PartyRole;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -48,13 +52,30 @@ public class PongUI extends Pane implements Game {
     private static final double
             CYCLE_TIME = 5, // How long between ticks.
             FPS = 60; // Frames per second
+
+    private final Scene scene;
+
+    // Load custom blocky font
+    static {
+        InputStream stream = PongUI.class.getResourceAsStream("/res/pong/pong.ttf");
+        Font.loadFont(stream, 10);
+        try {
+            stream.close();
+        } catch (IOException e) {
+            // Output error.
+            System.err.println(String.format("Failed to close font loading stream.\n%s", Arrays.toString(e.getStackTrace())));
+        }
+    }
+
     // Font used around the UI.
-    private static final Font FONT = Font.font("Comic Sans MS", FontWeight.BOLD, FontPosture.REGULAR, 24);
+    private static final Font FONT = Font.font("Bit5x3", FontWeight.BOLD, FontPosture.REGULAR, 120);
+    private static final Paint BACKGROUND_COLOUR = Color.BLACK, FOREGROUND_COLOUR = Color.WHITE;
     private Pong game;
     // How much the units in the pong game backend are scaled to make a nice looking UI.
     private double scaleFactor;
 
-    private final Circle ball;
+    private Rectangle ball;
+    private Divider divider;
 
     private final Rectangle leftPaddle;
     private final Rectangle rightPaddle;
@@ -76,14 +97,26 @@ public class PongUI extends Pane implements Game {
      * Constructs a new PongUI with the given width and height and Game object.
      */
     public PongUI() {
+        this.scene = new Scene(this);
+        // Set the background to the proper background colour.
+        setBackground(new Background(new BackgroundFill(BACKGROUND_COLOUR, CornerRadii.EMPTY, Insets.EMPTY)));
+        // Reset and set up game.
         reset();
 
+        // init paddles, ball and scoreboard
         leftPaddle = new Rectangle();
+        leftPaddle.setFill(FOREGROUND_COLOUR);
         rightPaddle = new Rectangle();
-        ball = new Circle();
+        rightPaddle.setFill(FOREGROUND_COLOUR);
+
+        divider = new Divider(FOREGROUND_COLOUR);
+
+        ball = new Rectangle();
+        ball.setFill(FOREGROUND_COLOUR);
+
         scoreboard = initializeScoreboard();
-        getChildren().addAll(leftPaddle, rightPaddle, ball, scoreboard);
-        setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
+
+        getChildren().addAll(divider, leftPaddle, rightPaddle, ball, scoreboard);
 
         setOnKeyPressed(this::keyPressed);
         setOnKeyReleased(this::keyReleased);
@@ -115,8 +148,7 @@ public class PongUI extends Pane implements Game {
     private Scoreboard initializeScoreboard() {
         Scoreboard board = new Scoreboard();
         board.setFont(FONT);
-        board.setFontFill(Color.RED);
-        board.setSpacing(20); // Set a certain amount of space between the numbers on the scoreboard.
+        board.setFontFill(Color.WHITE);
 
         return board;
     }
@@ -168,10 +200,10 @@ public class PongUI extends Pane implements Game {
         leftPaddle.setHeight(game.getLeftPaddle().getHeight() * scaleFactor);
         rightPaddle.setWidth(game.getRightPaddle().getWidth() * scaleFactor);
         rightPaddle.setHeight(game.getRightPaddle().getHeight() * scaleFactor);
-        ball.setRadius(game.getBall().getRadius() * scaleFactor);
-        scoreboard.setCenterX(getWorkingWidth() / 2);
-        scoreboard.setLayoutY(getWorkingHeight() * 0.01);
-
+        ball.setWidth(game.getBall().getWidth() * scaleFactor);
+        ball.setHeight(game.getBall().getHeight() * scaleFactor);
+        scoreboard.calculate(getWorkingWidth(), getWorkingHeight());
+        divider.calculate(getWorkingWidth(), getWorkingHeight());
         updatePaddleLocations();
         updateBallLocation();
     }
@@ -269,8 +301,8 @@ public class PongUI extends Pane implements Game {
      * Updates hte on-screen location of the pong ball.
      */
     private void updateBallLocation() {
-        ball.setCenterX(game.getBall().getX(Side.CENTER) * scaleFactor);
-        ball.setCenterY(transformY(game.getBoardHeight(), game.getBall(), Side.CENTER) * scaleFactor);
+        ball.setX(game.getBall().getX(Side.LEFT) * scaleFactor);
+        ball.setY(transformY(game.getBoardHeight(), game.getBall(), Side.TOP) * scaleFactor);
     }
 
     /**
@@ -442,6 +474,11 @@ public class PongUI extends Pane implements Game {
         for (PongKeyboardPlayer player : keyboardPlayerList) {
             keyCodesWeCareAbout.addAll(player.getKeyBindings().keySet());
         }
+    }
+
+    @Override
+    public Scene getWorkingScene() {
+        return this.scene;
     }
 
     /**
