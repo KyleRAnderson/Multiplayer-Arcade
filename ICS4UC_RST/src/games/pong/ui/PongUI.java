@@ -34,6 +34,8 @@ import network.party.PartyRole;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * UI class for the pong game, for actually rendering the game for the user.
@@ -65,6 +67,10 @@ public class PongUI extends Pane implements Game {
 
     // Used for keeping track of the keys that are being pressed down so we don't repeat calls.
     private ArrayList<KeyCode> keysDown = new ArrayList<KeyCode>();
+
+    // List of the keyboard players in this game.
+    private ArrayList<PongKeyboardPlayer> keyboardPlayerList = new ArrayList<>();
+    private ArrayList<KeyCode> keyCodesWeCareAbout = new ArrayList<>();
 
     /**
      * Constructs a new PongUI with the given width and height and Game object.
@@ -123,8 +129,8 @@ public class PongUI extends Pane implements Game {
     private void keyPressed(KeyEvent event) {
         KeyCode keyDown = event.getCode();
         if (!keysDown.contains(keyDown)) {
-            updatePlayerKeys();
             keysDown.add(keyDown);
+            updatePlayerKeys();
         }
     }
 
@@ -143,11 +149,12 @@ public class PongUI extends Pane implements Game {
      * Updates the players on which keys are being pressed down.
      */
     private void updatePlayerKeys() {
+        List<KeyCode> goodKeys = keysDown.stream().filter(keyCode -> keyCodesWeCareAbout.contains(keyCode)).collect(Collectors.toList());
         if (game.getLocalPlayer() instanceof PongKeyboardPlayer) {
-            ((PongKeyboardPlayer) game.getLocalPlayer()).setKeysDown(keysDown);
+            ((PongKeyboardPlayer) game.getLocalPlayer()).setKeysDown(goodKeys);
         }
         if (game.getPlayer2() instanceof PongKeyboardPlayer) {
-            ((PongKeyboardPlayer) game.getPlayer2()).setKeysDown(keysDown);
+            ((PongKeyboardPlayer) game.getPlayer2()).setKeysDown(goodKeys);
         }
     }
 
@@ -370,6 +377,12 @@ public class PongUI extends Pane implements Game {
         keyBindings.add(p2Bindings);
     }
 
+    /**
+     * Called when the provided player's action has changed (i.e they should not be descending, ascending or not moving).
+     *
+     * @param affectedPlayer The player whose action has changed.
+     * @param newAction      The new action to be performed.
+     */
     private void actionChanged(PongPlayer affectedPlayer, Action newAction) {
         Paddle paddle = game.getPaddle(affectedPlayer);
 
@@ -393,25 +406,42 @@ public class PongUI extends Pane implements Game {
     public void initializePlayers() {
         PongPlayer p1 = game.getLocalPlayer(), p2 = game.getPlayer2();
 
+        // If we are making both players now, we should determine if we're going to place them too.
+        boolean overrideSides = p1 == null && p2 == null;
+
         if (p1 == null) {
             p1 = new PongKeyboardPlayer();
             game.setLocalPlayer(p1);
+            if (overrideSides) p1.setSide(Side.RIGHT);
         }
         if (p2 == null) {
             p2 = new PongKeyboardPlayer();
             game.setPlayer2(p2);
+            if (overrideSides) p2.setSide(Side.LEFT);
         }
         if (p1 instanceof PongKeyboardPlayer) {
             setupBindings((PongKeyboardPlayer) p1);
+            keyboardPlayerList.add((PongKeyboardPlayer) p1);
         }
         if (p2 instanceof PongKeyboardPlayer) {
             setupBindings((PongKeyboardPlayer) p2);
+            keyboardPlayerList.add((PongKeyboardPlayer) p2);
         }
+        setupKeyCodes();
 
         game.initialize(); // Initialize pong game now that players are set up.
 
         p1.setOnActionChanged(this::actionChanged);
         p2.setOnActionChanged(this::actionChanged);
+    }
+
+    /**
+     * Sets up the key code list.
+     */
+    private void setupKeyCodes() {
+        for (PongKeyboardPlayer player : keyboardPlayerList) {
+            keyCodesWeCareAbout.addAll(player.getKeyBindings().keySet());
+        }
     }
 
     /**
