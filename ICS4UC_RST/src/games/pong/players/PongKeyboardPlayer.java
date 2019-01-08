@@ -1,6 +1,7 @@
 package games.pong.players;
 
 import games.Game;
+import games.KeyBinding;
 import games.player.KeyboardPlayer;
 import games.player.PongKeyBinding;
 import games.pong.pieces.Side;
@@ -18,7 +19,7 @@ import java.util.stream.Collectors;
  * @author Kyle Anderson
  * ICS4U RST
  */
-public class PongKeyboardPlayer extends KeyboardPlayer implements PongPlayer {
+public class PongKeyboardPlayer extends KeyboardPlayer<PongKeyBinding> implements PongPlayer {
     private Side side;
     private int points;
 
@@ -95,7 +96,7 @@ public class PongKeyboardPlayer extends KeyboardPlayer implements PongPlayer {
     public void setKeysDown(List<KeyCode> keysDown) {
         Action newAction = Action.STOP;
         if (keysDown.size() > 0) {
-            final HashMap<KeyCode, PongKeyBinding> bindings = (HashMap<KeyCode, PongKeyBinding>) getKeyBindings();
+            final HashMap<KeyCode, PongKeyBinding> bindings = getKeyBindings();
             List<KeyCode> goodKeys = keysDown.stream().filter(bindings.keySet()::contains).collect(Collectors.toList());
 
             if (goodKeys.size() > 0) {
