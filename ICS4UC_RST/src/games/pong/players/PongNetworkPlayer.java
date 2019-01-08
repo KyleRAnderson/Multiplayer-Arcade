@@ -2,8 +2,8 @@ package games.pong.players;
 
 import games.Game;
 import games.player.NetworkPlayer;
-import games.pong.pieces.Paddle;
 import games.pong.pieces.Side;
+import network.party.network.NetworkMessage;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -51,16 +51,6 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
     }
 
     @Override
-    public Paddle getPaddle() {
-        return null;
-    }
-
-    @Override
-    public void setPaddle(Paddle paddle) {
-
-    }
-
-    @Override
     public void gameUpdated(Game game) {
 
     }
@@ -68,5 +58,14 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
     @Override
     public String getName() {
         return null;
+    }
+
+    @Override
+    public void receiveData(NetworkMessage data) {
+
+    }
+
+    @Override
+    public void hostDisconnecting() {
     }
 }
