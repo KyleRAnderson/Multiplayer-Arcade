@@ -9,6 +9,7 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 /**
@@ -20,10 +21,12 @@ import javafx.stage.Stage;
  */
 public class MainMenu extends Application {
     private static final int GAP = 15;
+    
     private GridPane root;
 
     @Override
     public void start(Stage primaryStage) {
+    	
         primaryStage.setTitle("Arcade");
         root = new GridPane();
         root.setPadding(new Insets(GAP));
@@ -32,7 +35,6 @@ public class MainMenu extends Application {
 
         PongUI pong = new PongUI();
         pong.setPrefWidth(1000);
-        pong.setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
         root.add(pong, 0, 0);
 
         primaryStage.setScene(new Scene(root));
@@ -40,5 +42,9 @@ public class MainMenu extends Application {
         primaryStage.show();
 
         pong.start();
+    }
+    
+    public static void main(String[] args) {
+        launch(args);
     }
 }
