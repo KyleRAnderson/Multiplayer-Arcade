@@ -1,5 +1,6 @@
 package games.pong.ui;
 
+import javafx.geometry.Pos;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
@@ -20,6 +21,7 @@ public class Scoreboard extends HBox {
      * Instantiates a new Scoreboard object.
      */
     public Scoreboard() {
+        setAlignment(Pos.CENTER);
         leftScore = new Text();
         rightScore = new Text();
 
@@ -80,5 +82,13 @@ public class Scoreboard extends HBox {
      */
     public void setRightScore(final int score) {
         rightScore.setText(String.valueOf(score));
+    }
+
+    /**
+     * Sets the center position of this elements.
+     * @param x The x position.
+     */
+    public void setCenterX(double x) {
+        setLayoutY(x - getWidth() / 2);
     }
 }
