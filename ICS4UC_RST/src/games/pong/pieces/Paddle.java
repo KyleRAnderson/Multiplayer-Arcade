@@ -254,7 +254,7 @@ public class Paddle implements PongPiece {
     }
 
     /**
-     * Determines the paddle's verticla velocity in units/nanosecond.
+     * Determines the paddle's vertical velocity in units/nanosecond.
      *
      * @return The vertical velocity of the paddle in units/nanosecond.
      */

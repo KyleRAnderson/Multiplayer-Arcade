@@ -278,6 +278,7 @@ public class Pong {
 
     /**
      * Sets a listener for when the player scores.
+     *
      * @param scoreListener The listener to be called. Parameter in the consumer is the player that scored.
      */
     public void onPlayerScore(Consumer<Player> scoreListener) {
@@ -286,6 +287,7 @@ public class Pong {
 
     /**
      * Called when a player scores.
+     *
      * @param player The player who scored.
      */
     private void onPlayerScore(Player player) {
@@ -309,6 +311,7 @@ public class Pong {
 
     /**
      * Notifies listeners that the ball has collided with something.
+     *
      * @param event The CollisionEvent.
      */
     private void callBallCollided(CollisionEvent event) {

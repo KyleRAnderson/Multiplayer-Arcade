@@ -86,11 +86,11 @@ public class PongUI extends Pane implements Game {
     private Timeline renderFrameTimer;
 
     // Used for keeping track of the keys that are being pressed down so we don't repeat calls.
-    private ArrayList<KeyCode> keysDown = new ArrayList<KeyCode>();
+    private final ArrayList<KeyCode> keysDown = new ArrayList<KeyCode>();
 
     // List of the keyboard players in this game.
-    private ArrayList<PongKeyboardPlayer> keyboardPlayerList = new ArrayList<>();
-    private ArrayList<KeyCode> keyCodesWeCareAbout = new ArrayList<>();
+    private final ArrayList<PongKeyboardPlayer> keyboardPlayerList = new ArrayList<>();
+    private final ArrayList<KeyCode> keyCodesWeCareAbout = new ArrayList<>();
 
     /**
      * Constructs a new PongUI with the given width and height and Game object.
@@ -363,11 +363,6 @@ public class PongUI extends Pane implements Game {
     @Override
     public boolean isNetworkGame() {
         return game.getPlayer2() instanceof PongNetworkPlayer;
-    }
-
-    @Override
-    public PongUI createNew() {
-        return new PongUI();
     }
 
     @Override

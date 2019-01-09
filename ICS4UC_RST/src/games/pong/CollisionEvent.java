@@ -5,6 +5,7 @@ import games.pong.pieces.PongBall;
 
 /**
  * Event for representing a collision between the pong ball and something else.
+ *
  * @author Kyle Anderson
  * ICS4U RST
  */
@@ -22,6 +23,7 @@ public class CollisionEvent {
 
     /**
      * Constructs a new collision event based off of the ball.
+     *
      * @param ball The ball that was in the collision.
      * @param type The type of the collision.
      */
