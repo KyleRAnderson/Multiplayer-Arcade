@@ -3,6 +3,7 @@ package games.pong.players;
 import games.Game;
 import games.player.KeyboardPlayer;
 import games.player.PongKeyBinding;
+import games.pong.Pong;
 import games.pong.pieces.Side;
 import javafx.scene.input.KeyCode;
 
@@ -41,17 +42,16 @@ public class PongKeyboardPlayer extends KeyboardPlayer<PongKeyBinding> implement
     }
 
     @Override
+    public void setGame(Pong game) {
+    }
+
+    @Override
     public Side getSide() {
         return this.side;
     }
 
     @Override
     public void setOnPause(Consumer<PongPlayer> action) {
-
-    }
-
-    @Override
-    public void gameUpdated(Game game) {
 
     }
 

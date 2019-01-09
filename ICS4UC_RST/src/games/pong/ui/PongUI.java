@@ -220,6 +220,11 @@ public class PongUI extends Pane implements Game {
 
         // Start all timelines.
         renderFrameTimer.play();
+
+        // If this isn't a network game, we can start the game right away. Otherwise, it's up to the PongNetworkPlayer.
+        if (!isNetworkGame()) {
+            game.begin();
+        }
     }
 
     /**
@@ -256,26 +261,6 @@ public class PongUI extends Pane implements Game {
     private void updateScoreboard() {
         scoreboard.setLeftScore(game.getLeftPlayer().getPoints());
         scoreboard.setRightScore(game.getRightPlayer().getPoints());
-    }
-
-    /**
-     * Moves the given paddle down.
-     *
-     * @param paddle The paddle to be moved.
-     * @param move   True to move the paddle, false to stop moving the paddle.
-     */
-    private void movePaddleDown(Paddle paddle, boolean move) {
-        paddle.setVelY((move) ? -Pong.PADDLE_MOVEMENT_RATE : 0);
-    }
-
-    /**
-     * Moves the given paddle up.
-     *
-     * @param paddle The paddle to be moved.
-     * @param move   True to move the paddle, false to stop moving the paddle.
-     */
-    private void movePaddleUp(Paddle paddle, boolean move) {
-        paddle.setVelY((move) ? Pong.PADDLE_MOVEMENT_RATE : 0);
     }
 
     /**
@@ -348,7 +333,6 @@ public class PongUI extends Pane implements Game {
     @Override
     public Text getTextDisplay() {
         Text text = new Text(getName());
-        //noinspection SpellCheckingInspection
         text.setFont(Font.font("Bit5x3", FontWeight.BLACK, FontPosture.REGULAR, 72));
         text.setFill(Color.ORANGE);
 
@@ -400,18 +384,18 @@ public class PongUI extends Pane implements Game {
      * @param affectedPlayer The player whose action has changed.
      * @param newAction      The new action to be performed.
      */
-    private void actionChanged(PongPlayer affectedPlayer, Action newAction) {
+    private void paddleActionChanged(PongPlayer affectedPlayer, Action newAction) {
         Paddle paddle = game.getPaddle(affectedPlayer);
 
         switch (newAction) {
             case MOVE_DOWN:
-                paddle.setVelY(-Pong.PADDLE_MOVEMENT_RATE);
+                game.paddleDown(paddle);
                 break;
             case MOVE_UP:
-                paddle.setVelY(Pong.PADDLE_MOVEMENT_RATE);
+                game.paddleUp(paddle);
                 break;
             default:
-                paddle.setVelY(0);
+                game.stopPaddle(paddle);
                 break;
         }
     }
@@ -448,8 +432,8 @@ public class PongUI extends Pane implements Game {
 
         game.initialize(); // Initialize pong game now that players are set up.
 
-        p1.setOnActionChanged(this::actionChanged);
-        p2.setOnActionChanged(this::actionChanged);
+        p1.setOnActionChanged(this::paddleActionChanged);
+        p2.setOnActionChanged(this::paddleActionChanged);
     }
 
     /**
