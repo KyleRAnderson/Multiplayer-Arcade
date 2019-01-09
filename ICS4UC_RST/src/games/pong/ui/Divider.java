@@ -1,6 +1,3 @@
-/**
- *
- */
 package games.pong.ui;
 
 import javafx.scene.Group;
