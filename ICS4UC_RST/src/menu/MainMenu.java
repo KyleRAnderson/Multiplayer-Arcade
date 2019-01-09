@@ -21,6 +21,9 @@ import network.party.network.NetworkMessage;
 import network.party.network.ReceivedDataEvent;
 import preferences.Preferences;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -45,12 +48,22 @@ public class MainMenu extends Application {
         DEFAULT_HEIGHT = SCREEN_HEIGHT / 2;
         MIN_HEIGHT = SCREEN_HEIGHT / 5;
         MIN_WIDTH = SCREEN_WIDTH / 5;
+        
+        // load custom arcade font
+        InputStream stream = PongUI.class.getResourceAsStream("/res/pong/fonts/arcade.ttf");
+        Font.loadFont(stream, 10);
+        try {
+            stream.close();
+        } catch (IOException e) {
+            // Output error.
+            System.err.println(String.format("Failed to close font loading stream.\n%s", Arrays.toString(e.getStackTrace())));
+        }
     }
 
 
     private static final int GAP = 15;
     private static final Font
-            HEADER_FONT = Font.font("Times New Roman", FontWeight.BOLD, FontPosture.REGULAR, 48),
+            HEADER_FONT = Font.font("ArcadeClassic", FontWeight.BOLD, FontPosture.REGULAR, 38),
             INPUT_FONT = Font.font("Book Antiqua", FontWeight.NORMAL, FontPosture.REGULAR, 12);
     private GridPane menuRoot;
     private Stage stage;
