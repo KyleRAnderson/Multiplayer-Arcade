@@ -1,7 +1,6 @@
 package games.pong.players;
 
 import games.Game;
-import games.KeyBinding;
 import games.player.KeyboardPlayer;
 import games.player.PongKeyBinding;
 import games.pong.pieces.Side;

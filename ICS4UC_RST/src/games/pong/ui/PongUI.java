@@ -50,8 +50,7 @@ import java.util.stream.Collectors;
 public class PongUI extends Pane implements Game {
 
     private static final double
-            CYCLE_TIME = 5, // How long between ticks.
-            FPS = 60; // Frames per second
+            FPS = 30; // Frames per second
 
     private final Scene scene;
 
@@ -84,7 +83,7 @@ public class PongUI extends Pane implements Game {
     // Set up key bindings list.
     private ArrayList<HashMap<KeyCode, PongKeyBinding>> keyBindings;
     // Timers to be used when rendering the game to the user.
-    private Timeline tickTimer, renderFrameTimer;
+    private Timeline renderFrameTimer;
 
     // Used for keeping track of the keys that are being pressed down so we don't repeat calls.
     private ArrayList<KeyCode> keysDown = new ArrayList<KeyCode>();
@@ -215,13 +214,10 @@ public class PongUI extends Pane implements Game {
     public void start() {
         requestFocus();
         calculateScaleFactor();
-        tickTimer = new Timeline(new KeyFrame(Duration.millis(CYCLE_TIME), event -> tick()));
-        tickTimer.setCycleCount(Timeline.INDEFINITE);
         renderFrameTimer = new Timeline(new KeyFrame(Duration.millis(1000.0 / FPS), event -> renderFrame()));
         renderFrameTimer.setCycleCount(Timeline.INDEFINITE);
 
         // Start all timelines.
-        tickTimer.play();
         renderFrameTimer.play();
     }
 
@@ -244,19 +240,13 @@ public class PongUI extends Pane implements Game {
     }
 
     /**
-     * Runs everything that needs to be run when the game ticks.
-     */
-    private void tick() {
-        game.renderTick();
-    }
-
-    /**
      * Renders a new frame on screen.
      */
     private void renderFrame() {
         updateBallLocation();
         updatePaddleLocations();
         updateScoreboard();
+        game.renderTick();
     }
 
     /**
@@ -335,7 +325,6 @@ public class PongUI extends Pane implements Game {
 
     @Override
     public void end() {
-        tickTimer.stop();
         renderFrameTimer.stop();
     }
 

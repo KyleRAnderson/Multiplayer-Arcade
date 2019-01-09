@@ -8,9 +8,9 @@ import java.util.HashMap;
 /**
  * Physical player of the game of pong.
  *
- * @author Kyle Anderson
  * @param <T> The type of key bindings that this player deals in.
- * ICS4U RST
+ *            ICS4U RST
+ * @author Kyle Anderson
  */
 public abstract class KeyboardPlayer<T extends KeyBinding> implements Player {
 
