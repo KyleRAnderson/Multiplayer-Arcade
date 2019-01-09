@@ -30,11 +30,11 @@ public class PongBall implements PongPiece {
     /**
      * Moves the ball according to its current velocity.
      *
-     * @param millisSinceLastTick The number of milliseconds elapsed since the last tick.
+     * @param nanosSinceLastTick The number of nanoseconds passed since the last tick.
      */
-    public void renderTick(long millisSinceLastTick) {
-        setX(getX() + runPerSecond / 1000 * millisSinceLastTick);
-        setY(getY() + risePerSecond / 1000 * millisSinceLastTick);
+    public void renderTick(long nanosSinceLastTick) {
+        setX(getX() + runPerSecond / 1E9 * nanosSinceLastTick);
+        setY(getY() + risePerSecond / 1E9 * nanosSinceLastTick);
     }
 
     /**
@@ -47,12 +47,30 @@ public class PongBall implements PongPiece {
     }
 
     /**
-     * Gets the number of runs (horizontal movement) per tick that the ball is moving.
+     * Gets the number of rise units (vertical movement) per tick that the ball is moving.
+     *
+     * @return The ball's velocity, in units/nanosecond.
+     */
+    public double getRisePerNanoSecond() {
+        return getRisePerSecond() / 1E9;
+    }
+
+    /**
+     * Gets the number of runs (horizontal movement) per second that the ball is moving.
      *
      * @return The run of the ball.
      */
     public double getRunPerSecond() {
         return runPerSecond;
+    }
+
+    /**
+     * Gets the number of runs (horizontal movement) per nanosecond that the ball is moving.
+     *
+     * @return The run of the ball, in units/nanosecond.
+     */
+    public double getRunPerNanoSecond() {
+        return getRunPerSecond() / 1E9;
     }
 
     /**
@@ -157,7 +175,7 @@ public class PongBall implements PongPiece {
      *
      * @param value The x-value.
      */
-    private void setX(double value) {
+    public void setX(double value) {
         this.x = value;
     }
 
@@ -189,7 +207,7 @@ public class PongBall implements PongPiece {
      *
      * @param value The new value.
      */
-    private void setY(double value) {
+    public void setY(double value) {
         this.y = value;
     }
 

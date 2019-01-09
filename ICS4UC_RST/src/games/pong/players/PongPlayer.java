@@ -14,22 +14,11 @@ import java.util.function.Consumer;
  */
 public interface PongPlayer extends Player {
     /**
-     * Sets an action to be called when the player attempts to move his/her paddle up.\
+     * Sets a listener to be called when the player's paddle's action should change.
      *
-     * @param action The action to be called when the event occurs. The first argument accepts the pong player
-     *               who is calling the method. The second indicates whether or not to move the paddle or to stop moving
-     *               it.
+     * @param listener The listener to be called.
      */
-    void setOnPaddleUp(BiConsumer<PongPlayer, Boolean> action);
-
-    /**
-     * Sets an action to be called when the player attempts to move his/her paddle down.
-     *
-     * @param action The action to be called when the event occurs. The first argument accepts the pong player
-     *               *               who is calling the method. The second indicates whether or not to move the paddle or to stop moving
-     *               *               it.
-     */
-    void setOnPaddleDown(BiConsumer<PongPlayer, Boolean> action);
+    void setOnActionChanged(BiConsumer<PongPlayer, Action> listener);
 
     /**
      * Sets an action to be called when the player attempts to pause the game.

@@ -6,8 +6,11 @@ import games.player.PongKeyBinding;
 import games.pong.pieces.Side;
 import javafx.scene.input.KeyCode;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * Class for representing and controlling a player playing pong with the keyboard (local player).
@@ -15,7 +18,7 @@ import java.util.function.Consumer;
  * @author Kyle Anderson
  * ICS4U RST
  */
-public class PongKeyboardPlayer extends KeyboardPlayer implements PongPlayer {
+public class PongKeyboardPlayer extends KeyboardPlayer<PongKeyBinding> implements PongPlayer {
     private Side side;
     private int points;
 
@@ -42,20 +45,6 @@ public class PongKeyboardPlayer extends KeyboardPlayer implements PongPlayer {
         return this.side;
     }
 
-    private BiConsumer<PongPlayer, Boolean> paddleUpListener;
-
-    @Override
-    public void setOnPaddleUp(BiConsumer<PongPlayer, Boolean> action) {
-        paddleUpListener = action;
-    }
-
-    private BiConsumer<PongPlayer, Boolean> paddleDownListener;
-
-    @Override
-    public void setOnPaddleDown(BiConsumer<PongPlayer, Boolean> action) {
-        paddleDownListener = action;
-    }
-
     @Override
     public void setOnPause(Consumer<PongPlayer> action) {
 
@@ -66,84 +55,67 @@ public class PongKeyboardPlayer extends KeyboardPlayer implements PongPlayer {
 
     }
 
-    /**
-     * Calls the listeners for the pong player's paddle moving down.
-     */
-    private void moveDown() {
-        if (paddleDownListener != null) {
-            paddleDownListener.accept(this, true);
-        }
-    }
-
-    /**
-     * Calls the listeners for the pong player's paddle moving up.
-     */
-    private void moveUp() {
-        if (paddleUpListener != null) {
-            paddleUpListener.accept(this, true);
-        }
-    }
-
-    /**
-     * Calls the listeners for the pong player's cancel paddle moving down.
-     */
-    private void cancelMoveDown() {
-        if (paddleDownListener != null) {
-            paddleDownListener.accept(this, false);
-        }
-    }
-
-    /**
-     * Calls the listeners for the pong player's cancel paddle moving up.
-     */
-    private void cancelMoveUp() {
-        if (paddleUpListener != null) {
-            paddleUpListener.accept(this, false);
-        }
-    }
-
     @Override
     public String getName() {
         return null;
     }
 
-    /**
-     * Called by the UI when a key is pressed to determine what action should ensue.
-     *
-     * @param keyPressed The key that was pressed.
-     * @return The binding that will be invoked on this key press.
-     */
-    public void onKeyPressed(KeyCode keyPressed) {
-        PongKeyBinding binding = (PongKeyBinding) getKeyBindings().get(keyPressed);
-        if (binding != null) {
-            switch (binding) {
-                case MOVE_DOWN:
-                    moveDown();
-                    break;
-                case MOVE_UP:
-                    moveUp();
-                    break;
-                default:
-                    break;
-            }
-        }
+    // The listener for when the action changes.
+    private BiConsumer<PongPlayer, Action> actionListener;
 
+    /**
+     * Sets a method to be called when the player's paddle's action should change.
+     *
+     * @param actionListener The listener to be called.
+     */
+    @Override
+    public void setOnActionChanged(BiConsumer<PongPlayer, Action> actionListener) {
+        this.actionListener = actionListener;
     }
 
-    public void onKeyReleased(KeyCode keyReleased) {
-        PongKeyBinding binding = (PongKeyBinding) getKeyBindings().get(keyReleased);
-        if (binding != null) {
-            switch (binding) {
-                case MOVE_DOWN:
-                    cancelMoveDown();
-                    break;
-                case MOVE_UP:
-                    cancelMoveUp();
-                    break;
-                default:
-                    break;
+    /**
+     * Called when the player's action should change.
+     *
+     * @param newAction The new action that the player should take.
+     */
+    private void actionChanged(Action newAction) {
+        if (actionListener != null) {
+            actionListener.accept(this, newAction);
+        }
+    }
+
+    // Last action that was put through.
+    private Action lastAction;
+
+    /**
+     * Sets the keys that are currently being pressed down.
+     *
+     * @param keysDown The keys that are currently pressed down.
+     */
+    public void setKeysDown(List<KeyCode> keysDown) {
+        Action newAction = Action.STOP;
+        if (keysDown.size() > 0) {
+            final HashMap<KeyCode, PongKeyBinding> bindings = getKeyBindings();
+            List<KeyCode> goodKeys = keysDown.stream().filter(bindings.keySet()::contains).collect(Collectors.toList());
+
+            if (goodKeys.size() > 0) {
+                PongKeyBinding binding = bindings.get(goodKeys.get(goodKeys.size() - 1));
+                switch (binding) {
+                    case MOVE_DOWN:
+                        newAction = Action.MOVE_DOWN;
+                        break;
+                    case MOVE_UP:
+                        newAction = Action.MOVE_UP;
+                        break;
+                    default:
+                        newAction = Action.STOP;
+                        break;
+                }
             }
         }
-
+        if (newAction != lastAction) {
+            actionChanged(newAction);
+        }
+        lastAction = newAction;
     }
 }

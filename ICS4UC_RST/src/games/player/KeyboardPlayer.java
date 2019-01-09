@@ -8,22 +8,23 @@ import java.util.HashMap;
 /**
  * Physical player of the game of pong.
  *
+ * @param <T> The type of key bindings that this player deals in.
+ *            ICS4U RST
  * @author Kyle Anderson
- * ICS4U RST
  */
-public abstract class KeyboardPlayer implements Player {
+public abstract class KeyboardPlayer<T extends KeyBinding> implements Player {
 
     /**
      * Key bindings map for the keyboard player.
      */
-    protected HashMap<KeyCode, ? extends KeyBinding> keyBindings;
+    protected HashMap<KeyCode, T> keyBindings;
 
     /**
      * Gets this keyboard player's key bindings.
      *
      * @return The player's key bindings.
      */
-    public HashMap<KeyCode, ? extends KeyBinding> getKeyBindings() {
+    public HashMap<KeyCode, T> getKeyBindings() {
         return keyBindings;
     }
 
@@ -32,7 +33,7 @@ public abstract class KeyboardPlayer implements Player {
      *
      * @param bindings The player's bindings.
      */
-    public void setKeyBindings(HashMap<KeyCode, ? extends KeyBinding> bindings) {
+    public void setKeyBindings(HashMap<KeyCode, T> bindings) {
         this.keyBindings = bindings;
     }
 

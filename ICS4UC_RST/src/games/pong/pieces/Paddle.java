@@ -153,16 +153,32 @@ public class Paddle implements PongPiece {
 
     @Override
     public double getX(Side position) {
+        return getX(getWidth(), getX(), position);
+    }
+
+    /**
+     * Gets the paddle's x value at a given point.
+     *
+     * @param paddleWidth The paddle's width.
+     * @param leftX       The leftmost x-value on the paddle.
+     * @param side        The desired side.
+     * @return The x coordinate of the paddle at that point.
+     */
+    public static double getX(final double paddleWidth, final double leftX, final Side side) {
         double xValue;
 
-        if (position == Side.RIGHT) {
-            xValue = x + getWidth();
-        } else if (position == Side.LEFT) {
-            xValue = x;
-        } else if (position == Side.CENTER) {
-            xValue = x + width / 2;
-        } else {
-            throw new IllegalArgumentException("position must be one of supported sides for this object.");
+        switch (side) {
+            case RIGHT:
+                xValue = leftX + paddleWidth;
+                break;
+            case LEFT:
+                xValue = leftX;
+                break;
+            case CENTER:
+                xValue = leftX + paddleWidth / 2;
+                break;
+            default:
+                throw new IllegalArgumentException("position must be one of supported sides for this object.");
         }
 
         return xValue;
@@ -170,16 +186,32 @@ public class Paddle implements PongPiece {
 
     @Override
     public double getY(Side position) {
+        return getY(getHeight(), getY(), position);
+    }
+
+    /**
+     * Gets the y position of a paddle at the desired location.
+     *
+     * @param paddleHeight The height of the paddle.
+     * @param topY         The top y coordinate of the paddle.
+     * @param side         The desired side.
+     * @return The y coordinate at the desired position.
+     */
+    public static double getY(final double paddleHeight, final double topY, final Side side) {
         double yValue;
 
-        if (position == Side.BOTTOM) {
-            yValue = y - getHeight();
-        } else if (position == Side.TOP) {
-            yValue = y;
-        } else if (position == Side.CENTER) {
-            yValue = y - getHeight() / 2;
-        } else {
-            throw new IllegalArgumentException("position must be one of supported sides for this object.");
+        switch (side) {
+            case BOTTOM:
+                yValue = topY - paddleHeight;
+                break;
+            case TOP:
+                yValue = topY;
+                break;
+            case CENTER:
+                yValue = topY - paddleHeight / 2;
+                break;
+            default:
+                throw new IllegalArgumentException("position must be one of supported sides for this object.");
         }
 
         return yValue;
@@ -210,6 +242,24 @@ public class Paddle implements PongPiece {
      */
     public double getVelY() {
         return velY;
+    }
+
+    /**
+     * Determines the paddle's horizontal velocity in units/nanosecond.
+     *
+     * @return The horizontal velocity of the paddle in units/nanosecond.
+     */
+    public double getVelXNanos() {
+        return getVelX() / 1E9;
+    }
+
+    /**
+     * Determines the paddle's vertical velocity in units/nanosecond.
+     *
+     * @return The vertical velocity of the paddle in units/nanosecond.
+     */
+    public double getVelYNanos() {
+        return getVelY() / 1E9;
     }
 
     /**

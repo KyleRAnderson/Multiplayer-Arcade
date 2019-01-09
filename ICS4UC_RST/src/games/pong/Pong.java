@@ -1,12 +1,15 @@
 package games.pong;
 
 import com.sun.istack.internal.NotNull;
+import games.player.Player;
 import games.pong.pieces.Paddle;
 import games.pong.pieces.PongBall;
 import games.pong.pieces.PongPiece;
 import games.pong.pieces.Side;
 import games.pong.players.PongKeyboardPlayer;
 import games.pong.players.PongPlayer;
+
+import java.util.function.Consumer;
 
 /**
  * Class to render all pong game calculations and logic.
@@ -18,14 +21,14 @@ public class Pong {
     // Default width and height for the pong game.
     private static final int WIDTH = 512, HEIGHT = 256;
     // How far the paddles are from the side.
-    private static final int PADDLE_DISTANCE = 5;
+    private static final int PADDLE_DISTANCE = 5, PADDLE_WIDTH = 2, PADDLE_HEIGHT = 40;
+
     /**
      * Maximum ball rebound angle, in degrees.
      */
     private static final double MAX_REBOUND_ANGLE = 75;
     // Ratios for distances and speeds.
     private static final double BALL_RADIUS = 4;
-    private static final double PADDLE_HEIGHT = 28; // Ratio between the paddle size (height) and the screen height.
     // How many units per second the paddle moves while the button is being held down.
     public static final double PADDLE_MOVEMENT_RATE = 200;
     // Velocity of the pong ball in units per second.
@@ -40,6 +43,10 @@ public class Pong {
     private Paddle rightPaddle;
 
     private final double width, height;
+
+    // Listener for when the ball collides.
+    private Consumer<CollisionEvent> ballCollisionListener;
+    private Consumer<Player> scoreListener;
 
     /**
      * Constructs a new pong game with the given players.
@@ -177,10 +184,10 @@ public class Pong {
      */
     private void setupPaddles() {
         if (leftPaddle == null) {
-            leftPaddle = new Paddle(PADDLE_DISTANCE, PADDLE_HEIGHT, Side.LEFT);
+            leftPaddle = new Paddle(PADDLE_WIDTH, PADDLE_HEIGHT, Side.LEFT);
         }
         if (rightPaddle == null) {
-            rightPaddle = new Paddle(PADDLE_DISTANCE, PADDLE_HEIGHT, Side.RIGHT);
+            rightPaddle = new Paddle(PADDLE_WIDTH, PADDLE_HEIGHT, Side.RIGHT);
         }
 
         leftPaddle.setX(PADDLE_DISTANCE);
@@ -216,38 +223,168 @@ public class Pong {
 
     /**
      * Completes a tick of the game.
+     *
+     * @param timeSinceLastTick The time since the last tick, in nanoseconds.
      */
-    public void renderTick() {
-        long tempLastTick = lastTickTime;
-        lastTickTime = System.currentTimeMillis();
-        final long timeSinceLastTick = (tempLastTick > 0) ? System.currentTimeMillis() - tempLastTick : 0;
+    public void renderTick(final long timeSinceLastTick) {
         ball.renderTick(timeSinceLastTick); // Render a tick for the ball.
 
         Paddle rightPaddle = getRightPaddle(), leftPaddle = getLeftPaddle();
-        rightPaddle.setY(rightPaddle.getY() + rightPaddle.getVelY() / 1000 * timeSinceLastTick);
-        leftPaddle.setY(leftPaddle.getY() + leftPaddle.getVelY() / 1000 * timeSinceLastTick);
-        rightPaddle.setX(rightPaddle.getX() + rightPaddle.getVelX() / 1000 * timeSinceLastTick);
-        leftPaddle.setX(leftPaddle.getX() + leftPaddle.getVelX() / 1000 * timeSinceLastTick);
+        rightPaddle.setY(rightPaddle.getY() + rightPaddle.getVelYNanos() * timeSinceLastTick);
+        leftPaddle.setY(leftPaddle.getY() + leftPaddle.getVelYNanos() * timeSinceLastTick);
+        rightPaddle.setX(rightPaddle.getX() + rightPaddle.getVelXNanos() * timeSinceLastTick);
+        leftPaddle.setX(leftPaddle.getX() + leftPaddle.getVelXNanos() * timeSinceLastTick);
 
+        // Check if the ball has hit one of the paddles
+        renderBallCollision(timeSinceLastTick);
         // Check if the ball has hit the vertical bounds of the board.
         checkBallBounds();
         // Make sure the paddle is in bounds as well.
         checkPaddleBounds();
+    }
 
-        // Check if the ball has hit one of the paddles
-        renderBallCollision();
+    /**
+     * Completes a tick of the game.
+     */
+    public void renderTick() {
+        long tempLastTick = lastTickTime;
+        lastTickTime = System.nanoTime();
+        final long timeSinceLastTick = (tempLastTick > 0) ? System.nanoTime() - tempLastTick : 0;
+        renderTick(timeSinceLastTick);
     }
 
     /**
      * Renders any collisions of the ball with the pong paddle.
+     *
+     * @param nanosPassed The time passed (in nanoseconds) since the last tick.
      */
-    private void renderBallCollision() {
+    private void renderBallCollision(final long nanosPassed) {
         Paddle touchedPaddle;
-        if (doesIntersect(ball, touchedPaddle = leftPaddle)) {
-            applyNewBallVelocity(touchedPaddle);
-        } else if (doesIntersect(ball, touchedPaddle = rightPaddle)) {
-            applyNewBallVelocity(touchedPaddle);
+        if (testBallCollision(touchedPaddle = leftPaddle, nanosPassed)) {
+            callBallCollided(touchedPaddle);
+        } else if (testBallCollision(touchedPaddle = rightPaddle, nanosPassed)) {
+            callBallCollided(touchedPaddle);
         }
+    }
+
+    /**
+     * Sets a consumer to be invoked when the ball enters a collision with a paddle.
+     *
+     * @param listener The listener for the action. Accepts a parameter containing the CollisionEvent data.
+     */
+    public void onBallCollision(Consumer<CollisionEvent> listener) {
+        ballCollisionListener = listener;
+    }
+
+    /**
+     * Sets a listener for when the player scores.
+     *
+     * @param scoreListener The listener to be called. Parameter in the consumer is the player that scored.
+     */
+    public void onPlayerScore(Consumer<Player> scoreListener) {
+        this.scoreListener = scoreListener;
+    }
+
+    /**
+     * Called when a player scores.
+     *
+     * @param player The player who scored.
+     */
+    private void onPlayerScore(Player player) {
+        if (scoreListener != null) {
+            scoreListener.accept(player);
+        }
+    }
+
+    /**
+     * Notifies listeners that the ball has collided with a paddle.
+     *
+     * @param touchedPaddle The paddle that the ball collided with.
+     */
+    private void callBallCollided(Paddle touchedPaddle) {
+        if (ballCollisionListener != null) {
+            CollisionEvent event = new CollisionEvent(getBall(), CollisionEvent.CollisionType.PADDLE);
+            event.setPaddle(touchedPaddle);
+            callBallCollided(event);
+        }
+    }
+
+    /**
+     * Notifies listeners that the ball has collided with something.
+     *
+     * @param event The CollisionEvent.
+     */
+    private void callBallCollided(CollisionEvent event) {
+        if (ballCollisionListener != null) {
+            ballCollisionListener.accept(event);
+        }
+    }
+
+    /**
+     * Does retracing of the paddle's and the ball's positions in order to determine if the ball and the paddle
+     * are currently colliding or did previously collide.
+     * Once this has been determined, the appropriate velocity is applied to the ball and it is reflected back
+     * to where it would have reflected.
+     *
+     * @param testingPaddle      The paddle to test against.
+     * @param nanosSinceLastTick The time passed (in milliseconds) since the last tick.
+     * @return True if the ball had entered a collision, false otherwise.
+     */
+    private boolean testBallCollision(Paddle testingPaddle, final long nanosSinceLastTick) {
+        boolean didIntersect;
+
+        // Determine the old x position of the ball.
+        final double oldBallX = ball.getX() - ball.getRunPerNanoSecond() * nanosSinceLastTick;
+
+        // Some points we need to keep track of.
+        final double paddlePoint, ballPoint;
+        if (testingPaddle.getSide() == Side.RIGHT) {
+            paddlePoint = testingPaddle.getX(Side.LEFT);
+            ballPoint = PongBall.getX(ball.getRadius(), oldBallX, Side.RIGHT);
+        } else {
+            paddlePoint = testingPaddle.getX(Side.RIGHT);
+            ballPoint = oldBallX;
+        }
+
+        // If the ball was in intersect range during the last tick, we don't need to deal with it now.
+        didIntersect = ((ballPoint >= paddlePoint && ball.getX(Side.LEFT) < paddlePoint && testingPaddle.getSide() == Side.LEFT) ||
+                (ballPoint <= paddlePoint && ball.getX(Side.RIGHT) > paddlePoint && testingPaddle.getSide() == Side.RIGHT));
+
+        // Otherwise, we need to run more calculations.
+        if (didIntersect) {
+            // Determine how long it's been since the ball would've collided. time = distance / velocity
+            final double timePassedSinceCollision = (Math.abs(ball.getX() - oldBallX)) / (ball.getRunPerNanoSecond());
+            // Determine where the paddle would have been at that time. distance = velocity * time.
+            final double paddleTopAtTime = testingPaddle.getY(Side.TOP) - timePassedSinceCollision * testingPaddle.getVelYNanos();
+            // Also get the bottom position here.
+            final double paddleBottomAtTime = Paddle.getY(testingPaddle.getHeight(), paddleTopAtTime, Side.BOTTOM);
+            // Determine the ball's height at that time.
+            final double ballTopYAtTime = ball.getY(Side.TOP) - timePassedSinceCollision * (ball.getRisePerNanoSecond());
+            final double ballCenterAtTime = PongBall.getY(ball.getRadius(), ballTopYAtTime, Side.CENTER);
+            double goodBallPos;
+            if (ballCenterAtTime > paddleTopAtTime) {
+                goodBallPos = ballTopYAtTime;
+            } else if (ballCenterAtTime < paddleBottomAtTime) {
+                goodBallPos = PongBall.getY(ball.getRadius(), ballTopYAtTime, Side.BOTTOM);
+            } else {
+                goodBallPos = ballCenterAtTime;
+            }
+
+            didIntersect = doesBallIntersect(goodBallPos, paddleTopAtTime, paddleBottomAtTime);
+
+            // If there was an intersection, we need to continue even more with determining the ball's new location.
+            if (didIntersect) {
+                ball.setX(oldBallX);
+                ball.setY(ballCenterAtTime, Side.CENTER);
+                final double tempPaddleHeight = testingPaddle.getY();
+                testingPaddle.setY(paddleTopAtTime);
+                applyNewBallVelocity(testingPaddle);// Apply new ball velocity.
+                testingPaddle.setY(tempPaddleHeight);
+                ball.renderTick(nanosSinceLastTick - (long) timePassedSinceCollision);
+            }
+        }
+
+        return didIntersect;
     }
 
     /**
@@ -289,11 +426,24 @@ public class Pong {
      * @param piece2 The second piece.
      * @return True if the pieces intersect (overlap), false otherwise.
      */
-    private boolean doesIntersect(PongPiece piece1, PongPiece piece2) {
+    private static boolean doesIntersect(PongPiece piece1, PongPiece piece2) {
         return !(piece1.getX(Side.RIGHT) < piece2.getX(Side.LEFT) ||
                 piece1.getX(Side.LEFT) > piece2.getX(Side.RIGHT) ||
-                piece1.getY(Side.BOTTOM) > piece2.getY(Side.TOP) ||
-                piece1.getY(Side.TOP) < piece2.getY(Side.BOTTOM));
+                piece1.getY(Side.BOTTOM) >= piece2.getY(Side.TOP) ||
+                piece1.getY(Side.TOP) <= piece2.getY(Side.BOTTOM));
+    }
+
+    /**
+     * Determines if the ball intersects with the paddle, assuming the ball has already been determined to intersect
+     * horizontally with the paddle.
+     *
+     * @param ballPoint    The y coordinate point of the ball to test against.
+     * @param topPaddle    The top y coordinate of the paddle.
+     * @param bottomPaddle The bottom y coordinate of the paddle.
+     * @return True if the ball and paddle intersect, false otherwise.
+     */
+    private static boolean doesBallIntersect(final double ballPoint, final double topPaddle, final double bottomPaddle) {
+        return bottomPaddle <= ballPoint && ballPoint <= topPaddle;
     }
 
     /**
@@ -301,20 +451,26 @@ public class Pong {
      */
     private void checkBallBounds() {
         // Check the top and bottom points to ensure that the ball has not hit a horizontal barrier.
-        if (ball.getY(Side.TOP) >= HEIGHT) {
+        if (ball.getY(Side.TOP) >= getBoardHeight()) {
             ball.setVelocity(-Math.abs(ball.getRisePerSecond()), ball.getRunPerSecond());
+            ball.setY(2 * getBoardHeight() - ball.getY(Side.TOP), Side.TOP);
+            callBallCollided(new CollisionEvent(getBall(), CollisionEvent.CollisionType.TOP_WALL));
         } else if (ball.getY(Side.BOTTOM) <= 0) {
             ball.setVelocity(Math.abs(ball.getRisePerSecond()), ball.getRunPerSecond());
+            ball.setY(-ball.getY(Side.BOTTOM), Side.BOTTOM);
+            callBallCollided(new CollisionEvent(getBall(), CollisionEvent.CollisionType.TOP_WALL));
         }
 
         // Now check to see if the ball has hit a vertical barrier.
         if (ball.getX(Side.LEFT) <= 0) {
             getRightPlayer().addPoint();
+            onPlayerScore(getRightPlayer());
             resetBall(Side.LEFT);
         }
         // If the ball hit the right side, then add to the player on the left.
         else if (ball.getX(Side.RIGHT) >= WIDTH) {
             getLeftPlayer().addPoint();
+            onPlayerScore(getLeftPlayer());
             resetBall(Side.RIGHT);
         }
     }
@@ -330,15 +486,19 @@ public class Pong {
         for (Paddle paddle : paddles) {
             if (paddle.getY(Side.TOP) > getBoardHeight()) {
                 paddle.setY(getBoardHeight(), Side.TOP);
+                paddle.setVelY(0); // Get rid of velocity so the paddle isn't constantly trying to go off screen.
             }
             if (paddle.getY(Side.BOTTOM) < 0) {
                 paddle.setY(0, Side.BOTTOM);
+                paddle.setVelY(0); // Get rid of velocity
             }
             if (paddle.getX(Side.RIGHT) > getBoardWidth()) {
                 paddle.setX(getBoardWidth(), Side.RIGHT);
+                paddle.setVelX(0); // Get rid of velocity once the paddle hits the side.
             }
             if (paddle.getX(Side.LEFT) < 0) {
                 paddle.setX(0, Side.LEFT);
+                paddle.setVelX(0);
             }
         }
     }
