@@ -3,6 +3,7 @@ package network.party.network;
 import javafx.concurrent.Task;
 import network.TCPSocket;
 import network.party.PartyHandler;
+import sun.nio.ch.Net;
 
 import java.util.Queue;
 
@@ -14,7 +15,7 @@ import java.util.Queue;
  */
 public class SenderTask extends Task<Void> {
     private final TCPSocket socket;
-    private final Queue<String> queue;
+    private final Queue<NetworkMessage> queue;
 
     /**
      * Instantiates a new sender task for the provided socket and with the given queue.
@@ -22,7 +23,7 @@ public class SenderTask extends Task<Void> {
      * @param socket   The socket.
      * @param outgoing The queue.
      */
-    public SenderTask(TCPSocket socket, Queue<String> outgoing) {
+    public SenderTask(TCPSocket socket, Queue<NetworkMessage> outgoing) {
         this.socket = socket;
         queue = outgoing;
     }
@@ -31,9 +32,9 @@ public class SenderTask extends Task<Void> {
     @Override
     protected Void call() throws Exception {
         while (PartyHandler.isConnected()) {
-            String message = queue.poll();
+            NetworkMessage message = queue.poll();
             if (message != null) {
-                socket.send(message);
+                socket.send(message.toJsonString());
             }
         }
         return null;

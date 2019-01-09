@@ -434,7 +434,7 @@ public class MainMenu extends Application {
             message.setCurrentGame(currentGame.getClass().toString());
         }
         message.setHostName(Preferences.getInstance().getHostName());
-        PartyHandler.sendMessage(message.toJsonString());
+        PartyHandler.sendMessage(message);
     }
 
     /**
@@ -452,7 +452,7 @@ public class MainMenu extends Application {
     public void messageReceived(ReceivedDataEvent receivedEvent) {
         if (receivedEvent == ReceivedDataEvent.RECEIVED_DATA) {
             while (PartyHandler.hasIncomingMessages()) {
-                NetworkMessage receivedMessage = NetworkMessage.fromJson(PartyHandler.pollIncoming());
+                NetworkMessage receivedMessage = PartyHandler.pollIncoming();
                 // Determine if some of the data should be passed to the current game.
                 final boolean shouldSendToGame = currentGame != null && currentGame.isNetworkGame();
 

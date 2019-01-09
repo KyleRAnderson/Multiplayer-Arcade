@@ -4,6 +4,7 @@ import javafx.application.Platform;
 import javafx.concurrent.Task;
 import network.TCPSocket;
 import network.party.PartyHandler;
+import sun.nio.ch.Net;
 
 import java.util.Queue;
 import java.util.function.Consumer;
@@ -14,7 +15,7 @@ import java.util.function.Consumer;
 public class ReceiverTask extends Task<ReceivedDataEvent> {
 
     private final TCPSocket socket;
-    private final Queue<String> queue;
+    private final Queue<NetworkMessage> queue;
     private Consumer<ReceivedDataEvent> listener;
 
     public void addListener(Consumer<ReceivedDataEvent> listener) {
@@ -27,7 +28,7 @@ public class ReceiverTask extends Task<ReceivedDataEvent> {
      * @param incoming The queue to convey incoming messages.
      * @param socket   The socket on which data will be set.
      */
-    public ReceiverTask(TCPSocket socket, Queue<String> incoming) {
+    public ReceiverTask(TCPSocket socket, Queue<NetworkMessage> incoming) {
         this.socket = socket;
         queue = incoming;
     }
@@ -36,7 +37,7 @@ public class ReceiverTask extends Task<ReceivedDataEvent> {
     protected ReceivedDataEvent call() throws Exception {
         while (PartyHandler.isConnected()) {
             String receivedMessage = socket.listenForData();
-            queue.add(receivedMessage);
+            queue.add(NetworkMessage.fromJson(receivedMessage));
             ReceivedDataEvent event = ReceivedDataEvent.RECEIVED_DATA;
             // Notify of the received value.
             if (listener != null) {
