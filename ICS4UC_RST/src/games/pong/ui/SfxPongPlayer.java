@@ -3,8 +3,6 @@
  */
 package games.pong.ui;
 
-import java.nio.file.Paths;
-
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 
