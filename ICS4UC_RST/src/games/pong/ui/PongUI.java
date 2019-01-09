@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
 public class PongUI extends Pane implements Game {
 
     private static final double
-            FPS = 30; // Frames per second
+            FPS = 60; // Frames per second
 
     private final Scene scene;
 
@@ -214,6 +214,7 @@ public class PongUI extends Pane implements Game {
     public void start() {
         requestFocus();
         calculateScaleFactor();
+
         renderFrameTimer = new Timeline(new KeyFrame(Duration.millis(1000.0 / FPS), event -> renderFrame()));
         renderFrameTimer.setCycleCount(Timeline.INDEFINITE);
 

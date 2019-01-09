@@ -245,6 +245,24 @@ public class Paddle implements PongPiece {
     }
 
     /**
+     * Determines the paddle's horizontal velocity in units/nanosecond.
+     *
+     * @return The horizontal velocity of the paddle in units/nanosecond.
+     */
+    public double getVelXNanos() {
+        return getVelX() / 1E9;
+    }
+
+    /**
+     * Determines the paddle's verticla velocity in units/nanosecond.
+     *
+     * @return The vertical velocity of the paddle in units/nanosecond.
+     */
+    public double getVelYNanos() {
+        return getVelY() / 1E9;
+    }
+
+    /**
      * Sets the current vertical velocity of the paddle in units/second.
      *
      * @param velY The current velocity of the paddle.

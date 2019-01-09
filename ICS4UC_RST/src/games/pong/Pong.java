@@ -21,6 +21,7 @@ public class Pong {
     private static final int WIDTH = 512, HEIGHT = 256;
     // How far the paddles are from the side.
     private static final int PADDLE_DISTANCE = 5, PADDLE_WIDTH = 2, PADDLE_HEIGHT = 40;
+
     /**
      * Maximum ball rebound angle, in degrees.
      */
@@ -220,18 +221,17 @@ public class Pong {
 
     /**
      * Completes a tick of the game.
+     *
+     * @param timeSinceLastTick The time since the last tick, in nanoseconds.
      */
-    public void renderTick() {
-        long tempLastTick = lastTickTime;
-        lastTickTime = System.currentTimeMillis();
-        final long timeSinceLastTick = (tempLastTick > 0) ? System.currentTimeMillis() - tempLastTick : 0;
+    public void renderTick(final long timeSinceLastTick) {
         ball.renderTick(timeSinceLastTick); // Render a tick for the ball.
 
         Paddle rightPaddle = getRightPaddle(), leftPaddle = getLeftPaddle();
-        rightPaddle.setY(rightPaddle.getY() + rightPaddle.getVelY() / 1000 * timeSinceLastTick);
-        leftPaddle.setY(leftPaddle.getY() + leftPaddle.getVelY() / 1000 * timeSinceLastTick);
-        rightPaddle.setX(rightPaddle.getX() + rightPaddle.getVelX() / 1000 * timeSinceLastTick);
-        leftPaddle.setX(leftPaddle.getX() + leftPaddle.getVelX() / 1000 * timeSinceLastTick);
+        rightPaddle.setY(rightPaddle.getY() + rightPaddle.getVelYNanos() * timeSinceLastTick);
+        leftPaddle.setY(leftPaddle.getY() + leftPaddle.getVelYNanos() * timeSinceLastTick);
+        rightPaddle.setX(rightPaddle.getX() + rightPaddle.getVelXNanos() * timeSinceLastTick);
+        leftPaddle.setX(leftPaddle.getX() + leftPaddle.getVelXNanos() * timeSinceLastTick);
 
         // Check if the ball has hit one of the paddles
         renderBallCollision(timeSinceLastTick);
@@ -242,15 +242,25 @@ public class Pong {
     }
 
     /**
+     * Completes a tick of the game.
+     */
+    public void renderTick() {
+        long tempLastTick = lastTickTime;
+        lastTickTime = System.nanoTime();
+        final long timeSinceLastTick = (tempLastTick > 0) ? System.nanoTime() - tempLastTick : 0;
+        renderTick(timeSinceLastTick);
+    }
+
+    /**
      * Renders any collisions of the ball with the pong paddle.
      *
-     * @param timePassed The time passed (in milliseconds) since the last tick.
+     * @param nanosPassed The time passed (in nanoseconds) since the last tick.
      */
-    private void renderBallCollision(final long timePassed) {
+    private void renderBallCollision(final long nanosPassed) {
         Paddle touchedPaddle;
-        if (testBallCollision(touchedPaddle = leftPaddle, timePassed)) {
+        if (testBallCollision(touchedPaddle = leftPaddle, nanosPassed)) {
             callBallCollided(touchedPaddle);
-        } else if (testBallCollision(touchedPaddle = rightPaddle, timePassed)) {
+        } else if (testBallCollision(touchedPaddle = rightPaddle, nanosPassed)) {
             callBallCollided(touchedPaddle);
         }
     }
@@ -282,15 +292,15 @@ public class Pong {
      * Once this has been determined, the appropriate velocity is applied to the ball and it is reflected back
      * to where it would have reflected.
      *
-     * @param testingPaddle     The paddle to test against.
-     * @param timeSinceLastTick The time passed (in milliseconds) since the last tick.
+     * @param testingPaddle      The paddle to test against.
+     * @param nanosSinceLastTick The time passed (in milliseconds) since the last tick.
      * @return True if the ball had entered a collision, false otherwise.
      */
-    private boolean testBallCollision(Paddle testingPaddle, final long timeSinceLastTick) {
+    private boolean testBallCollision(Paddle testingPaddle, final long nanosSinceLastTick) {
         boolean didIntersect;
 
         // Determine the old x position of the ball.
-        final double oldBallX = ball.getX() - ball.getRunPerSecond() / 1000 * timeSinceLastTick;
+        final double oldBallX = ball.getX() - ball.getRunPerNanoSecond() * nanosSinceLastTick;
 
         // Some points we need to keep track of.
         final double paddlePoint, ballPoint;
@@ -309,13 +319,13 @@ public class Pong {
         // Otherwise, we need to run more calculations.
         if (didIntersect) {
             // Determine how long it's been since the ball would've collided. time = distance / velocity
-            final double timePassedSinceCollision = (Math.abs(ball.getX() - oldBallX)) / (ball.getRunPerSecond() / 1000);
+            final double timePassedSinceCollision = (Math.abs(ball.getX() - oldBallX)) / (ball.getRunPerNanoSecond());
             // Determine where the paddle would have been at that time. distance = velocity * time.
-            final double paddleTopAtTime = testingPaddle.getY(Side.TOP) - timePassedSinceCollision * testingPaddle.getVelY() / 1000;
+            final double paddleTopAtTime = testingPaddle.getY(Side.TOP) - timePassedSinceCollision * testingPaddle.getVelYNanos();
             // Also get the bottom position here.
             final double paddleBottomAtTime = Paddle.getY(testingPaddle.getHeight(), paddleTopAtTime, Side.BOTTOM);
             // Determine the ball's height at that time.
-            final double ballTopYAtTime = ball.getY(Side.TOP) - timePassedSinceCollision * (ball.getRisePerSecond() / 1000);
+            final double ballTopYAtTime = ball.getY(Side.TOP) - timePassedSinceCollision * (ball.getRisePerNanoSecond());
             final double ballCenterAtTime = PongBall.getY(ball.getRadius(), ballTopYAtTime, Side.CENTER);
             double goodBallPos;
             if (ballCenterAtTime > paddleTopAtTime) {
@@ -336,7 +346,7 @@ public class Pong {
                 testingPaddle.setY(paddleTopAtTime);
                 applyNewBallVelocity(testingPaddle);// Apply new ball velocity.
                 testingPaddle.setY(tempPaddleHeight);
-                ball.renderTick(timeSinceLastTick - (long) timePassedSinceCollision);
+                ball.renderTick(nanosSinceLastTick - (long) timePassedSinceCollision);
             }
         }
 
