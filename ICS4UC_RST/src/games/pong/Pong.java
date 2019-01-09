@@ -1,6 +1,7 @@
 package games.pong;
 
 import com.sun.istack.internal.NotNull;
+import games.player.Player;
 import games.pong.pieces.Paddle;
 import games.pong.pieces.PongBall;
 import games.pong.pieces.PongPiece;
@@ -44,7 +45,8 @@ public class Pong {
     private final double width, height;
 
     // Listener for when the ball collides.
-    private Consumer<Paddle> ballCollisionListener;
+    private Consumer<CollisionEvent> ballCollisionListener;
+    private Consumer<Player> scoreListener;
 
     /**
      * Constructs a new pong game with the given players.
@@ -268,11 +270,28 @@ public class Pong {
     /**
      * Sets a consumer to be invoked when the ball enters a collision with a paddle.
      *
-     * @param listener The listener for the action. Accepts a parameter containing the paddle with which
-     *                 the ball collided.
+     * @param listener The listener for the action. Accepts a parameter containing the CollisionEvent data.
      */
-    public void onBallCollision(Consumer<Paddle> listener) {
+    public void onBallCollision(Consumer<CollisionEvent> listener) {
         ballCollisionListener = listener;
+    }
+
+    /**
+     * Sets a listener for when the player scores.
+     * @param scoreListener The listener to be called. Parameter in the consumer is the player that scored.
+     */
+    public void onPlayerScore(Consumer<Player> scoreListener) {
+        this.scoreListener = scoreListener;
+    }
+
+    /**
+     * Called when a player scores.
+     * @param player The player who scored.
+     */
+    private void onPlayerScore(Player player) {
+        if (scoreListener != null) {
+            scoreListener.accept(player);
+        }
     }
 
     /**
@@ -282,7 +301,19 @@ public class Pong {
      */
     private void callBallCollided(Paddle touchedPaddle) {
         if (ballCollisionListener != null) {
-            ballCollisionListener.accept(touchedPaddle);
+            CollisionEvent event = new CollisionEvent(getBall(), CollisionEvent.CollisionType.PADDLE);
+            event.setPaddle(touchedPaddle);
+            callBallCollided(event);
+        }
+    }
+
+    /**
+     * Notifies listeners that the ball has collided with something.
+     * @param event The CollisionEvent.
+     */
+    private void callBallCollided(CollisionEvent event) {
+        if (ballCollisionListener != null) {
+            ballCollisionListener.accept(event);
         }
     }
 
@@ -420,19 +451,23 @@ public class Pong {
         if (ball.getY(Side.TOP) >= getBoardHeight()) {
             ball.setVelocity(-Math.abs(ball.getRisePerSecond()), ball.getRunPerSecond());
             ball.setY(2 * getBoardHeight() - ball.getY(Side.TOP), Side.TOP);
+            callBallCollided(new CollisionEvent(getBall(), CollisionEvent.CollisionType.TOP_WALL));
         } else if (ball.getY(Side.BOTTOM) <= 0) {
             ball.setVelocity(Math.abs(ball.getRisePerSecond()), ball.getRunPerSecond());
             ball.setY(-ball.getY(Side.BOTTOM), Side.BOTTOM);
+            callBallCollided(new CollisionEvent(getBall(), CollisionEvent.CollisionType.TOP_WALL));
         }
 
         // Now check to see if the ball has hit a vertical barrier.
         if (ball.getX(Side.LEFT) <= 0) {
             getRightPlayer().addPoint();
+            onPlayerScore(getRightPlayer());
             resetBall(Side.LEFT);
         }
         // If the ball hit the right side, then add to the player on the left.
         else if (ball.getX(Side.RIGHT) >= WIDTH) {
             getLeftPlayer().addPoint();
+            onPlayerScore(getLeftPlayer());
             resetBall(Side.RIGHT);
         }
     }
