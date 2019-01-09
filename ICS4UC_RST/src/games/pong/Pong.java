@@ -513,6 +513,12 @@ public class Pong {
             throw new IllegalArgumentException("Scoring player side must be either left or right.");
         }
 
+        try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         ball.setX(getBoardWidth() / 2, Side.CENTER);
         ball.setY(getBoardHeight() / 2, Side.CENTER);
         ball.setVelocity(0, (scoringPlayer == Side.LEFT) ? -PONG_BALL_VELOCITY : PONG_BALL_VELOCITY);

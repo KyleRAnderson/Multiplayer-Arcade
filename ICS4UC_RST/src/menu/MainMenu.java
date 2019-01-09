@@ -119,7 +119,7 @@ public class MainMenu extends Application {
         Text labelText = new Text("Preferences");
         labelText.setTextAlignment(TextAlignment.CENTER);
         labelText.setFont(HEADER_FONT);
-        ImageView image = new ImageView(getClass().getResource("/res/preferences.png").toString());
+        ImageView image = new ImageView(getClass().getResource("/res/images/preferences.png").toString());
         image.setPreserveRatio(true);
         image.setFitWidth(50);
         contents.getChildren().addAll(labelText, image);
@@ -136,7 +136,7 @@ public class MainMenu extends Application {
         Text scoresLabel = new Text("Scores");
         scoresLabel.setTextAlignment(TextAlignment.CENTER);
         scoresLabel.setFont(HEADER_FONT);
-        ImageView scoresImage = new ImageView(getClass().getResource("/res/leaderboard.png").toString());
+        ImageView scoresImage = new ImageView(getClass().getResource("/res/images/leaderboard.png").toString());
         scoresImage.setPreserveRatio(true);
         scoresImage.setFitWidth(50);
         scoresContent.getChildren().addAll(scoresImage, scoresLabel);
