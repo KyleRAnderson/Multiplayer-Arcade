@@ -593,8 +593,11 @@ public class Pong {
      * @param paddle The paddle to be moved.
      */
     public void paddleDown(Paddle paddle) {
-        paddle.setVelY(PADDLE_MOVEMENT_RATE);
-        callPaddleMoved(paddle, -1);
+        // Only change and update speed if it is actually changing.
+        if (paddle.getVelY() != -PADDLE_MOVEMENT_RATE) {
+            paddle.setVelY(-PADDLE_MOVEMENT_RATE);
+            callPaddleMoved(paddle, -1);
+        }
     }
 
     /**
@@ -603,8 +606,11 @@ public class Pong {
      * @param paddle The paddle to be moved.
      */
     public void paddleUp(Paddle paddle) {
-        paddle.setY(paddle.getY() + 1);
-        callPaddleMoved(paddle, 1);
+        // Only change and update listeners if there is actually a change.
+        if (paddle.getVelY() != PADDLE_MOVEMENT_RATE) {
+            paddle.setVelY(PADDLE_MOVEMENT_RATE);
+            callPaddleMoved(paddle, 1);
+        }
     }
 
     /**
