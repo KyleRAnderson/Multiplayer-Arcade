@@ -56,7 +56,7 @@ public class PongUI extends Pane implements Game {
 
     // Load custom blocky font
     static {
-        InputStream stream = PongUI.class.getResourceAsStream("/res/pong/pong.ttf");
+        InputStream stream = PongUI.class.getResourceAsStream("/res/pong/fonts/pong.ttf");
         Font.loadFont(stream, 10);
         try {
             stream.close();
@@ -337,7 +337,7 @@ public class PongUI extends Pane implements Game {
     @Override
     public Image getCoverArt() {
         //noinspection SpellCheckingInspection
-        return new Image(getClass().getResource("/res/pong/coverart.png").toString());
+        return new Image(getClass().getResource("/res/pong/images/coverart.png").toString());
     }
 
     @Override
@@ -349,7 +349,7 @@ public class PongUI extends Pane implements Game {
     public Text getTextDisplay() {
         Text text = new Text(getName());
         //noinspection SpellCheckingInspection
-        text.setFont(Font.font("Consolas", FontWeight.BLACK, FontPosture.REGULAR, 72));
+        text.setFont(Font.font("Bit5x3", FontWeight.BLACK, FontPosture.REGULAR, 72));
         text.setFill(Color.ORANGE);
 
         return text;
