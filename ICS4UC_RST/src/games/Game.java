@@ -59,14 +59,6 @@ public interface Game {
     boolean isNetworkGame();
 
     /**
-     * Creates a new game to be played.
-     *
-     * @param <T> The type of the game.
-     * @return A new game instance.
-     */
-    <T extends Game> T createNew();
-
-    /**
      * Gets the displaying window for the game.
      *
      * @return The display window for the game.

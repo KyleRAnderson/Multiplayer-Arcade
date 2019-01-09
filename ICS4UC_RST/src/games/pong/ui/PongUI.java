@@ -357,11 +357,6 @@ public class PongUI extends Pane implements Game {
     }
 
     @Override
-    public PongUI createNew() {
-        return new PongUI();
-    }
-
-    @Override
     public PongUI getWindow() {
         return this;
     }

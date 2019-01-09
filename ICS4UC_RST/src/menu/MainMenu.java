@@ -48,9 +48,9 @@ public class MainMenu extends Application {
         DEFAULT_HEIGHT = SCREEN_HEIGHT / 2;
         MIN_HEIGHT = SCREEN_HEIGHT / 5;
         MIN_WIDTH = SCREEN_WIDTH / 5;
-        
+
         // load custom arcade font
-        InputStream stream = PongUI.class.getResourceAsStream("/res/pong/fonts/arcade.ttf");
+        InputStream stream = MainMenu.class.getResourceAsStream("/res/pong/fonts/arcade.ttf");
         Font.loadFont(stream, 10);
         try {
             stream.close();
