@@ -1,5 +1,6 @@
 package games.pong;
 
+import com.google.gson.Gson;
 import com.sun.istack.internal.NotNull;
 import games.pong.pieces.Paddle;
 import games.pong.pieces.PongBall;
@@ -8,6 +9,8 @@ import games.pong.pieces.Side;
 import games.pong.players.PongKeyboardPlayer;
 import games.pong.players.PongPlayer;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
@@ -33,6 +36,8 @@ public class Pong {
     public static final double PADDLE_MOVEMENT_RATE = 200;
     // Velocity of the pong ball in units per second.
     public static final double PONG_BALL_VELOCITY = 250;
+    // How many milliseconds to pause after a player scores.
+    private static final long SCORE_PAUSE = 3000;
 
     private final PongBall ball;
 
@@ -56,6 +61,12 @@ public class Pong {
      * True if the game has started, false otherwise.
      */
     private boolean hasBegun;
+    private boolean readyNotified;
+
+    /**
+     * The time at which the pause should end.
+     */
+    private long unpauseTime;
 
     /**
      * Constructs a new pong game with the given players.
@@ -137,7 +148,28 @@ public class Pong {
      * Starts the game, letting ticks render.
      */
     public void begin() {
+        begin(true);
+    }
+
+    /**
+     * Starts the game, letting ticks render.
+     * @param callEvent True to call the event, false otherwise. You wouldn't want to call the event
+     *                  if another client has begun the event already for multiplayer.
+     */
+    public void begin(boolean callEvent) {
         hasBegun = true;
+        if (callEvent) {
+            setPauseDuration(SCORE_PAUSE);
+            callEvent(new PongEvent(PongEvent.EventType.GAME_BEGUN));
+        }
+    }
+
+    /**
+     * Determines if this game has begun.
+     * @return True if the game has started, false otherwise.
+     */
+    public boolean hasBegun() {
+        return hasBegun;
     }
 
     /**
@@ -240,14 +272,11 @@ public class Pong {
      * @param timeSinceLastTick The time since the last tick, in nanoseconds.
      */
     public void renderTick(final long timeSinceLastTick) {
-        if (hasBegun) {
+        if (hasBegun && !checkPause()) {
             ball.renderTick(timeSinceLastTick); // Render a tick for the ball.
 
-            Paddle rightPaddle = getRightPaddle(), leftPaddle = getLeftPaddle();
-            rightPaddle.setY(rightPaddle.getY() + rightPaddle.getVelYNanos() * timeSinceLastTick);
-            leftPaddle.setY(leftPaddle.getY() + leftPaddle.getVelYNanos() * timeSinceLastTick);
-            rightPaddle.setX(rightPaddle.getX() + rightPaddle.getVelXNanos() * timeSinceLastTick);
-            leftPaddle.setX(leftPaddle.getX() + leftPaddle.getVelXNanos() * timeSinceLastTick);
+            getRightPaddle().renderTick(timeSinceLastTick);
+            getLeftPaddle().renderTick(timeSinceLastTick);
 
             // Check if the ball has hit one of the paddles
             renderBallCollision(timeSinceLastTick);
@@ -255,6 +284,9 @@ public class Pong {
             checkBallBounds();
             // Make sure the paddle is in bounds as well.
             checkPaddleBounds();
+        } else if (!hasBegun && !readyNotified) {
+            callEvent(new PongEvent(PongEvent.EventType.GAME_READY));
+            readyNotified = true;
         }
     }
 
@@ -316,6 +348,7 @@ public class Pong {
 
     /**
      * Forms the right event to notify listeners that a player has scored.
+     *
      * @param player The player that scored.
      */
     private void callPlayerScored(PongPlayer player) {
@@ -329,7 +362,8 @@ public class Pong {
 
     /**
      * Calls a paddle movement event. This indicates that a paddle has started moving.
-     * @param paddle The paddle being moved.
+     *
+     * @param paddle    The paddle being moved.
      * @param direction The direction of the paddle's movement. Positive for up, negative for down, 0 for stopped.
      */
     private void callPaddleMoved(Paddle paddle, final int direction) {
@@ -502,16 +536,24 @@ public class Pong {
 
         // Now check to see if the ball has hit a vertical barrier.
         if (ball.getX(Side.LEFT) <= 0) {
-            getRightPlayer().addPoint();
-            callPlayerScored(getRightPlayer());
-            resetBall(Side.LEFT);
+            playerScored(getRightPlayer());
         }
         // If the ball hit the right side, then add to the player on the left.
         else if (ball.getX(Side.RIGHT) >= WIDTH) {
-            getLeftPlayer().addPoint();
-            callPlayerScored(getLeftPlayer());
-            resetBall(Side.RIGHT);
+            playerScored(getLeftPlayer());
         }
+    }
+
+    /**
+     * Should be called when a player scores.
+     *
+     * @param player The player who scored.
+     */
+    public void playerScored(PongPlayer player) {
+        player.addPoint();
+        callPlayerScored(player);
+        resetBall((player.getSide() == Side.LEFT) ? Side.RIGHT : Side.LEFT);
+        setPauseDuration(SCORE_PAUSE);
     }
 
     /**
@@ -672,5 +714,54 @@ public class Pong {
                 break;
         }
         return paddle;
+    }
+
+    /**
+     * Sets a static pause.
+     *
+     * @param pause True to pause until told to unpause, false to unpause if paused.
+     */
+    public void setPause(boolean pause) {
+        setPause((pause) ? -1 : 0);
+    }
+
+    /**
+     * Sets a pause corresponding to the specified number of milliseconds.
+     *
+     * @param millisecondPause The number of milliseconds to pause for. -1 for infinite pause.
+     */
+    public void setPauseDuration(long millisecondPause) {
+        this.unpauseTime = System.currentTimeMillis() + millisecondPause;
+    }
+
+    /**
+     * Sets a pause that will end at the given time.
+     *
+     * @param unpauseTime The time (in milliseconds) at which the pausing should end.
+     */
+    public void setPause(long unpauseTime) {
+        this.unpauseTime = unpauseTime;
+    }
+
+    /**
+     * Checks to see if the pause is still in effect.
+     *
+     * @return True if the game should be paused, false otherwise.
+     */
+    private boolean checkPause() {
+        boolean paused = System.currentTimeMillis() < unpauseTime || unpauseTime < 0;
+        if (!paused && lastTickTime < unpauseTime) {
+            lastTickTime = unpauseTime;
+        }
+
+        return paused;
+    }
+
+    /**
+     * Gets the time (in milliseconds) at which the game will unpause. -1 for infinite.
+     * @return The unpause time, in milliseconds.
+     */
+    public long getUnpauseTime() {
+        return unpauseTime;
     }
 }

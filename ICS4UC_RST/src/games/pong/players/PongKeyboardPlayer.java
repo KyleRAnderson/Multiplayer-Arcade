@@ -1,6 +1,5 @@
 package games.pong.players;
 
-import games.Game;
 import games.player.KeyboardPlayer;
 import games.player.PongKeyBinding;
 import games.pong.Pong;
@@ -53,11 +52,6 @@ public class PongKeyboardPlayer extends KeyboardPlayer<PongKeyBinding> implement
     @Override
     public void setOnPause(Consumer<PongPlayer> action) {
 
-    }
-
-    @Override
-    public String getName() {
-        return null;
     }
 
     // The listener for when the action changes.

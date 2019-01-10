@@ -1,11 +1,14 @@
 package games.pong.network;
 
 import com.google.gson.Gson;
+import games.pong.PongEvent;
 import games.pong.pieces.Paddle;
 import games.pong.pieces.PongBall;
 
 /**
+ * Class for sending messages between pong games.
  * @author Kyle Anderson
+ * ICS4U RST
  */
 public class PongNetworkMessage {
     private static final Gson gson = new Gson();
@@ -13,13 +16,21 @@ public class PongNetworkMessage {
 
     // Time at which this data was calculated.
     private long nanoTimeSent;
-    private Paddle leftPaddle, rightPaddle;
+    private Paddle localPlayerPaddle;
     private PongBall ball;
     // True if the ball hit the paddle and bounced off, false otherwise.
     private boolean ballHitPaddle;
+    private PongEvent.EventType triggeringEvent;
+
+    private int thisPlayerScore;
 
     // True when the player's in game, false otherwise.
     private boolean isInGame;
+
+    /**
+     * An unpause time that this client has set.
+     */
+    private long unpauseTime;
 
     /**
      * Instantiates a new PongNetworkMessage object with the given time in nanoseconds.
@@ -46,35 +57,19 @@ public class PongNetworkMessage {
     }
 
     /**
-     * Gets the left paddle.
-     * @return The left Paddle object.
+     * Gets the left paddle of the player sending this data.
+     * @return The Paddle object.
      */
-    public Paddle getLeftPaddle() {
-        return leftPaddle;
+    public Paddle getLocalPlayerPaddle() {
+        return localPlayerPaddle;
     }
 
     /**
-     * Sets the left paddle.
-     * @param leftPaddle The left paddle object.
+     * Sets the paddle.
+     * @param localPlayerPaddle The player who is sending the data's paddle.
      */
-    public void setLeftPaddle(Paddle leftPaddle) {
-        this.leftPaddle = leftPaddle;
-    }
-
-    /**
-     * Gets the right paddle.
-     * @return The right paddle object.
-     */
-    public Paddle getRightPaddle() {
-        return rightPaddle;
-    }
-
-    /**
-     * Sets the right paddle.
-     * @param rightPaddle The right paddle object.
-     */
-    public void setRightPaddle(Paddle rightPaddle) {
-        this.rightPaddle = rightPaddle;
+    public void setLocalPlayerPaddle(Paddle localPlayerPaddle) {
+        this.localPlayerPaddle = localPlayerPaddle;
     }
 
     /**
@@ -86,7 +81,7 @@ public class PongNetworkMessage {
     }
 
     /**
-     * Sets teh PongBall.
+     * Sets the PongBall.
      * @param ball The PongBall object.
      */
     public void setBall(PongBall ball) {
@@ -124,6 +119,54 @@ public class PongNetworkMessage {
      */
     public void setInGame(boolean inGame) {
         isInGame = inGame;
+    }
+
+    /**
+     * Gets the event type that triggered this data send.
+     * @return The type of the event which triggered this data send.
+     */
+    public PongEvent.EventType getTriggeringEvent() {
+        return triggeringEvent;
+    }
+
+    /**
+     * Sets the type of the event which triggered this update.
+     * @param triggeringEvent The triggering event type.
+     */
+    public void setTriggeringEvent(PongEvent.EventType triggeringEvent) {
+        this.triggeringEvent = triggeringEvent;
+    }
+
+    /**
+     * Gets the time at which the sender game will unpause.
+     * @return The unpause time, in milliseconds. -1 for infinite.
+     */
+    public long getUnpauseTime() {
+        return unpauseTime;
+    }
+
+    /**
+     * Sets the time at which the sender game will unpause.
+     * @param unpauseTime The unpause time, in milliseconds. -1 for infinite.
+     */
+    public void setUnpauseTime(long unpauseTime) {
+        this.unpauseTime = unpauseTime;
+    }
+
+    /**
+     * Gets the sending machine's local player's score.
+     * @return The score of this machine's local player.
+     */
+    public int getThisPlayerScore() {
+        return thisPlayerScore;
+    }
+
+    /**
+     * Sets the score for the player.
+     * @param thisPlayerScore The score to be set.
+     */
+    public void setThisPlayerScore(int thisPlayerScore) {
+        this.thisPlayerScore = thisPlayerScore;
     }
 
     /**

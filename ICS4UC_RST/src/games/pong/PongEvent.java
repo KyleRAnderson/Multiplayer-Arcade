@@ -20,7 +20,15 @@ public class PongEvent {
      * The type of collisions.
      */
     public enum EventType {
-        BALL_HIT_PADDLE, BALL_HIT_TOP_WALL, BALL_HIT_BOTTOM_WALL, PADDLE_MOVED_UP, PADDLE_MOVED_DOWN, PADDLE_STOPPED, PLAYER_SCORED
+        BALL_HIT_PADDLE,
+        BALL_HIT_TOP_WALL,
+        BALL_HIT_BOTTOM_WALL,
+        PADDLE_MOVED_UP,
+        PADDLE_MOVED_DOWN,
+        PADDLE_STOPPED,
+        PLAYER_SCORED,
+        GAME_BEGUN,
+        GAME_READY
     }
 
     /**

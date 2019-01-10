@@ -270,4 +270,13 @@ public class Paddle implements PongPiece {
     public void setVelY(double velY) {
         this.velY = velY;
     }
+
+    /**
+     * Renders one tick for the paddle.
+     * @param timeSinceLastTick The time since the last tick, in nanoseconds.
+     */
+    public void renderTick(final long timeSinceLastTick) {
+        setX(getX() + timeSinceLastTick * getVelXNanos());
+        setY(getY() + timeSinceLastTick * getVelYNanos());
+    }
 }
