@@ -56,8 +56,18 @@ public class Preferences {
      * Saves current object to json file
      *
      * @param hostName The user's profile name.
+     * @throws IOException
      */
     public void save() throws IOException {
     	pslSaveLoad.save();
+    }
+    
+    /**
+     * loads object from json file
+     *
+     * @throws IOException if problem loading
+     */
+    public void load() throws IOException {
+    	currentInstance = pslSaveLoad.load();
     }
 }

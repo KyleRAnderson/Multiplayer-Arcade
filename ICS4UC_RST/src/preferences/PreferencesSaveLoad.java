@@ -3,15 +3,12 @@
  */
 package preferences;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
-
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 /**
  * Class for saving/loading preferences using json
@@ -25,7 +22,6 @@ public class PreferencesSaveLoad {
 	private Preferences pfPreferences;
 	private String strSaveDir;
 	
-	private static Gson gsJsonS = new Gson();
 	private final static String FILE_NAME = "pong_preferences.json";
 	
 	/**
@@ -50,15 +46,22 @@ public class PreferencesSaveLoad {
 		fwFileWriter.close();
 	}
 	
+	
 	/**
-	 * static method to load preferences
+	 * method to load preferences
 	 * 
-	 * @throws IOException incase cannot convert byte data to utf-8 List string
+	 * @return preferences object
+	 * @throws IOException  problem with reading line or closing file reader and buffered reader
+	 * @throws JsonSyntaxException 
 	 */
-	public static Preferences load(final String savedir) throws IOException {
-		Path pthSaveFilePath = Paths.get(savedir + "\\" + FILE_NAME);
-		List<String> lisFileString = Files.readAllLines(pthSaveFilePath, StandardCharsets.UTF_8);
-		return gsJsonS.fromJson(lisFileString.toString(), Preferences.class);
+	public Preferences load() throws JsonSyntaxException, IOException {
+		FileReader frFileReader = new FileReader(strSaveDir + "\\" + FILE_NAME);
+		BufferedReader brBufferedReader = new BufferedReader(frFileReader);
+		Preferences pfPreferences = gsJson.fromJson(brBufferedReader.readLine(), Preferences.class);
+		frFileReader.close();
+		brBufferedReader.close();
+		
+		return pfPreferences;
 	}
 
 }
