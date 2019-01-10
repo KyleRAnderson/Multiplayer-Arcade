@@ -18,7 +18,7 @@ public class CollisionEvent {
      * The type of collisions.
      */
     public enum CollisionType {
-        PADDLE, TOP_WALL, BALL_TOP
+        PADDLE, TOP_WALL, BOTTOM_WALL
     }
 
     /**
