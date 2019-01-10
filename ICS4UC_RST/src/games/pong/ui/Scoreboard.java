@@ -40,7 +40,7 @@ public class Scoreboard extends Group {
     public void calculate(final double screenWidth, final double screenHeight) {
         final double height = screenHeight * 0.1; // Universal height for both text boxes.
 
-        leftScore.relocate(screenWidth / 2 - screenWidth * PERCENTAGE_DIST_FROM_CENTRE - leftScore.getWidth() * 0.75, height);
+        leftScore.relocate(screenWidth / 2 - screenWidth * PERCENTAGE_DIST_FROM_CENTRE - leftScore.getWidth() * 0.65, height);
         rightScore.relocate(screenWidth / 2 + screenWidth * PERCENTAGE_DIST_FROM_CENTRE, height);
     }
 
@@ -98,5 +98,15 @@ public class Scoreboard extends Group {
      */
     public void setRightScore(final int score) {
         rightScore.setText(String.valueOf(score));
+    }
+    
+    /**
+     * sets size of text based on a scalefactor
+     *
+     * @param scale factor
+     */
+    public void setSize(final double scaleFactor) {
+    	leftScore.resize(leftScore.getWidth() * scaleFactor, leftScore.getHeight() * scaleFactor);
+    	rightScore.resize(rightScore.getWidth() * scaleFactor, rightScore.getHeight() * scaleFactor);
     }
 }
