@@ -65,9 +65,9 @@ public class PongUI extends Pane implements Game {
             System.err.println(String.format("Failed to close font loading stream.\n%s", Arrays.toString(e.getStackTrace())));
         }
     }
-    
-    private SfxPongPlayer sfxPlayer = new SfxPongPlayer();
-    
+
+    private final SfxPongPlayer sfxPlayer = new SfxPongPlayer();
+
 
     // Font used around the UI.
     private static final Font FONT = Font.font("Bit5x3", FontWeight.BOLD, FontPosture.REGULAR, 120);
@@ -351,7 +351,6 @@ public class PongUI extends Pane implements Game {
     @Override
     public Text getTextDisplay() {
         Text text = new Text(getName());
-        //noinspection SpellCheckingInspection
         text.setFont(Font.font("Bit5x3", FontWeight.BLACK, FontPosture.REGULAR, 72));
         text.setFill(Color.ORANGE);
 
@@ -380,21 +379,21 @@ public class PongUI extends Pane implements Game {
         game.onBallCollision(listener -> playOnBallCollision());
         game.onPlayerScore(scoreListener -> playOnPlayerScore());
     }
-    
+
     /**
      * plays ball collision sfx
      */
     public void playOnBallCollision() {
-    	sfxPlayer.chooseFile("hit.wav");
-    	sfxPlayer.play();
+        sfxPlayer.chooseFile("hit.wav");
+        sfxPlayer.play();
     }
-    
+
     /**
      * plays ball miss sfx
      */
     private void playOnPlayerScore() {
-    	sfxPlayer.chooseFile("miss.wav");
-    	sfxPlayer.play();
+        sfxPlayer.chooseFile("miss.wav");
+        sfxPlayer.play();
     }
 
     /**
