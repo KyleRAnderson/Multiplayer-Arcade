@@ -1,5 +1,7 @@
 package preferences;
 
+import java.io.IOException;
+
 /**
  * Utility class for a singleton object for modifying preferences.
  *
@@ -8,6 +10,7 @@ package preferences;
  */
 public class Preferences {
     private static Preferences currentInstance = new Preferences();
+    private static PreferencesSaveLoad pslSaveLoad;
 
     /**
      * Gets the current instance of the preferences.
@@ -28,6 +31,7 @@ public class Preferences {
      * Constructs a new preferences object.
      */
     private Preferences() {
+    	pslSaveLoad = new PreferencesSaveLoad(this, System.getProperty("user.home"));
     }
 
     /**
@@ -46,5 +50,14 @@ public class Preferences {
      */
     public void setHostName(String hostName) {
         this.hostName = hostName;
+    }
+    
+    /**
+     * Saves current object to json file
+     *
+     * @param hostName The user's profile name.
+     */
+    public void save() throws IOException {
+    	pslSaveLoad.save();
     }
 }
