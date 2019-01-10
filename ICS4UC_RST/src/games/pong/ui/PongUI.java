@@ -66,8 +66,6 @@ public class PongUI extends Pane implements Game {
         }
     }
 
-    private final SfxPongPlayer sfxPlayer = new SfxPongPlayer();
-
 
     // Font used around the UI.
     private static final Font FONT = Font.font("Bit5x3", FontWeight.BOLD, FontPosture.REGULAR, 120);
@@ -378,22 +376,21 @@ public class PongUI extends Pane implements Game {
         resetKeyBindings();
         game.onBallCollision(listener -> playOnBallCollision());
         game.onPlayerScore(scoreListener -> playOnPlayerScore());
+        SfxPongPlayer.init();
     }
 
     /**
      * plays ball collision sfx
      */
     public void playOnBallCollision() {
-        sfxPlayer.chooseFile("hit.wav");
-        sfxPlayer.play();
+        SfxPongPlayer.playHit();
     }
 
     /**
      * plays ball miss sfx
      */
     private void playOnPlayerScore() {
-        sfxPlayer.chooseFile("miss.wav");
-        sfxPlayer.play();
+        SfxPongPlayer.playScored();
     }
 
     /**

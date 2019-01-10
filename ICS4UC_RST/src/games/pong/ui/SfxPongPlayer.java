@@ -1,52 +1,40 @@
 package games.pong.ui;
 
-import javafx.scene.media.Media;
-import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.AudioClip;
 
 /**
  * Class to play sfx using javafx media player
  *
  * @author s405751 (Nicolas Hawrysh)
- *
+ * <p>
  * ICS4U
  */
-public class SfxPongPlayer {
-    private String strAudioFile;
+class SfxPongPlayer {
+    private static AudioClip hitClip, scoredClip;
 
-    private MediaPlayer mpPlayer;
-
-    /**
-     * javafx media player has lag when you play sound for first time, so to fix it, this constructor will play 
-     * an extremely small 0.03 second silent audio file.
-     */
-    public SfxPongPlayer() {
-        strAudioFile = (getClass().getResource("/res/sfx/null.wav")).toString();
-        setupMedia();
-        play();
+    static void init() {
+        if (hitClip == null) {
+            hitClip = new AudioClip(SfxPongPlayer.class.getResource("/res/pong/sfx/hit.wav").toString());
+        }
+        if (scoredClip == null) {
+            scoredClip = new AudioClip(SfxPongPlayer.class.getResource("/res/pong/sfx/miss.wav").toString());
+        }
     }
 
-    /**
-     * Method to choose file
-     */
-    public void chooseFile(String audioFileName) {
-        strAudioFile = (getClass().getResource("/res/pong/sfx/" + audioFileName)).toString();
-        setupMedia();
-    }
 
     /**
-     * plays sfx in media player
-     *
+     * Plays the scored sound (player missed the ball).
      */
-    public void play() {
-        mpPlayer.play();
+    static void playScored() {
+        scoredClip.play();
     }
 
+
     /**
-     * setups media player for the sfx
+     * Plays the paddle hit ball sound.
      */
-    private void setupMedia() {
-        Media mdMedia = new Media(strAudioFile);
-        mpPlayer = new MediaPlayer(mdMedia);
+    static void playHit() {
+        hitClip.play();
     }
 
 }
