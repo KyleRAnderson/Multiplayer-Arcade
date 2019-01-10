@@ -10,14 +10,21 @@ import javafx.scene.media.AudioClip;
  * ICS4U
  */
 class SfxPongPlayer {
-    private static AudioClip hitClip, scoredClip;
+    private static AudioClip hitWall, scoredClip, hitPaddle;
 
+    /**
+     * Initializes the pong sound effects players.
+     */
     static void init() {
-        if (hitClip == null) {
-            hitClip = new AudioClip(SfxPongPlayer.class.getResource("/res/pong/sfx/hit.wav").toString());
+        if (hitWall == null) {
+            hitWall = new AudioClip(SfxPongPlayer.class.getResource("/res/pong/sfx/hitwall.wav").toString());
         }
         if (scoredClip == null) {
             scoredClip = new AudioClip(SfxPongPlayer.class.getResource("/res/pong/sfx/miss.wav").toString());
+        }
+        if (hitPaddle == null) {
+            //noinspection SpellCheckingInspection
+            hitPaddle = new AudioClip(SfxPongPlayer.class.getResource("/res/pong/sfx/hitpaddle.wav").toString());
         }
     }
 
@@ -33,8 +40,15 @@ class SfxPongPlayer {
     /**
      * Plays the paddle hit ball sound.
      */
-    static void playHit() {
-        hitClip.play();
+    static void playHitWall() {
+        hitWall.play();
+    }
+
+    /**
+     * Plays the hit paddle sound.
+     */
+    static void playHitPaddle() {
+        hitPaddle.play();
     }
 
 }

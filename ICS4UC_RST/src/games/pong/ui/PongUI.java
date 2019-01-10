@@ -3,6 +3,7 @@ package games.pong.ui;
 import games.Game;
 import games.Score;
 import games.player.PongKeyBinding;
+import games.pong.CollisionEvent;
 import games.pong.Pong;
 import games.pong.pieces.Paddle;
 import games.pong.pieces.PongPiece;
@@ -374,7 +375,7 @@ public class PongUI extends Pane implements Game {
     public void reset() {
         game = new Pong(); // Initialize new pong game with the correct type of players
         resetKeyBindings();
-        game.onBallCollision(listener -> playOnBallCollision());
+        game.onBallCollision(this::playOnBallCollision);
         game.onPlayerScore(scoreListener -> playOnPlayerScore());
         SfxPongPlayer.init();
     }
@@ -382,8 +383,12 @@ public class PongUI extends Pane implements Game {
     /**
      * plays ball collision sfx
      */
-    public void playOnBallCollision() {
-        SfxPongPlayer.playHit();
+    public void playOnBallCollision(CollisionEvent event) {
+        if (event.getType() == CollisionEvent.CollisionType.TOP_WALL || event.getType() == CollisionEvent.CollisionType.BOTTOM_WALL) {
+            SfxPongPlayer.playHitWall();
+        } else if (event.getType() == CollisionEvent.CollisionType.PADDLE) {
+            SfxPongPlayer.playHitPaddle();
+        }
     }
 
     /**
