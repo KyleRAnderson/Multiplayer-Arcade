@@ -18,6 +18,7 @@ public class Divider extends Group {
 
     /**
      * Constructs a new pong divider with the given fill color.
+     *
      * @param fill The fill color.
      */
     public Divider(Paint fill) {
@@ -35,7 +36,8 @@ public class Divider extends Group {
 
     /**
      * Calculates and fixes the positioning of all the squares making up the line.
-     * @param screenWidth The width of screen.
+     *
+     * @param screenWidth  The width of screen.
      * @param screenHeight The height of screen.
      */
     public void calculate(final double screenWidth, final double screenHeight) {

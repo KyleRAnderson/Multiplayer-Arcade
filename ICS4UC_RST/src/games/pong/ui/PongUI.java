@@ -3,6 +3,7 @@ package games.pong.ui;
 import games.Game;
 import games.Score;
 import games.player.PongKeyBinding;
+import games.pong.CollisionEvent;
 import games.pong.Pong;
 import games.pong.pieces.Paddle;
 import games.pong.pieces.PongPiece;
@@ -65,6 +66,7 @@ public class PongUI extends Pane implements Game {
             System.err.println(String.format("Failed to close font loading stream.\n%s", Arrays.toString(e.getStackTrace())));
         }
     }
+
 
     // Font used around the UI.
     private static final Font FONT = Font.font("Bit5x3", FontWeight.BOLD, FontPosture.REGULAR, 120);
@@ -348,7 +350,6 @@ public class PongUI extends Pane implements Game {
     @Override
     public Text getTextDisplay() {
         Text text = new Text(getName());
-        //noinspection SpellCheckingInspection
         text.setFont(Font.font("Bit5x3", FontWeight.BLACK, FontPosture.REGULAR, 72));
         text.setFill(Color.ORANGE);
 
@@ -374,6 +375,27 @@ public class PongUI extends Pane implements Game {
     public void reset() {
         game = new Pong(); // Initialize new pong game with the correct type of players
         resetKeyBindings();
+        game.onBallCollision(this::playOnBallCollision);
+        game.onPlayerScore(scoreListener -> playOnPlayerScore());
+        SfxPongPlayer.init();
+    }
+
+    /**
+     * plays ball collision sfx
+     */
+    public void playOnBallCollision(CollisionEvent event) {
+        if (event.getType() == CollisionEvent.CollisionType.TOP_WALL || event.getType() == CollisionEvent.CollisionType.BOTTOM_WALL) {
+            SfxPongPlayer.playHitWall();
+        } else if (event.getType() == CollisionEvent.CollisionType.PADDLE) {
+            SfxPongPlayer.playHitPaddle();
+        }
+    }
+
+    /**
+     * plays ball miss sfx
+     */
+    private void playOnPlayerScore() {
+        SfxPongPlayer.playScored();
     }
 
     /**
