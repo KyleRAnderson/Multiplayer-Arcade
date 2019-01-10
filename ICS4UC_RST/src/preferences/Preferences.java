@@ -9,8 +9,7 @@ import java.io.IOException;
  * ICS4U RST
  */
 public class Preferences {
-    private static Preferences currentInstance = new Preferences();
-    private static PreferencesSaveLoad pslSaveLoad;
+    private static Preferences currentInstance;
 
     /**
      * Gets the current instance of the preferences.
@@ -19,7 +18,7 @@ public class Preferences {
      */
     public static Preferences getInstance() {
         if (currentInstance == null) {
-            currentInstance = new Preferences();
+            reloadPreferences();
         }
         return currentInstance;
     }
@@ -31,7 +30,6 @@ public class Preferences {
      * Constructs a new preferences object.
      */
     private Preferences() {
-    	pslSaveLoad = new PreferencesSaveLoad(this, System.getProperty("user.home"));
     }
 
     /**
@@ -51,23 +49,26 @@ public class Preferences {
     public void setHostName(String hostName) {
         this.hostName = hostName;
     }
-    
+
     /**
      * Saves current object to json file
      *
-     * @param hostName The user's profile name.
-     * @throws IOException
+     * @throws IOException if there is trouble accessing/reading the file.
      */
     public void save() throws IOException {
-    	pslSaveLoad.save();
+        DataHandler.save(this);
     }
-    
+
+
     /**
-     * loads object from json file
-     *
-     * @throws IOException if problem loading
+     * Reloads preferences from file, setting the new preferences object to what was loaded.
      */
-    public void load() throws IOException {
-    	currentInstance = pslSaveLoad.load();
+    private static void reloadPreferences() {
+        try {
+            currentInstance = DataHandler.load();
+        } catch (IOException e) {
+            // If we fail to load, then assume there's nothing to load and go with blank preferences.
+            currentInstance = new Preferences();
+        }
     }
 }
