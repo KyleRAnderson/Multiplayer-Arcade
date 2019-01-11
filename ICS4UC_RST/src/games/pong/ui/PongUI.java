@@ -139,6 +139,33 @@ public class PongUI extends Pane implements Game {
                 calculateScaleFactor();
             }
         });
+
+        // Add listeners to resize when the user resizes the screen.
+        scene.widthProperty().addListener((observable, oldValue, newValue) -> {
+            if (!oldValue.equals(newValue)) {
+                recalculateScreenDimensions();
+            }
+        });
+        scene.heightProperty().addListener((observable, oldValue, newValue) -> {
+            if (!oldValue.equals(newValue)) {
+                recalculateScreenDimensions();
+            }
+        });
+    }
+
+    /**
+     * Calculates the proper height and width for screen based off of the ratio set in the game.
+     */
+    private void recalculateScreenDimensions() {
+        final double sceneHeight = scene.getHeight(), sceneWidth = scene.getWidth();
+
+        // If the height/width ratio of teh screen is larger than the one on the board, the width is limiting.
+        if (sceneHeight / sceneWidth > game.getBoardHeight() / game.getBoardWidth()) {
+            setHeight(game.getBoardHeight() / game.getBoardWidth() * getWidth());
+        } else {
+            setWidth(game.getBoardWidth() / game.getBoardHeight() * getHeight());
+        }
+        calculateScaleFactor();
     }
 
     /**
