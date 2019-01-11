@@ -4,6 +4,7 @@ import games.Game;
 import games.Score;
 import games.player.PongKeyBinding;
 import games.pong.Pong;
+import games.pong.PongEvent;
 import games.pong.pieces.Paddle;
 import games.pong.pieces.PongPiece;
 import games.pong.pieces.Side;
@@ -65,6 +66,7 @@ public class PongUI extends Pane implements Game {
             System.err.println(String.format("Failed to close font loading stream.\n%s", Arrays.toString(e.getStackTrace())));
         }
     }
+
 
     // Font used around the UI.
     private static final Font FONT = Font.font("Bit5x3", FontWeight.BOLD, FontPosture.REGULAR, 120);
@@ -358,6 +360,25 @@ public class PongUI extends Pane implements Game {
     public void reset() {
         game = new Pong(); // Initialize new pong game with the correct type of players
         resetKeyBindings();
+        game.addEventListener(this::gameEventHappened);
+        SfxPongPlayer.init();
+    }
+
+    /**
+     * Called when the game has an event that occurs.
+     * @param event The event that occurred.
+     */
+    private void gameEventHappened(PongEvent event) {
+        // Switch on the event type.
+        PongEvent.EventType type = event.getType();
+
+        if (type == PongEvent.EventType.PLAYER_SCORED) {
+            SfxPongPlayer.playScored();
+        } else if (type == PongEvent.EventType.BALL_HIT_PADDLE) {
+            SfxPongPlayer.playHitPaddle();
+        } else if (type == PongEvent.EventType.BALL_HIT_BOTTOM_WALL || type == PongEvent.EventType.BALL_HIT_TOP_WALL) {
+            SfxPongPlayer.playHitWall();
+        }
     }
 
     /**

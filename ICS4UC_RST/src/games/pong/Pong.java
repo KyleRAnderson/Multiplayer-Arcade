@@ -57,6 +57,8 @@ public class Pong {
      */
     private long lastTickTime = 0;
 
+    private Paddle lastHitPaddle;
+
     /**
      * True if the game has started, false otherwise.
      */
@@ -326,8 +328,10 @@ public class Pong {
      *
      * @param touchedPaddle The paddle that the ball collided with.
      */
-    private void callBallCollided(Paddle touchedPaddle) {
-        if (pongEventListeners.size() > 0) {
+    public void callBallCollided(Paddle touchedPaddle) {
+        // Don't call the event twice for the same paddle.
+        if (pongEventListeners.size() > 0 && touchedPaddle != lastHitPaddle) {
+            lastHitPaddle = touchedPaddle;
             PongEvent event = new PongEvent(PongEvent.EventType.BALL_HIT_PADDLE);
             event.setBall(getBall());
             event.setPaddle(touchedPaddle);

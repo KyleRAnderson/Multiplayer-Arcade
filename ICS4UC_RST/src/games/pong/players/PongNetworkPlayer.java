@@ -103,6 +103,7 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
             gameBall.setY(networkBall.getY());
             gameBall.setVelocity(networkBall.getRisePerSecond(), networkBall.getRunPerSecond());
             gameBall.renderTick(timeBetweenTickAndNetwork);
+            game.callBallCollided(game.getPaddle(this));
         }
 
         // Always trust the other player for the positioning of their paddle.
