@@ -1,6 +1,5 @@
 package games.pong;
 
-import com.google.gson.Gson;
 import com.sun.istack.internal.NotNull;
 import games.pong.pieces.Paddle;
 import games.pong.pieces.PongBall;
@@ -9,8 +8,6 @@ import games.pong.pieces.Side;
 import games.pong.players.PongKeyboardPlayer;
 import games.pong.players.PongPlayer;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
@@ -157,6 +154,7 @@ public class Pong {
 
     /**
      * Determines if this game has begun.
+     *
      * @return True if the game has started, false otherwise.
      */
     public boolean hasBegun() {
@@ -540,7 +538,7 @@ public class Pong {
     /**
      * Should be called when a player scores.
      *
-     * @param player The player who scored.
+     * @param player    The player who scored.
      * @param newPoints The new amount of points the player should have.
      */
     public void playerScored(PongPlayer player, final int newPoints) {
@@ -555,6 +553,7 @@ public class Pong {
 
     /**
      * Should be called when a player scores. Increases the player's score by one and calls necessary events.
+     *
      * @param player The player who scored.
      */
     public void playerScored(PongPlayer player) {
@@ -764,6 +763,7 @@ public class Pong {
 
     /**
      * Gets the time (in milliseconds) at which the game will unpause. -1 for infinite.
+     *
      * @return The unpause time, in milliseconds.
      */
     public long getUnpauseTime() {

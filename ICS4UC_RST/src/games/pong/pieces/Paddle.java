@@ -273,6 +273,7 @@ public class Paddle implements PongPiece {
 
     /**
      * Renders one tick for the paddle.
+     *
      * @param timeSinceLastTick The time since the last tick, in nanoseconds.
      */
     public void renderTick(final long timeSinceLastTick) {
@@ -282,6 +283,7 @@ public class Paddle implements PongPiece {
 
     /**
      * Override of toString() so that the paddle has more details when it is printed.
+     *
      * @return The string version of the paddle, including all important values about its position, etc.
      */
     @Override
