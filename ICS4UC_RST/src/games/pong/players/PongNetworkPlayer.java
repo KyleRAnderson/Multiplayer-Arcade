@@ -92,8 +92,7 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
         else if (gameData.getTriggeringEvent() == PongEvent.EventType.PLAYER_SCORED &&
                 gameData.getLocalPlayerScore() == getPoints() &&
                 gameData.getUnpauseTime() != 0) {
-            game.playerScored(game.getLocalPlayer());
-            game.getLocalPlayer().setPoints(gameData.getNetworkPlayerScore());
+            game.playerScored(game.getLocalPlayer(), gameData.getNetworkPlayerScore());
             game.setPause(gameData.getUnpauseTime());
         }
 

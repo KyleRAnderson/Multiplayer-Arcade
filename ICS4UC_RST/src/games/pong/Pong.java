@@ -537,13 +537,24 @@ public class Pong {
      * Should be called when a player scores.
      *
      * @param player The player who scored.
+     * @param newPoints The new amount of points the player should have.
+     */
+    public void playerScored(PongPlayer player, final int newPoints) {
+        if (player.getPoints() != newPoints) {
+            player.setPoints(newPoints);
+            resetBall((player.getSide() == Side.LEFT) ? Side.RIGHT : Side.LEFT);
+            setPauseDuration(SCORE_PAUSE);
+            // Important that listeners are called last.
+            callPlayerScored(player);
+        }
+    }
+
+    /**
+     * Should be called when a player scores. Increases the player's score by one and calls necessary events.
+     * @param player The player who scored.
      */
     public void playerScored(PongPlayer player) {
-        player.addPoint();
-        resetBall((player.getSide() == Side.LEFT) ? Side.RIGHT : Side.LEFT);
-        setPauseDuration(SCORE_PAUSE);
-        // Important that listeners are called last.
-        callPlayerScored(player);
+        playerScored(player, player.getPoints() + 1);
     }
 
     /**
