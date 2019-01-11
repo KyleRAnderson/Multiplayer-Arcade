@@ -22,7 +22,7 @@ public class PongNetworkMessage {
     private boolean ballHitPaddle;
     private PongEvent.EventType triggeringEvent;
 
-    private int thisPlayerScore;
+    private int localPlayerScore, networkPlayerScore;
 
     // True when the player's in game, false otherwise.
     private boolean isInGame;
@@ -157,16 +157,32 @@ public class PongNetworkMessage {
      * Gets the sending machine's local player's score.
      * @return The score of this machine's local player.
      */
-    public int getThisPlayerScore() {
-        return thisPlayerScore;
+    public int getLocalPlayerScore() {
+        return localPlayerScore;
     }
 
     /**
      * Sets the score for the player.
-     * @param thisPlayerScore The score to be set.
+     * @param localPlayerScore The score to be set.
      */
-    public void setThisPlayerScore(int thisPlayerScore) {
-        this.thisPlayerScore = thisPlayerScore;
+    public void setLocalPlayerScore(int localPlayerScore) {
+        this.localPlayerScore = localPlayerScore;
+    }
+
+    /**
+     * Gets the score of the remote party according to the remote machine.
+     * @return The score of the remote party.
+     */
+    public int getNetworkPlayerScore() {
+        return networkPlayerScore;
+    }
+
+    /**
+     * Sets the score of the remote party according to the remote machine.
+     * @param networkPlayerScore The score of the remote party.
+     */
+    public void setNetworkPlayerScore(int networkPlayerScore) {
+        this.networkPlayerScore = networkPlayerScore;
     }
 
     /**

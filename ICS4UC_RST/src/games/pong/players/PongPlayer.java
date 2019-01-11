@@ -46,6 +46,13 @@ public interface PongPlayer {
      */
     void addPoint();
 
+
+    /**
+     * Sets the number of points that the player has.
+     * @param points The number of points the player should have.
+     */
+    void setPoints(int points);
+
     /**
      * Gets this player's number of points.
      *

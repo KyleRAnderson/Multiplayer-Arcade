@@ -36,6 +36,11 @@ public class PongKeyboardPlayer extends KeyboardPlayer<PongKeyBinding> implement
     }
 
     @Override
+    public void setPoints(int points) {
+        this.points = points;
+    }
+
+    @Override
     public int getPoints() {
         return this.points;
     }

@@ -135,7 +135,7 @@ public class Pong {
         if (player2.getSide() == null) {
             if (localPlayer.getSide() == Side.LEFT) {
                 player2.setSide(Side.RIGHT);
-            } else if (player2.getSide() == Side.RIGHT) {
+            } else if (localPlayer.getSide() == Side.RIGHT) {
                 player2.setSide(Side.LEFT);
             } else {
                 // Default second player to the right side.
@@ -148,20 +148,9 @@ public class Pong {
      * Starts the game, letting ticks render.
      */
     public void begin() {
-        begin(true);
-    }
-
-    /**
-     * Starts the game, letting ticks render.
-     * @param callEvent True to call the event, false otherwise. You wouldn't want to call the event
-     *                  if another client has begun the event already for multiplayer.
-     */
-    public void begin(boolean callEvent) {
         hasBegun = true;
-        if (callEvent) {
-            setPauseDuration(SCORE_PAUSE);
-            callEvent(new PongEvent(PongEvent.EventType.GAME_BEGUN));
-        }
+        setPauseDuration(SCORE_PAUSE);
+        callEvent(new PongEvent(PongEvent.EventType.GAME_BEGUN));
     }
 
     /**
@@ -551,9 +540,10 @@ public class Pong {
      */
     public void playerScored(PongPlayer player) {
         player.addPoint();
-        callPlayerScored(player);
         resetBall((player.getSide() == Side.LEFT) ? Side.RIGHT : Side.LEFT);
         setPauseDuration(SCORE_PAUSE);
+        // Important that listeners are called last.
+        callPlayerScored(player);
     }
 
     /**
