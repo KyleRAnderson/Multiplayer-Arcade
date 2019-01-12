@@ -69,7 +69,7 @@ public class PongUI extends Pane implements Game {
 
 
     // Font used around the UI.
-    private static final Font FONT = Font.font("Bit5x3", FontWeight.BOLD, FontPosture.REGULAR, 120);
+    private Font FONT = Font.font("Bit5x3", FontWeight.BOLD, FontPosture.REGULAR, 80);
     private static final Paint BACKGROUND_COLOUR = Color.BLACK, FOREGROUND_COLOUR = Color.WHITE;
     private Pong game;
     // How much the units in the pong game backend are scaled to make a nice looking UI.
@@ -139,6 +139,33 @@ public class PongUI extends Pane implements Game {
                 calculateScaleFactor();
             }
         });
+
+        // Add listeners to resize when the user resizes the screen.
+        scene.widthProperty().addListener((observable, oldValue, newValue) -> {
+            if (!oldValue.equals(newValue)) {
+                recalculateScreenDimensions();
+            }
+        });
+        scene.heightProperty().addListener((observable, oldValue, newValue) -> {
+            if (!oldValue.equals(newValue)) {
+                recalculateScreenDimensions();
+            }
+        });
+    }
+
+    /**
+     * Calculates the proper height and width for screen based off of the ratio set in the game.
+     */
+    private void recalculateScreenDimensions() {
+        final double sceneHeight = scene.getHeight(), sceneWidth = scene.getWidth();
+
+        // If the height/width ratio of teh screen is larger than the one on the board, the width is limiting.
+        if (sceneHeight / sceneWidth > game.getBoardHeight() / game.getBoardWidth()) {
+            setHeight(game.getBoardHeight() / game.getBoardWidth() * getWidth());
+        } else {
+            setWidth(game.getBoardWidth() / game.getBoardHeight() * getHeight());
+        }
+        calculateScaleFactor();
     }
 
     /**
@@ -203,7 +230,7 @@ public class PongUI extends Pane implements Game {
         rightPaddle.setHeight(game.getRightPaddle().getHeight() * scaleFactor);
         ball.setWidth(game.getBall().getWidth() * scaleFactor);
         ball.setHeight(game.getBall().getHeight() * scaleFactor);
-        scoreboard.calculate(getWorkingWidth(), getWorkingHeight());
+        scoreboard.changeSize(scaleFactor);
         divider.calculate(getWorkingWidth(), getWorkingHeight());
         updatePaddleLocations();
         updateBallLocation();
@@ -263,6 +290,7 @@ public class PongUI extends Pane implements Game {
     private void updateScoreboard() {
         scoreboard.setLeftScore(game.getLeftPlayer().getPoints());
         scoreboard.setRightScore(game.getRightPlayer().getPoints());
+        scoreboard.calculate(getWorkingWidth(), getWorkingHeight());
     }
 
     /**
