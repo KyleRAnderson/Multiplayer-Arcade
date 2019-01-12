@@ -5,13 +5,14 @@ import javafx.concurrent.Task;
 import network.TCPSocket;
 import network.party.PartyHandler;
 
+import java.io.IOException;
 import java.util.Queue;
 import java.util.function.Consumer;
 
 /**
  * @author Kyle Anderson
  */
-public class ReceiverTask extends Task<ReceivedDataEvent> {
+public class ReceiverTask extends Task<Void> {
 
     private final TCPSocket socket;
     private final Queue<NetworkMessage> queue;
@@ -33,16 +34,25 @@ public class ReceiverTask extends Task<ReceivedDataEvent> {
     }
 
     @Override
-    protected ReceivedDataEvent call() throws Exception {
-        while (PartyHandler.isConnected()) {
-            String receivedMessage = socket.listenForData();
-            queue.add(NetworkMessage.fromJson(receivedMessage));
-            ReceivedDataEvent event = ReceivedDataEvent.RECEIVED_DATA;
+    protected Void call() {
+        ReceivedDataEvent event = null;
+        while (PartyHandler.isConnected() && event != ReceivedDataEvent.DISCONNECTED) {
+            String receivedMessage = null;
+            try {
+                receivedMessage = socket.listenForData();
+                event = ReceivedDataEvent.RECEIVED_DATA;
+            } catch (IOException e) {
+                event = ReceivedDataEvent.DISCONNECTED;
+            }
+            final ReceivedDataEvent goodEvent = event;
+            if (receivedMessage != null) {
+                queue.add(NetworkMessage.fromJson(receivedMessage));
+            }
             // Notify of the received value.
             if (listener != null) {
-                Platform.runLater(() -> listener.accept(event));
+                Platform.runLater(() -> listener.accept(goodEvent));
             }
         }
-        return ReceivedDataEvent.DISCONNECTED;
+        return null;
     }
 }

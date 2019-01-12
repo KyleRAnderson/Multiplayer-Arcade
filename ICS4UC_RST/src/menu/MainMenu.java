@@ -263,6 +263,7 @@ public class MainMenu extends Application {
         } else {
             currentGame = game;
             currentGame.reset();
+            currentGame.setOnEnd(this::gameEnded);
             Region window = currentGame.getWindow();
             window.setPrefWidth(menuRoot.getWidth());
             if (wasInvited) {
@@ -271,10 +272,22 @@ public class MainMenu extends Application {
             if (currentGame.isNetworkGame()) {
                 currentGame.getNetworkPlayer().setOnGameDataSend(this::sendGameData);
             }
-//            setDisplay(window);
             setDisplay(currentGame.getWorkingScene());
             currentGame.initializePlayers();
             currentGame.start();
+        }
+    }
+
+    /**
+     * Called when a game ends and is ready to exit.
+     *
+     * @param endedGame The game that ended.
+     */
+    private void gameEnded(Game endedGame) {
+        // Only actually end if the ended game was the game being played.
+        if (currentGame == endedGame) {
+            currentGame = null;
+            setDisplay(menuRoot.getScene());
         }
     }
 
@@ -459,11 +472,11 @@ public class MainMenu extends Application {
      * @param receivedEvent The event of the received data.
      */
     public void messageReceived(ReceivedDataEvent receivedEvent) {
+        // Determine if some of the data should be passed to the current game.
+        final boolean shouldSendToGame = currentGame != null && currentGame.isNetworkGame();
         if (receivedEvent == ReceivedDataEvent.RECEIVED_DATA) {
             while (PartyHandler.hasIncomingMessages()) {
                 NetworkMessage receivedMessage = PartyHandler.pollIncoming();
-                // Determine if some of the data should be passed to the current game.
-                final boolean shouldSendToGame = currentGame != null && currentGame.isNetworkGame();
 
                 switch (receivedMessage.getHostStatus()) {
                     case IN_GAME:
@@ -472,9 +485,7 @@ public class MainMenu extends Application {
                         }
                         break;
                     case DISCONNECTING:
-                        if (shouldSendToGame) {
-                            currentGame.getNetworkPlayer().hostDisconnecting();
-                        }
+                        remotePlayerDisconnecting(shouldSendToGame);
                         break;
                     case PENDING_GAME_INVITE:
                         // If the user accepts the game invite, we need to do certain things.
@@ -502,7 +513,28 @@ public class MainMenu extends Application {
                         break;
                 }
             }
+        } else if (receivedEvent == ReceivedDataEvent.DISCONNECTED) {
+            remotePlayerDisconnecting(shouldSendToGame);
         }
+    }
+
+    /**
+     * Called when the remote player disconnects.
+     *
+     * @param shouldSendToGame True to send the information to the game, false otherwise.
+     */
+    private void remotePlayerDisconnecting(boolean shouldSendToGame) {
+        if (shouldSendToGame) {
+            currentGame.getNetworkPlayer().hostDisconnecting();
+        }
+        // If we don't send data to the game, the main menu should be expected to handle notification.
+        else {
+            Alert disconnectAlert = new Alert(Alert.AlertType.INFORMATION, "Remote player disconnected.", ButtonType.OK);
+            disconnectAlert.showAndWait();
+        }
+        PartyHandler.disconnect();
+        connectMenuItem.setDisable(false);
+        hostMenuItem.setDisable(false);
     }
 
     /**
