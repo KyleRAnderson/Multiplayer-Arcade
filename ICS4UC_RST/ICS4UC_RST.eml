@@ -21,4 +21,7 @@
 	<lib name="gson-2.6.2.jar" scope="COMPILE">
 		<relative-module-cls project-related="jar://$PROJECT_DIR$/rst/ICS4UC_RST/lib/gson-2.6.2.jar!/"/>
 	</lib>
+	<lib name="controlsfx-8.40.14.jar" scope="COMPILE">
+		<relative-module-cls project-related="jar://$PROJECT_DIR$/rst/ICS4UC_RST/lib/controlsfx-8.40.14.jar!/"/>
+	</lib>
 </component>

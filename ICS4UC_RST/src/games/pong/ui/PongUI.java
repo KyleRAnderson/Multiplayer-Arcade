@@ -37,6 +37,7 @@ import javafx.scene.text.Text;
 import javafx.util.Duration;
 import network.party.PartyHandler;
 import network.party.PartyRole;
+import org.controlsfx.control.Notifications;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -223,6 +224,12 @@ public class PongUI extends Pane implements Game {
      */
     private void endGameKeyPressed() {
         shiftAndAppend(endKeyPressTimes, System.currentTimeMillis());
+
+        // If the second element is null, the player needs some encouragement.
+        if (endKeyPressTimes[endKeyPressTimes.length - 2] == null) {
+            showNotification(Alert.AlertType.INFORMATION, String.format("Continue pressing %s to quit the game.", END_GAME_KEYCODE.getName()));
+        }
+
         checkEnd();
     }
 
@@ -362,22 +369,21 @@ public class PongUI extends Pane implements Game {
         renderFrameTimer.stop();
 
         // If the game ended because of player disconnect, notify the user.
-        Alert alert;
         switch (game.getEndReason()) {
             case PLAYER_DISCONNECT:
-                alert = new Alert(Alert.AlertType.ERROR, "Game ended because player disconnected.", ButtonType.OK);
+                showNotification(Alert.AlertType.ERROR, "Game ended because player disconnected.");
                 break;
             case PLAYER_END:
-                alert = new Alert(Alert.AlertType.INFORMATION, "Game was ended by a player.", ButtonType.OK);
+                showNotification(Alert.AlertType.INFORMATION, "Game was ended by a player.");
                 break;
             case SCORE_LIMIT_REACHED:
-                alert = new Alert(Alert.AlertType.INFORMATION, String.format("%s won the game!", game.getWinner().getName()));
+                Alert alert = new Alert(Alert.AlertType.INFORMATION, String.format("%s won the game!", game.getWinner().getName()));
+                alert.showAndWait();
                 break;
             default:
-                alert = new Alert(Alert.AlertType.ERROR, "Game ended for some unknown reason.", ButtonType.OK);
+                showNotification(Alert.AlertType.ERROR, "Game ended for some unknown reason.");
                 break;
         }
-        alert.showAndWait();
 
         endGameListener.accept(this);
     }
@@ -611,6 +617,34 @@ public class PongUI extends Pane implements Game {
             for (int i = 0; i < elementsToAppend.length; i++) {
                 array[array.length - i - 1] = elementsToAppend[i];
             }
+        }
+    }
+
+
+    /**
+     * Shows a notification.
+     * @param contentText The text to be displayed on the notification.
+     */
+    private void showNotification(Alert.AlertType type, final String contentText) {
+        Notifications notifications = Notifications.create();
+        notifications.text(contentText);
+
+        switch(type) {
+            case ERROR:
+                notifications.showError();
+                break;
+            case INFORMATION:
+                notifications.showInformation();
+                break;
+            case WARNING:
+                notifications.showWarning();
+                break;
+            case CONFIRMATION:
+                notifications.showConfirm();
+                break;
+            default:
+                notifications.show();
+                break;
         }
     }
 }

@@ -24,6 +24,7 @@ import network.party.PartyHandler;
 import network.party.network.HostStatus;
 import network.party.network.NetworkMessage;
 import network.party.network.ReceivedDataEvent;
+import org.controlsfx.control.Notifications;
 import preferences.Preferences;
 
 import java.io.IOException;
@@ -410,7 +411,6 @@ public class MainMenu extends Application {
      * Shows the scores menu.
      */
     private void showScores() {
-
     }
 
     /**
@@ -560,6 +560,7 @@ public class MainMenu extends Application {
                         break;
                     case CONNECTED:
                         // When we receive the connected signal from the other client, let's get their name and display it.
+                        showNotification("", String.format("Connected to %s", receivedMessage.getHostName()));
                         break;
                     default:
                         break;
@@ -583,8 +584,7 @@ public class MainMenu extends Application {
         else {
             if (!disconnectNotified) {
                 disconnectNotified = true;
-                Alert disconnectAlert = new Alert(Alert.AlertType.INFORMATION, "Remote player disconnected.", ButtonType.OK);
-                disconnectAlert.showAndWait();
+                showNotification( "Disconnected", "Remote player disconnected.");
             }
         }
         disconnect(false);
@@ -638,6 +638,18 @@ public class MainMenu extends Application {
             }
         }
         return foundGame;
+    }
+
+    /**
+     * Shows a notification with the given title and text.
+     * @param title The title of the notification.
+     * @param content The notification's content text.
+     */
+    private void showNotification(final String title, final String content) {
+        Notifications notifications = Notifications.create();
+        notifications.text(content);
+        notifications.title(title);
+        notifications.show();
     }
 
     /**
