@@ -47,7 +47,7 @@ public class Pong {
     private final double width, height;
 
     // Listener for when the ball collides.
-    private ArrayList<Consumer<PongEvent>> pongEventListeners = new ArrayList<>();
+    private final ArrayList<Consumer<PongEvent>> pongEventListeners = new ArrayList<>();
 
     /**
      * The last tick time in nanoseconds.
