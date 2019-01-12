@@ -195,10 +195,27 @@ public class PartyHandler {
             incomingTask.addListener(incomingListener);
         }
 
-        ExecutorService executorService = Executors.newFixedThreadPool(2);
+        ExecutorService executorService = createFixedTimeoutExecutorService(2);
         executorService.execute(outgoingTask);
         executorService.execute(incomingTask);
         executorService.shutdown();
+    }
+
+    /**
+     * Creates an executor service with a fixed pool size, that will time
+     * out after a certain period of inactivity.
+     *
+     * @param poolSize The core- and maximum pool size
+     * @return The executor service
+     */
+    public static ExecutorService createFixedTimeoutExecutorService(
+            int poolSize) {
+        return Executors.newFixedThreadPool(poolSize,
+                r -> {
+                    Thread t = Executors.defaultThreadFactory().newThread(r);
+                    t.setDaemon(true);
+                    return t;
+                });
     }
 
     /**

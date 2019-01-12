@@ -28,7 +28,6 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static javafx.scene.control.ButtonType.YES;
 
@@ -379,7 +378,7 @@ public class MainMenu extends Application {
         task.setOnFailed(event -> connectionOver(false));
         task.setOnSucceeded(event -> connectionOver(task.getValue()));
 
-        ExecutorService executorService = Executors.newFixedThreadPool(1);
+        ExecutorService executorService = PartyHandler.createFixedTimeoutExecutorService(1);
         executorService.execute(task);
         executorService.shutdown();
     }
@@ -412,7 +411,7 @@ public class MainMenu extends Application {
         task.setOnFailed(event -> hostingFailed());
         task.setOnSucceeded(event -> hostSuccessful());
 
-        ExecutorService executorService = Executors.newFixedThreadPool(1);
+        ExecutorService executorService = PartyHandler.createFixedTimeoutExecutorService(1);
         executorService.execute(task);
         executorService.shutdown();
     }
