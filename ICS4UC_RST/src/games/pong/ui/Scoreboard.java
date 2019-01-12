@@ -20,6 +20,7 @@ public class Scoreboard extends Group {
      * The distance the text parts of the scoreboard will be from the centre of the game.
      */
     private static final double PERCENTAGE_DIST_FROM_CENTRE = 0.05;
+    private static final double DEFAULT_FONT_SIZE = 70;
 
     /**
      * Instantiates a new Scoreboard object.
@@ -101,12 +102,12 @@ public class Scoreboard extends Group {
     }
     
     /**
-     * sets size of text based on a scalefactor
+     * sets font of text based on a scalefactor
      *
      * @param scaleFactor The scale factor.
      */
-    public void setSize(final double scaleFactor) {
-    	leftScore.resize(leftScore.getWidth() * scaleFactor, leftScore.getHeight() * scaleFactor);
-    	rightScore.resize(rightScore.getWidth() * scaleFactor, rightScore.getHeight() * scaleFactor);
+    public void changeSize(final double scaleFactor) {
+    	leftScore.setStyle("-fx-font: " + Math.round(DEFAULT_FONT_SIZE * scaleFactor) + " Bit5x3;");
+    	rightScore.setStyle("-fx-font: " + Math.round(DEFAULT_FONT_SIZE * scaleFactor) + " Bit5x3;");
     }
 }

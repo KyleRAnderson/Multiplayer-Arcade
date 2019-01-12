@@ -230,7 +230,7 @@ public class PongUI extends Pane implements Game {
         rightPaddle.setHeight(game.getRightPaddle().getHeight() * scaleFactor);
         ball.setWidth(game.getBall().getWidth() * scaleFactor);
         ball.setHeight(game.getBall().getHeight() * scaleFactor);
-        scoreboard.setSize(scaleFactor);
+        scoreboard.changeSize(scaleFactor);
         divider.calculate(getWorkingWidth(), getWorkingHeight());
         updatePaddleLocations();
         updateBallLocation();
