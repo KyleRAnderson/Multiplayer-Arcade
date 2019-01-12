@@ -2,10 +2,8 @@ package menu;
 
 import games.Game;
 import games.pong.ui.PongUI;
-import impl.org.controlsfx.skin.NotificationBar;
 import javafx.animation.PauseTransition;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
@@ -250,6 +248,7 @@ public class MainMenu extends Application {
 
     /**
      * Disconnects from the party.
+     *
      * @param notifyOtherClient True to notify the connected computer that we're disconnecting, false otherwise.
      */
     private void disconnect(boolean notifyOtherClient) {
@@ -266,7 +265,7 @@ public class MainMenu extends Application {
             sendNetworkMessage(message);
             // Need to wait to ensure that the disconnect message is sent before closing the socket.
             PauseTransition delay = new PauseTransition(Duration.seconds(1));
-            delay.setOnFinished( event -> PartyHandler.disconnect());
+            delay.setOnFinished(event -> PartyHandler.disconnect());
             delay.play();
         } else {
             PartyHandler.disconnect();
@@ -305,8 +304,7 @@ public class MainMenu extends Application {
             NetworkMessage message = new NetworkMessage(HostStatus.PENDING_GAME_INVITE);
             message.setCurrentGame(game.getClass().toString());
             sendNetworkMessage(message);
-            Alert inviteSent = new Alert(Alert.AlertType.INFORMATION, "Game invite sent.", ButtonType.OK);
-            inviteSent.showAndWait();
+            showNotification(Alert.AlertType.INFORMATION, "Game invite sent.");
         } else {
             currentGame = game;
             currentGame.reset();
@@ -451,8 +449,7 @@ public class MainMenu extends Application {
         final boolean allGood = PartyHandler.isConnected() && succeeded;
         if (!allGood) {
             disconnect(false);
-            Alert errorAlert = new Alert(Alert.AlertType.ERROR, "Failed to connect to host.", ButtonType.OK);
-            errorAlert.showAndWait();
+            showNotification(Alert.AlertType.ERROR, "Failed to connect to host.");
         } else {
             onConnection();
             // Disable the connection stuff once connected.
@@ -481,8 +478,7 @@ public class MainMenu extends Application {
      */
     private void hostingFailed() {
         disconnect(false);
-        Alert errorAlert = new Alert(Alert.AlertType.ERROR, "Failed to start host.", ButtonType.OK);
-        errorAlert.showAndWait();
+        showNotification(Alert.AlertType.ERROR, "Hosting Failed", "Failed to start host.");
     }
 
     /**
@@ -560,7 +556,7 @@ public class MainMenu extends Application {
                         break;
                     case CONNECTED:
                         // When we receive the connected signal from the other client, let's get their name and display it.
-                        showNotification("", String.format("Connected to %s", receivedMessage.getHostName()));
+                        showNotification(Alert.AlertType.INFORMATION, String.format("Connected to %s", receivedMessage.getHostName()));
                         break;
                     default:
                         break;
@@ -584,7 +580,7 @@ public class MainMenu extends Application {
         else {
             if (!disconnectNotified) {
                 disconnectNotified = true;
-                showNotification( "Disconnected", "Remote player disconnected.");
+                showNotification(Alert.AlertType.WARNING, "Disconnected", "Remote player disconnected.");
             }
         }
         disconnect(false);
@@ -642,14 +638,43 @@ public class MainMenu extends Application {
 
     /**
      * Shows a notification with the given title and text.
-     * @param title The title of the notification.
+     *
+     * @param type    The type of notification to be shown.
+     * @param title   The title of the notification.
      * @param content The notification's content text.
      */
-    private void showNotification(final String title, final String content) {
+    public static void showNotification(Alert.AlertType type, final String title, final String content) {
         Notifications notifications = Notifications.create();
-        notifications.text(content);
         notifications.title(title);
-        notifications.show();
+        notifications.text(content);
+
+        switch (type) {
+            case ERROR:
+                notifications.showError();
+                break;
+            case INFORMATION:
+                notifications.showInformation();
+                break;
+            case WARNING:
+                notifications.showWarning();
+                break;
+            case CONFIRMATION:
+                notifications.showConfirm();
+                break;
+            default:
+                notifications.show();
+                break;
+        }
+    }
+
+    /**
+     * Shows a notification with the given title and text.
+     *
+     * @param type    The type of notification to be shown.
+     * @param content The notification's content text.
+     */
+    public static void showNotification(Alert.AlertType type, final String content) {
+        showNotification(type, "", content);
     }
 
     /**

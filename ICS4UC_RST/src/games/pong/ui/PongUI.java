@@ -35,6 +35,7 @@ import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
+import menu.MainMenu;
 import network.party.PartyHandler;
 import network.party.PartyRole;
 import org.controlsfx.control.Notifications;
@@ -626,25 +627,6 @@ public class PongUI extends Pane implements Game {
      * @param contentText The text to be displayed on the notification.
      */
     private void showNotification(Alert.AlertType type, final String contentText) {
-        Notifications notifications = Notifications.create();
-        notifications.text(contentText);
-
-        switch(type) {
-            case ERROR:
-                notifications.showError();
-                break;
-            case INFORMATION:
-                notifications.showInformation();
-                break;
-            case WARNING:
-                notifications.showWarning();
-                break;
-            case CONFIRMATION:
-                notifications.showConfirm();
-                break;
-            default:
-                notifications.show();
-                break;
-        }
+        MainMenu.showNotification(type, contentText);
     }
 }
