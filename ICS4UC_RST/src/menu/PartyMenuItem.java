@@ -6,6 +6,7 @@ import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
@@ -37,6 +38,7 @@ public class PartyMenuItem extends StackPane {
     int lastColumn = 0;
 
     private TextField portField, ipField;
+    private Label extraText;
 
     /**
      * Constructs a new Party Menu Item with the provided text for the action button when active and inactive.
@@ -104,6 +106,7 @@ public class PartyMenuItem extends StackPane {
         return this.active;
     }
 
+
     /**
      * Adds a port field to the menu item.
      *
@@ -150,13 +153,14 @@ public class PartyMenuItem extends StackPane {
     /**
      * Swaps the provided field elements into a position.
      *
-     * @param label The label.
-     * @param field The actual field.
+     * @param nodes The nodes to be swapped out.
      */
-    private void swapElements(Node label, Node field) {
+    private void swapElements(Node... nodes) {
         organizer.getChildren().remove(actionButton);
-        organizer.add(label, lastColumn, 0);
-        organizer.add(field, lastColumn++, 1);
+        for (int i = 0; i < nodes.length; i++) {
+            organizer.add(nodes[i], lastColumn, i);
+        }
+        lastColumn++;
         organizer.add(actionButton, lastColumn, 1);
     }
 

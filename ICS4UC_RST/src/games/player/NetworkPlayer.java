@@ -10,7 +10,7 @@ import java.util.function.Consumer;
  * @author Kyle Anderson
  * ICS4U RST
  */
-public abstract class NetworkPlayer implements Player {
+public abstract class NetworkPlayer {
     protected Consumer<String> gameDataListener;
 
     /**

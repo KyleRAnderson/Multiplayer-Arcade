@@ -1,8 +1,8 @@
 package games.pong.players;
 
-import games.Game;
 import games.player.KeyboardPlayer;
 import games.player.PongKeyBinding;
+import games.pong.Pong;
 import games.pong.pieces.Side;
 import javafx.scene.input.KeyCode;
 
@@ -36,8 +36,17 @@ public class PongKeyboardPlayer extends KeyboardPlayer<PongKeyBinding> implement
     }
 
     @Override
+    public void setPoints(int points) {
+        this.points = points;
+    }
+
+    @Override
     public int getPoints() {
         return this.points;
+    }
+
+    @Override
+    public void setGame(Pong game) {
     }
 
     @Override
@@ -48,16 +57,6 @@ public class PongKeyboardPlayer extends KeyboardPlayer<PongKeyBinding> implement
     @Override
     public void setOnPause(Consumer<PongPlayer> action) {
 
-    }
-
-    @Override
-    public void gameUpdated(Game game) {
-
-    }
-
-    @Override
-    public String getName() {
-        return null;
     }
 
     // The listener for when the action changes.

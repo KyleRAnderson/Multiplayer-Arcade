@@ -1,6 +1,6 @@
 package games.pong.players;
 
-import games.player.Player;
+import games.pong.Pong;
 import games.pong.pieces.Side;
 
 import java.util.function.BiConsumer;
@@ -12,7 +12,7 @@ import java.util.function.Consumer;
  * @author Kyle Anderson
  * ICS4U RST
  */
-public interface PongPlayer extends Player {
+public interface PongPlayer {
     /**
      * Sets a listener to be called when the player's paddle's action should change.
      *
@@ -46,10 +46,25 @@ public interface PongPlayer extends Player {
      */
     void addPoint();
 
+
+    /**
+     * Sets the number of points that the player has.
+     *
+     * @param points The number of points the player should have.
+     */
+    void setPoints(int points);
+
     /**
      * Gets this player's number of points.
      *
      * @return The number of points for this player.
      */
     int getPoints();
+
+    /**
+     * Sets the game to which the player belongs.
+     *
+     * @param game The game to which the player belongs.
+     */
+    void setGame(Pong game);
 }

@@ -14,6 +14,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.*;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import network.Server;
 import network.TCPSocket;
 import network.party.PartyHandler;
 import network.party.network.HostStatus;
@@ -23,6 +24,7 @@ import preferences.Preferences;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
@@ -162,7 +164,15 @@ public class MainMenu extends Application {
         menuRoot.add(connectMenuItem, 0, 2); // Add to (0, 2)
 
         // Host a party button
-        hostMenuItem = new PartyMenuItem("Host", "Waiting for Players...");
+        // Add the host IP to the info.
+        String hostIp;
+        try {
+            hostIp = " " + Server.getDefaultHostIP();
+        } catch (UnknownHostException e) {
+            hostIp = "";
+            System.err.println("Couldn't get Host IP address.");
+        }
+        hostMenuItem = new PartyMenuItem(String.format("Host%s", hostIp), "Waiting for Players...");
         hostMenuItem.setPadding(new Insets(15));
         formatMenuItem(hostMenuItem);
         hostMenuItem.setBackground(new Background(new BackgroundFill(Color.RED, CornerRadii.EMPTY, Insets.EMPTY)));
@@ -434,7 +444,7 @@ public class MainMenu extends Application {
             message.setCurrentGame(currentGame.getClass().toString());
         }
         message.setHostName(Preferences.getInstance().getHostName());
-        PartyHandler.sendMessage(message.toJsonString());
+        PartyHandler.sendMessage(message);
     }
 
     /**
@@ -452,7 +462,7 @@ public class MainMenu extends Application {
     public void messageReceived(ReceivedDataEvent receivedEvent) {
         if (receivedEvent == ReceivedDataEvent.RECEIVED_DATA) {
             while (PartyHandler.hasIncomingMessages()) {
-                NetworkMessage receivedMessage = NetworkMessage.fromJson(PartyHandler.pollIncoming());
+                NetworkMessage receivedMessage = PartyHandler.pollIncoming();
                 // Determine if some of the data should be passed to the current game.
                 final boolean shouldSendToGame = currentGame != null && currentGame.isNetworkGame();
 
