@@ -8,7 +8,7 @@ import javafx.scene.text.Font;
 /**
  * Scoreboard for the pong game's UI.
  *
- * @author Kyle Anderson
+ * @author Kyle Anderson and Nicolas Hawrysh
  * ICS4U RST
  */
 public class Scoreboard extends Group {
@@ -103,7 +103,7 @@ public class Scoreboard extends Group {
     /**
      * sets size of text based on a scalefactor
      *
-     * @param scale factor
+     * @param scaleFactor The scale factor.
      */
     public void setSize(final double scaleFactor) {
     	leftScore.resize(leftScore.getWidth() * scaleFactor, leftScore.getHeight() * scaleFactor);
