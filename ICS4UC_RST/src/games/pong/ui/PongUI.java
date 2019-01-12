@@ -69,7 +69,7 @@ public class PongUI extends Pane implements Game {
 
 
     // Font used around the UI.
-    private static final Font FONT = Font.font("Bit5x3", FontWeight.BOLD, FontPosture.REGULAR, 120);
+    private Font FONT = Font.font("Bit5x3", FontWeight.BOLD, FontPosture.REGULAR, 80);
     private static final Paint BACKGROUND_COLOUR = Color.BLACK, FOREGROUND_COLOUR = Color.WHITE;
     private Pong game;
     // How much the units in the pong game backend are scaled to make a nice looking UI.
@@ -230,7 +230,7 @@ public class PongUI extends Pane implements Game {
         rightPaddle.setHeight(game.getRightPaddle().getHeight() * scaleFactor);
         ball.setWidth(game.getBall().getWidth() * scaleFactor);
         ball.setHeight(game.getBall().getHeight() * scaleFactor);
-        scoreboard.calculate(getWorkingWidth(), getWorkingHeight());
+        scoreboard.changeSize(scaleFactor);
         divider.calculate(getWorkingWidth(), getWorkingHeight());
         updatePaddleLocations();
         updateBallLocation();
@@ -290,6 +290,7 @@ public class PongUI extends Pane implements Game {
     private void updateScoreboard() {
         scoreboard.setLeftScore(game.getLeftPlayer().getPoints());
         scoreboard.setRightScore(game.getRightPlayer().getPoints());
+        scoreboard.calculate(getWorkingWidth(), getWorkingHeight());
     }
 
     /**
