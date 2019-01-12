@@ -12,7 +12,7 @@ import java.util.HashMap;
  *            ICS4U RST
  * @author Kyle Anderson
  */
-public abstract class KeyboardPlayer<T extends KeyBinding> implements Player {
+public abstract class KeyboardPlayer<T extends KeyBinding> {
 
     /**
      * Key bindings map for the keyboard player.

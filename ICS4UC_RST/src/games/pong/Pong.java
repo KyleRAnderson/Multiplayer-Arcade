@@ -1,7 +1,6 @@
 package games.pong;
 
 import com.sun.istack.internal.NotNull;
-import games.player.Player;
 import games.pong.pieces.Paddle;
 import games.pong.pieces.PongBall;
 import games.pong.pieces.PongPiece;
@@ -9,6 +8,7 @@ import games.pong.pieces.Side;
 import games.pong.players.PongKeyboardPlayer;
 import games.pong.players.PongPlayer;
 
+import java.util.ArrayList;
 import java.util.function.Consumer;
 
 /**
@@ -33,6 +33,8 @@ public class Pong {
     public static final double PADDLE_MOVEMENT_RATE = 200;
     // Velocity of the pong ball in units per second.
     public static final double PONG_BALL_VELOCITY = 250;
+    // How many milliseconds to pause after a player scores.
+    private static final long SCORE_PAUSE = 3000;
 
     private final PongBall ball;
 
@@ -45,8 +47,25 @@ public class Pong {
     private final double width, height;
 
     // Listener for when the ball collides.
-    private Consumer<CollisionEvent> ballCollisionListener;
-    private Consumer<Player> scoreListener;
+    private final ArrayList<Consumer<PongEvent>> pongEventListeners = new ArrayList<>();
+
+    /**
+     * The last tick time in nanoseconds.
+     */
+    private long lastTickTime = 0;
+
+    private Paddle lastHitPaddle;
+
+    /**
+     * True if the game has started, false otherwise.
+     */
+    private boolean hasBegun;
+    private boolean readyNotified;
+
+    /**
+     * The time at which the pause should end.
+     */
+    private long unpauseTime;
 
     /**
      * Constructs a new pong game with the given players.
@@ -115,13 +134,31 @@ public class Pong {
         if (player2.getSide() == null) {
             if (localPlayer.getSide() == Side.LEFT) {
                 player2.setSide(Side.RIGHT);
-            } else if (player2.getSide() == Side.RIGHT) {
+            } else if (localPlayer.getSide() == Side.RIGHT) {
                 player2.setSide(Side.LEFT);
             } else {
                 // Default second player to the right side.
                 player2.setSide(Side.RIGHT);
             }
         }
+    }
+
+    /**
+     * Starts the game, letting ticks render.
+     */
+    public void begin() {
+        hasBegun = true;
+        setPauseDuration(SCORE_PAUSE);
+        callEvent(new PongEvent(PongEvent.EventType.GAME_BEGUN));
+    }
+
+    /**
+     * Determines if this game has begun.
+     *
+     * @return True if the game has started, false otherwise.
+     */
+    public boolean hasBegun() {
+        return hasBegun;
     }
 
     /**
@@ -140,6 +177,7 @@ public class Pong {
      */
     public void setLocalPlayer(PongPlayer player) {
         this.localPlayer = player;
+        this.localPlayer.setGame(this);
     }
 
     /**
@@ -158,6 +196,7 @@ public class Pong {
      */
     public void setPlayer2(PongPlayer player) {
         this.player2 = player;
+        this.player2.setGame(this);
     }
 
     /**
@@ -217,30 +256,27 @@ public class Pong {
     }
 
     /**
-     * The last tick time in seconds.
-     */
-    private long lastTickTime = 0;
-
-    /**
      * Completes a tick of the game.
      *
      * @param timeSinceLastTick The time since the last tick, in nanoseconds.
      */
     public void renderTick(final long timeSinceLastTick) {
-        ball.renderTick(timeSinceLastTick); // Render a tick for the ball.
+        if (hasBegun && !checkPause()) {
+            ball.renderTick(timeSinceLastTick); // Render a tick for the ball.
 
-        Paddle rightPaddle = getRightPaddle(), leftPaddle = getLeftPaddle();
-        rightPaddle.setY(rightPaddle.getY() + rightPaddle.getVelYNanos() * timeSinceLastTick);
-        leftPaddle.setY(leftPaddle.getY() + leftPaddle.getVelYNanos() * timeSinceLastTick);
-        rightPaddle.setX(rightPaddle.getX() + rightPaddle.getVelXNanos() * timeSinceLastTick);
-        leftPaddle.setX(leftPaddle.getX() + leftPaddle.getVelXNanos() * timeSinceLastTick);
+            getRightPaddle().renderTick(timeSinceLastTick);
+            getLeftPaddle().renderTick(timeSinceLastTick);
 
-        // Check if the ball has hit one of the paddles
-        renderBallCollision(timeSinceLastTick);
-        // Check if the ball has hit the vertical bounds of the board.
-        checkBallBounds();
-        // Make sure the paddle is in bounds as well.
-        checkPaddleBounds();
+            // Check if the ball has hit one of the paddles
+            renderBallCollision(timeSinceLastTick);
+            // Check if the ball has hit the vertical bounds of the board.
+            checkBallBounds();
+            // Make sure the paddle is in bounds as well.
+            checkPaddleBounds();
+        } else if (!hasBegun && !readyNotified) {
+            callEvent(new PongEvent(PongEvent.EventType.GAME_READY));
+            readyNotified = true;
+        }
     }
 
     /**
@@ -251,6 +287,15 @@ public class Pong {
         lastTickTime = System.nanoTime();
         final long timeSinceLastTick = (tempLastTick > 0) ? System.nanoTime() - tempLastTick : 0;
         renderTick(timeSinceLastTick);
+    }
+
+    /**
+     * Gets the last time at which a tick was calculated.
+     *
+     * @return The last tick time, in nanoseconds.
+     */
+    public long getLastTickTime() {
+        return lastTickTime;
     }
 
     /**
@@ -270,30 +315,10 @@ public class Pong {
     /**
      * Sets a consumer to be invoked when the ball enters a collision with a paddle.
      *
-     * @param listener The listener for the action. Accepts a parameter containing the CollisionEvent data.
+     * @param listener The listener for the action. Accepts a parameter containing the PongEvent data.
      */
-    public void onBallCollision(Consumer<CollisionEvent> listener) {
-        ballCollisionListener = listener;
-    }
-
-    /**
-     * Sets a listener for when the player scores.
-     *
-     * @param scoreListener The listener to be called. Parameter in the consumer is the player that scored.
-     */
-    public void onPlayerScore(Consumer<Player> scoreListener) {
-        this.scoreListener = scoreListener;
-    }
-
-    /**
-     * Called when a player scores.
-     *
-     * @param player The player who scored.
-     */
-    private void onPlayerScore(Player player) {
-        if (scoreListener != null) {
-            scoreListener.accept(player);
-        }
+    public void addEventListener(Consumer<PongEvent> listener) {
+        pongEventListeners.add(listener);
     }
 
     /**
@@ -301,22 +326,61 @@ public class Pong {
      *
      * @param touchedPaddle The paddle that the ball collided with.
      */
-    private void callBallCollided(Paddle touchedPaddle) {
-        if (ballCollisionListener != null) {
-            CollisionEvent event = new CollisionEvent(getBall(), CollisionEvent.CollisionType.PADDLE);
+    public void callBallCollided(Paddle touchedPaddle) {
+        // Don't call the event twice for the same paddle.
+        if (pongEventListeners.size() > 0 && touchedPaddle != lastHitPaddle) {
+            lastHitPaddle = touchedPaddle;
+            PongEvent event = new PongEvent(PongEvent.EventType.BALL_HIT_PADDLE);
+            event.setBall(getBall());
             event.setPaddle(touchedPaddle);
-            callBallCollided(event);
+            callEvent(event);
         }
     }
 
     /**
-     * Notifies listeners that the ball has collided with something.
+     * Forms the right event to notify listeners that a player has scored.
      *
-     * @param event The CollisionEvent.
+     * @param player The player that scored.
      */
-    private void callBallCollided(CollisionEvent event) {
-        if (ballCollisionListener != null) {
-            ballCollisionListener.accept(event);
+    private void callPlayerScored(PongPlayer player) {
+        if (pongEventListeners.size() > 0) {
+            PongEvent event = new PongEvent(PongEvent.EventType.PLAYER_SCORED);
+            event.setPlayer(player);
+            callEvent(event);
+        }
+    }
+
+
+    /**
+     * Calls a paddle movement event. This indicates that a paddle has started moving.
+     *
+     * @param paddle    The paddle being moved.
+     * @param direction The direction of the paddle's movement. Positive for up, negative for down, 0 for stopped.
+     */
+    private void callPaddleMoved(Paddle paddle, final int direction) {
+        if (pongEventListeners.size() > 0) {
+            PongEvent.EventType eventType;
+            if (direction > 0) {
+                eventType = PongEvent.EventType.PADDLE_MOVED_UP;
+            } else if (direction < 0) {
+                eventType = PongEvent.EventType.PADDLE_MOVED_DOWN;
+            } else {
+                eventType = PongEvent.EventType.PADDLE_STOPPED;
+            }
+            PongEvent event = new PongEvent(eventType);
+            event.setPaddle(paddle);
+            callEvent(event);
+        }
+    }
+
+    /**
+     * Notifies listeners that a pong event has occurred.
+     *
+     * @param event The PongEvent.
+     */
+    private void callEvent(PongEvent event) {
+        if (pongEventListeners.size() > 0) {
+            pongEventListeners.forEach(pongEventConsumer -> pongEventConsumer.accept(event));
         }
     }
 
@@ -454,25 +518,46 @@ public class Pong {
         if (ball.getY(Side.TOP) >= getBoardHeight()) {
             ball.setVelocity(-Math.abs(ball.getRisePerSecond()), ball.getRunPerSecond());
             ball.setY(2 * getBoardHeight() - ball.getY(Side.TOP), Side.TOP);
-            callBallCollided(new CollisionEvent(getBall(), CollisionEvent.CollisionType.TOP_WALL));
+            callEvent(new PongEvent(getBall(), PongEvent.EventType.BALL_HIT_TOP_WALL));
         } else if (ball.getY(Side.BOTTOM) <= 0) {
             ball.setVelocity(Math.abs(ball.getRisePerSecond()), ball.getRunPerSecond());
             ball.setY(-ball.getY(Side.BOTTOM), Side.BOTTOM);
-            callBallCollided(new CollisionEvent(getBall(), CollisionEvent.CollisionType.TOP_WALL));
+            callEvent(new PongEvent(getBall(), PongEvent.EventType.BALL_HIT_BOTTOM_WALL));
         }
 
         // Now check to see if the ball has hit a vertical barrier.
         if (ball.getX(Side.LEFT) <= 0) {
-            getRightPlayer().addPoint();
-            onPlayerScore(getRightPlayer());
-            resetBall(Side.LEFT);
+            playerScored(getRightPlayer());
         }
         // If the ball hit the right side, then add to the player on the left.
         else if (ball.getX(Side.RIGHT) >= WIDTH) {
-            getLeftPlayer().addPoint();
-            onPlayerScore(getLeftPlayer());
-            resetBall(Side.RIGHT);
+            playerScored(getLeftPlayer());
         }
+    }
+
+    /**
+     * Should be called when a player scores.
+     *
+     * @param player    The player who scored.
+     * @param newPoints The new amount of points the player should have.
+     */
+    public void playerScored(PongPlayer player, final int newPoints) {
+        if (player.getPoints() != newPoints) {
+            player.setPoints(newPoints);
+            resetBall((player.getSide() == Side.LEFT) ? Side.RIGHT : Side.LEFT);
+            setPauseDuration(SCORE_PAUSE);
+            // Important that listeners are called last.
+            callPlayerScored(player);
+        }
+    }
+
+    /**
+     * Should be called when a player scores. Increases the player's score by one and calls necessary events.
+     *
+     * @param player The player who scored.
+     */
+    public void playerScored(PongPlayer player) {
+        playerScored(player, player.getPoints() + 1);
     }
 
     /**
@@ -554,7 +639,11 @@ public class Pong {
      * @param paddle The paddle to be moved.
      */
     public void paddleDown(Paddle paddle) {
-        paddle.setY(paddle.getY() - PADDLE_MOVEMENT_RATE);
+        // Only change and update speed if it is actually changing.
+        if (paddle.getVelY() != -PADDLE_MOVEMENT_RATE) {
+            paddle.setVelY(-PADDLE_MOVEMENT_RATE);
+            callPaddleMoved(paddle, -1);
+        }
     }
 
     /**
@@ -563,7 +652,22 @@ public class Pong {
      * @param paddle The paddle to be moved.
      */
     public void paddleUp(Paddle paddle) {
-        paddle.setY(paddle.getY() + 1);
+        // Only change and update listeners if there is actually a change.
+        if (paddle.getVelY() != PADDLE_MOVEMENT_RATE) {
+            paddle.setVelY(PADDLE_MOVEMENT_RATE);
+            callPaddleMoved(paddle, 1);
+        }
+    }
+
+    /**
+     * Stops the paddle from moving.
+     *
+     * @param paddle The paddle to be stopped.
+     */
+    public void stopPaddle(Paddle paddle) {
+        paddle.setVelY(0);
+        paddle.setVelX(0);
+        callPaddleMoved(paddle, 0);
     }
 
     /**
@@ -614,5 +718,55 @@ public class Pong {
                 break;
         }
         return paddle;
+    }
+
+    /**
+     * Sets a static pause.
+     *
+     * @param pause True to pause until told to unpause, false to unpause if paused.
+     */
+    public void setPause(boolean pause) {
+        setPause((pause) ? -1 : 0);
+    }
+
+    /**
+     * Sets a pause corresponding to the specified number of milliseconds.
+     *
+     * @param millisecondPause The number of milliseconds to pause for. -1 for infinite pause.
+     */
+    public void setPauseDuration(long millisecondPause) {
+        this.unpauseTime = System.currentTimeMillis() + millisecondPause;
+    }
+
+    /**
+     * Sets a pause that will end at the given time.
+     *
+     * @param unpauseTime The time (in milliseconds) at which the pausing should end.
+     */
+    public void setPause(long unpauseTime) {
+        this.unpauseTime = unpauseTime;
+    }
+
+    /**
+     * Checks to see if the pause is still in effect.
+     *
+     * @return True if the game should be paused, false otherwise.
+     */
+    private boolean checkPause() {
+        boolean paused = System.currentTimeMillis() < unpauseTime || unpauseTime < 0;
+        if (!paused && lastTickTime < unpauseTime) {
+            lastTickTime = unpauseTime;
+        }
+
+        return paused;
+    }
+
+    /**
+     * Gets the time (in milliseconds) at which the game will unpause. -1 for infinite.
+     *
+     * @return The unpause time, in milliseconds.
+     */
+    public long getUnpauseTime() {
+        return unpauseTime;
     }
 }

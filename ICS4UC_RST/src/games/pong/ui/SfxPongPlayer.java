@@ -17,6 +17,7 @@ class SfxPongPlayer {
      */
     static void init() {
         if (hitWall == null) {
+            //noinspection SpellCheckingInspection
             hitWall = new AudioClip(SfxPongPlayer.class.getResource("/res/pong/sfx/hitwall.wav").toString());
         }
         if (scoredClip == null) {

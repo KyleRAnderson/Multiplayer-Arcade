@@ -3,8 +3,8 @@ package games.pong.ui;
 import games.Game;
 import games.Score;
 import games.player.PongKeyBinding;
-import games.pong.CollisionEvent;
 import games.pong.Pong;
+import games.pong.PongEvent;
 import games.pong.pieces.Paddle;
 import games.pong.pieces.PongPiece;
 import games.pong.pieces.Side;
@@ -222,6 +222,11 @@ public class PongUI extends Pane implements Game {
 
         // Start all timelines.
         renderFrameTimer.play();
+
+        // If this isn't a network game, we can start the game right away. Otherwise, it's up to the PongNetworkPlayer.
+        if (!isNetworkGame()) {
+            game.begin();
+        }
     }
 
     /**
@@ -258,26 +263,6 @@ public class PongUI extends Pane implements Game {
     private void updateScoreboard() {
         scoreboard.setLeftScore(game.getLeftPlayer().getPoints());
         scoreboard.setRightScore(game.getRightPlayer().getPoints());
-    }
-
-    /**
-     * Moves the given paddle down.
-     *
-     * @param paddle The paddle to be moved.
-     * @param move   True to move the paddle, false to stop moving the paddle.
-     */
-    private void movePaddleDown(Paddle paddle, boolean move) {
-        paddle.setVelY((move) ? -Pong.PADDLE_MOVEMENT_RATE : 0);
-    }
-
-    /**
-     * Moves the given paddle up.
-     *
-     * @param paddle The paddle to be moved.
-     * @param move   True to move the paddle, false to stop moving the paddle.
-     */
-    private void movePaddleUp(Paddle paddle, boolean move) {
-        paddle.setVelY((move) ? Pong.PADDLE_MOVEMENT_RATE : 0);
     }
 
     /**
@@ -375,27 +360,26 @@ public class PongUI extends Pane implements Game {
     public void reset() {
         game = new Pong(); // Initialize new pong game with the correct type of players
         resetKeyBindings();
-        game.onBallCollision(this::playOnBallCollision);
-        game.onPlayerScore(scoreListener -> playOnPlayerScore());
+        game.addEventListener(this::gameEventHappened);
         SfxPongPlayer.init();
     }
 
     /**
-     * plays ball collision sfx
+     * Called when the game has an event that occurs.
+     *
+     * @param event The event that occurred.
      */
-    public void playOnBallCollision(CollisionEvent event) {
-        if (event.getType() == CollisionEvent.CollisionType.TOP_WALL || event.getType() == CollisionEvent.CollisionType.BOTTOM_WALL) {
-            SfxPongPlayer.playHitWall();
-        } else if (event.getType() == CollisionEvent.CollisionType.PADDLE) {
-            SfxPongPlayer.playHitPaddle();
-        }
-    }
+    private void gameEventHappened(PongEvent event) {
+        // Switch on the event type.
+        PongEvent.EventType type = event.getType();
 
-    /**
-     * plays ball miss sfx
-     */
-    private void playOnPlayerScore() {
-        SfxPongPlayer.playScored();
+        if (type == PongEvent.EventType.PLAYER_SCORED) {
+            SfxPongPlayer.playScored();
+        } else if (type == PongEvent.EventType.BALL_HIT_PADDLE) {
+            SfxPongPlayer.playHitPaddle();
+        } else if (type == PongEvent.EventType.BALL_HIT_BOTTOM_WALL || type == PongEvent.EventType.BALL_HIT_TOP_WALL) {
+            SfxPongPlayer.playHitWall();
+        }
     }
 
     /**
@@ -422,18 +406,18 @@ public class PongUI extends Pane implements Game {
      * @param affectedPlayer The player whose action has changed.
      * @param newAction      The new action to be performed.
      */
-    private void actionChanged(PongPlayer affectedPlayer, Action newAction) {
+    private void paddleActionChanged(PongPlayer affectedPlayer, Action newAction) {
         Paddle paddle = game.getPaddle(affectedPlayer);
 
         switch (newAction) {
             case MOVE_DOWN:
-                paddle.setVelY(-Pong.PADDLE_MOVEMENT_RATE);
+                game.paddleDown(paddle);
                 break;
             case MOVE_UP:
-                paddle.setVelY(Pong.PADDLE_MOVEMENT_RATE);
+                game.paddleUp(paddle);
                 break;
             default:
-                paddle.setVelY(0);
+                game.stopPaddle(paddle);
                 break;
         }
     }
@@ -470,8 +454,8 @@ public class PongUI extends Pane implements Game {
 
         game.initialize(); // Initialize pong game now that players are set up.
 
-        p1.setOnActionChanged(this::actionChanged);
-        p2.setOnActionChanged(this::actionChanged);
+        p1.setOnActionChanged(this::paddleActionChanged);
+        p2.setOnActionChanged(this::paddleActionChanged);
     }
 
     /**

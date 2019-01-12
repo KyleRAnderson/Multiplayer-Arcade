@@ -266,12 +266,12 @@ public class PongBall implements PongPiece {
     /**
      * Sets the new velocity of the pong ball.
      *
-     * @param risePerTick The amount to rise per tick. Positive means up, negative means down.
-     * @param runPerTick  The amount to run (move horizontally) per tick. Positive means right, negative means left.
+     * @param risePerSecond The amount to rise per second. Positive means up, negative means down.
+     * @param runPerSecond  The amount to run (move horizontally) per second. Positive means right, negative means left.
      */
-    public void setVelocity(final double risePerTick, final double runPerTick) {
-        this.risePerSecond = risePerTick;
-        this.runPerSecond = runPerTick;
+    public void setVelocity(final double risePerSecond, final double runPerSecond) {
+        this.risePerSecond = risePerSecond;
+        this.runPerSecond = runPerSecond;
     }
 
     /**

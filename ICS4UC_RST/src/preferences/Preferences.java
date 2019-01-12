@@ -7,7 +7,7 @@ package preferences;
  * ICS4U RST
  */
 public class Preferences {
-    private static Preferences currentInstance = new Preferences();
+    private static Preferences currentInstance;
 
     /**
      * Gets the current instance of the preferences.

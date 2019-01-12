@@ -4,6 +4,7 @@ import advancedIO.AdvancedIO;
 import network.Client;
 import network.Server;
 import network.TCPSocket;
+import network.party.network.NetworkMessage;
 import network.party.network.ReceivedDataEvent;
 import network.party.network.ReceiverTask;
 import network.party.network.SenderTask;
@@ -26,7 +27,7 @@ public class PartyHandler {
     private static TCPSocket socket;
 
     // Queues for communicating cross-thread.
-    private static Queue<String> outgoingQueue, incomingQueue;
+    private static Queue<NetworkMessage> outgoingQueue, incomingQueue;
     private static ReceiverTask incomingTask;
     private static Consumer<ReceivedDataEvent> incomingListener;
 
@@ -146,7 +147,7 @@ public class PartyHandler {
      *
      * @param message The string to be sent.
      */
-    public static void sendMessage(String message) {
+    public static void sendMessage(NetworkMessage message) {
         outgoingQueue.add(message);
     }
 
@@ -155,7 +156,7 @@ public class PartyHandler {
      *
      * @return The incoming message.
      */
-    public static String pollIncoming() {
+    public static NetworkMessage pollIncoming() {
         return incomingQueue.poll();
     }
 
