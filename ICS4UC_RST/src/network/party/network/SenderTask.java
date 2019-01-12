@@ -3,7 +3,6 @@ package network.party.network;
 import javafx.concurrent.Task;
 import network.TCPSocket;
 import network.party.PartyHandler;
-import sun.nio.ch.Net;
 
 import java.util.Queue;
 

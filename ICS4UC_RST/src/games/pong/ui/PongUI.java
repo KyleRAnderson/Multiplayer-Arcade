@@ -366,6 +366,7 @@ public class PongUI extends Pane implements Game {
 
     /**
      * Called when the game has an event that occurs.
+     *
      * @param event The event that occurred.
      */
     private void gameEventHappened(PongEvent event) {

@@ -7,6 +7,7 @@ import games.pong.pieces.PongBall;
 
 /**
  * Class for sending messages between pong games.
+ *
  * @author Kyle Anderson
  * ICS4U RST
  */
@@ -34,6 +35,7 @@ public class PongNetworkMessage {
 
     /**
      * Instantiates a new PongNetworkMessage object with the given time in nanoseconds.
+     *
      * @param nanoTime The time (in nanoseconds) that the frame was rendered.
      */
     public PongNetworkMessage(long nanoTime) {
@@ -42,6 +44,7 @@ public class PongNetworkMessage {
 
     /**
      * Gets the time (in nanosecond) at which this data was calculated and sent.
+     *
      * @return The time (in nanoseconds) at which the data was calculated (when frame was rendered).
      */
     public long getNanoTimeSent() {
@@ -50,6 +53,7 @@ public class PongNetworkMessage {
 
     /**
      * Sets the time (in nanosecond) at which this data was calculated and sent.
+     *
      * @param nanoTimeSent The time (in nanoseconds) at which the data was calculated (when frame was rendered).
      */
     public void setNanoTimeSent(long nanoTimeSent) {
@@ -58,6 +62,7 @@ public class PongNetworkMessage {
 
     /**
      * Gets the left paddle of the player sending this data.
+     *
      * @return The Paddle object.
      */
     public Paddle getLocalPlayerPaddle() {
@@ -66,6 +71,7 @@ public class PongNetworkMessage {
 
     /**
      * Sets the paddle.
+     *
      * @param localPlayerPaddle The player who is sending the data's paddle.
      */
     public void setLocalPlayerPaddle(Paddle localPlayerPaddle) {
@@ -74,6 +80,7 @@ public class PongNetworkMessage {
 
     /**
      * Gets the PongBall.
+     *
      * @return The PongBall object.
      */
     public PongBall getBall() {
@@ -82,6 +89,7 @@ public class PongNetworkMessage {
 
     /**
      * Sets the PongBall.
+     *
      * @param ball The PongBall object.
      */
     public void setBall(PongBall ball) {
@@ -91,6 +99,7 @@ public class PongNetworkMessage {
     /**
      * Determines if the ball hit the paddle. This is useful if on the local machine the
      * ball hits the paddle but the remote machine isn't up-to-date enough to determine this.
+     *
      * @return True if the ball hit the paddle and bounced off, false otherwise.
      */
     public boolean isBallHitPaddle() {
@@ -99,6 +108,7 @@ public class PongNetworkMessage {
 
     /**
      * Sets whether or not the ball just hit a paddle.
+     *
      * @param ballHitPaddle True if the ball just hit a paddle, false otherwise.
      */
     public void setBallHitPaddle(boolean ballHitPaddle) {
@@ -107,6 +117,7 @@ public class PongNetworkMessage {
 
     /**
      * Determines if the remote player is in game.
+     *
      * @return True if the player is in game, false otherwise.
      */
     public boolean isInGame() {
@@ -115,6 +126,7 @@ public class PongNetworkMessage {
 
     /**
      * Sets whether or not this player is in the game.
+     *
      * @param inGame True if in game, false otherwise.
      */
     public void setInGame(boolean inGame) {
@@ -123,6 +135,7 @@ public class PongNetworkMessage {
 
     /**
      * Gets the event type that triggered this data send.
+     *
      * @return The type of the event which triggered this data send.
      */
     public PongEvent.EventType getTriggeringEvent() {
@@ -131,6 +144,7 @@ public class PongNetworkMessage {
 
     /**
      * Sets the type of the event which triggered this update.
+     *
      * @param triggeringEvent The triggering event type.
      */
     public void setTriggeringEvent(PongEvent.EventType triggeringEvent) {
@@ -139,6 +153,7 @@ public class PongNetworkMessage {
 
     /**
      * Gets the time at which the sender game will unpause.
+     *
      * @return The unpause time, in milliseconds. -1 for infinite.
      */
     public long getUnpauseTime() {
@@ -147,6 +162,7 @@ public class PongNetworkMessage {
 
     /**
      * Sets the time at which the sender game will unpause.
+     *
      * @param unpauseTime The unpause time, in milliseconds. -1 for infinite.
      */
     public void setUnpauseTime(long unpauseTime) {
@@ -155,6 +171,7 @@ public class PongNetworkMessage {
 
     /**
      * Gets the sending machine's local player's score.
+     *
      * @return The score of this machine's local player.
      */
     public int getLocalPlayerScore() {
@@ -163,6 +180,7 @@ public class PongNetworkMessage {
 
     /**
      * Sets the score for the player.
+     *
      * @param localPlayerScore The score to be set.
      */
     public void setLocalPlayerScore(int localPlayerScore) {
@@ -171,6 +189,7 @@ public class PongNetworkMessage {
 
     /**
      * Gets the score of the remote party according to the remote machine.
+     *
      * @return The score of the remote party.
      */
     public int getNetworkPlayerScore() {
@@ -179,6 +198,7 @@ public class PongNetworkMessage {
 
     /**
      * Sets the score of the remote party according to the remote machine.
+     *
      * @param networkPlayerScore The score of the remote party.
      */
     public void setNetworkPlayerScore(int networkPlayerScore) {
@@ -187,6 +207,7 @@ public class PongNetworkMessage {
 
     /**
      * Converts this PongNetworkMessage to Json string.
+     *
      * @return The json string representation of this object.
      */
     public String toJson() {
@@ -195,6 +216,7 @@ public class PongNetworkMessage {
 
     /**
      * Converts json string to a PongNetworkMessage instance.
+     *
      * @param jsonString The json string to be parsed.
      * @return The PongNetworkMessage object.
      */
@@ -204,6 +226,7 @@ public class PongNetworkMessage {
 
     /**
      * Converts a PongNetworkMessage to a json string.
+     *
      * @param message The PongNetworkMessage to be converted.
      * @return The json string.
      */

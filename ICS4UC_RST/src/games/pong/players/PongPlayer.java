@@ -49,6 +49,7 @@ public interface PongPlayer {
 
     /**
      * Sets the number of points that the player has.
+     *
      * @param points The number of points the player should have.
      */
     void setPoints(int points);
@@ -62,6 +63,7 @@ public interface PongPlayer {
 
     /**
      * Sets the game to which the player belongs.
+     *
      * @param game The game to which the player belongs.
      */
     void setGame(Pong game);
