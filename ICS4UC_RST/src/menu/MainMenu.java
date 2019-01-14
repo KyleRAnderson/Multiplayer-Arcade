@@ -9,6 +9,7 @@ import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -110,6 +111,9 @@ public class MainMenu extends Application {
      */
     private void initializeElements() {
         stage.setTitle("Arcade");
+        // Nice icon for the game.
+        stage.getIcons().add(new Image(getClass().getResourceAsStream("/res/images/arcade.png")));
+
         menuRoot = new GridPane();
 
         // Create the welcome button at the top.
