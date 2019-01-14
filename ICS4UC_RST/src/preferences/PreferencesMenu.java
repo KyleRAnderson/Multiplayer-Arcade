@@ -1,21 +1,21 @@
 package preferences;
 
-import java.util.Optional;
-
+import java.net.UnknownHostException;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.VPos;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
-import menu.MainMenu;
+import network.TCPSocket;
 
 /**
  * Preferences Menu for accessing and modifying user preferences from the UI.
@@ -28,9 +28,19 @@ public class PreferencesMenu extends Stage {
 	// constant for the title
 	private final String TITLE = "Preferences";
 	
+	// constant for min username chars
+	private final int MIN_USERNAME_CHARS = 3;
+	
+	private Stage stgMainWindow;
+	
+	/**
+     * Constructor to create the preferences menu
+     *
+     */
+	
 	public PreferencesMenu() {
 		// create a stage and set the title and prevent from being resized
-		Stage stgMainWindow = new Stage();
+		stgMainWindow = new Stage();
 		stgMainWindow.setTitle(TITLE);
 		stgMainWindow.setResizable(false);			
 
@@ -42,71 +52,80 @@ public class PreferencesMenu extends Stage {
 				
 		// create a label for the title of the program to be in bold and in italics
 		Label lbTitle = new Label(TITLE);
-		lbTitle.setFont(Font.font(null, FontWeight.BOLD, FontPosture.ITALIC, 16));
+		lbTitle.setFont(Font.font(null, FontWeight.BOLD, FontPosture.ITALIC, 20));
 
 		// place the title in the upper center field of the window
 		GridPane.setConstraints(lbTitle, 0, 0, 5, 1, HPos.CENTER, VPos.CENTER);
+		
+		// label for username
+		Label lbUserName = new Label("Username: ");
+		GridPane.setConstraints(lbUserName, 0, 2);
 
-		// create a new text field to store the file path of the file browsed by the
-		// user
-		TextField txtFilePath = new TextField();
-
-		// prevent the text field from being editable
-		txtFilePath.setEditable(false);
-
+		// textfield for the username
+		TextField txtUserName = new TextField();
+		
+		// try to get the local host name and set as default text
+		try {
+			txtUserName.setText(TCPSocket.getLocalHostName());
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		// set size and place it in the window
-		txtFilePath.setPrefColumnCount(100);
-		GridPane.setConstraints(txtFilePath, 0, 2, 4, 1);
+		GridPane.setConstraints(txtUserName, 1, 2, 3, 1);
 
-		// create a new button for the file that will be browsed
-		Button btnBrowseFile = new Button("Browse File");
-
-		// set size and place it in the window
-		btnBrowseFile.setPrefWidth(80);
-		GridPane.setConstraints(btnBrowseFile, 4, 2);
-
-		// create label to simply say MD5 to be placed in front of the next text field
-		Label lbMD5 = new Label("MD5:");
-		GridPane.setConstraints(lbMD5, 0, 4);
-
-		// create text field to store the MD5 checksum that will be generated
-		TextField txtMD5Field = new TextField();
-
-		// prevent the text field from being editable and place it right next to the
-		// previous label
-		txtMD5Field.setEditable(false);
-		GridPane.setConstraints(txtMD5Field, 1, 4, 4, 1);
-
-		// create label to say Status
-		Label lbStatusTitle = new Label("Status:");
-
-		// make the font bold and place it right below the previous label
-		lbStatusTitle.setFont(Font.font(null, FontWeight.BOLD, 12));
-		GridPane.setConstraints(lbStatusTitle, 0, 5);
-
-		// create label to be in front of "Status:" which will display if the file is
-		// Clean or Infected.
-		Label lbStatus = new Label();
-		GridPane.setConstraints(lbStatus, 1, 5);
+		// button when user is finished entering data
+		Button btnOK = new Button("OK");
+		btnOK.setOnAction(evt -> validate(txtUserName.getText()));
+		GridPane.setConstraints(btnOK, 0, 3);
 
 		// add everything to grid
-		grdGridPane.getChildren().addAll(lbTitle, txtFilePath, btnBrowseFile, lbMD5, txtMD5Field, lbStatusTitle,
-				lbStatus);
+		grdGridPane.getChildren().addAll(lbTitle, lbUserName, txtUserName, btnOK);
 
 		// create new scene with window dimensions
-		Scene scnMainScene = new Scene(grdGridPane, 380, 136);
+		Scene scnMainScene = new Scene(grdGridPane, 250, 120);
 		stgMainWindow.setScene(scnMainScene);
 
 		// show the main window
-
 		stgMainWindow.show();
-		// TextInputDialog txtInputDialogue = new
-		// TextInputDialog(Preferences.getInstance().getHostName());
-		// txtInputDialogue.setHeaderText("Preferences");
-		// txtInputDialogue.setTitle("Preferences");
-		// txtInputDialogue.setContentText("User Name: ");
-		// Optional<String> result = txtInputDialogue.showAndWait();
+	}
 
-		// result.ifPresent(s -> Preferences.getInstance().setHostName(s));
+	/**
+     * Constructor to create the preferences menu
+     *
+     * @param username chosen
+     */
+	private void validate(String name) {
+		// check to make sure that name is not blank and as a size of at least three characters and does not contain any spaces
+		if (name == "" || name == null || name.length() < MIN_USERNAME_CHARS || name.contains(" ")) {
+			// if so, show error message box
+			errorMessageBox("You must have a name at least " + MIN_USERNAME_CHARS + " characters long and have no spaces.", "Error");
+		} else {
+			// set the host name
+			Preferences.getInstance().setHostName(name);
+			// close the window
+			stgMainWindow.close();
+		}
+	}
+	
+	
+	/**
+     * method to display error message box\
+     * 
+     * @param message to display
+     * @param message box title
+     */
+	public static void errorMessageBox(String message, String title) {
+		// create new message box with an error icon
+		Alert altAlert = new Alert(AlertType.ERROR);
+
+		// set the title and message to display
+		altAlert.setTitle(title);
+		altAlert.setHeaderText(null);
+		altAlert.setContentText(message);
+
+		// show the message box
+		altAlert.showAndWait();
 	}
 }
