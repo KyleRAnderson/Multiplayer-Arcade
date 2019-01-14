@@ -102,4 +102,10 @@ public interface Game {
      * @param endListener The end game listener.
      */
     void setOnEnd(Consumer<Game> endListener);
+
+    /**
+     * Gets help text for the game.
+     * @return The help string for the game.
+     */
+    String getHelpText();
 }

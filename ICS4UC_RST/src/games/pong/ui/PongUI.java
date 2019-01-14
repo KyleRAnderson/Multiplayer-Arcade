@@ -57,6 +57,8 @@ public class PongUI extends Pane implements Game {
 
     private static final double
             FPS = 60; // Frames per second
+    private static final String HELP_TEXT = "Press the up and down arrows to move your player (or the q and a keys for local multiplayer)\n" +
+            "End the game by pressing the escape key repeatedly.";
 
     private final Scene scene;
 
@@ -577,6 +579,11 @@ public class PongUI extends Pane implements Game {
     @Override
     public void setOnEnd(Consumer<Game> endListener) {
         this.endGameListener = endListener;
+    }
+
+    @Override
+    public String getHelpText() {
+        return HELP_TEXT;
     }
 
     /**

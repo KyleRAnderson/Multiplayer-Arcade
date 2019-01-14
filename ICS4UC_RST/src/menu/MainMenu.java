@@ -44,6 +44,15 @@ import static javafx.scene.control.ButtonType.YES;
  */
 public class MainMenu extends Application {
     private static final double DEFAULT_WIDTH, DEFAULT_HEIGHT, SCREEN_HEIGHT, SCREEN_WIDTH, MIN_HEIGHT, MIN_WIDTH;
+    /**
+     * The window's icon.
+     */
+    private static final Image WINDOW_ICON = new Image(MainMenu.class.getResourceAsStream("/res/images/arcade.png"));
+    private static final String MENU_HELP_TEXT = "Welcome to the Arcade!\n" +
+            "Select a game to begin playing it.\n" +
+            "If you would like to play online with another player on the same network as you,\n" +
+            "one player needs to begin hosting a lobby, noting the IP address on the button, and then the other\n" +
+            "player needs to connect to the lobby at the ip address and on the same port as the host.\n\n";
 
     static {
         Rectangle2D screenDimensions = Screen.getPrimary().getBounds();
@@ -92,11 +101,19 @@ public class MainMenu extends Application {
             new PongUI()
     };
 
+    private final String helpText;
+
     /**
      * Constructs a new main menu object.
      */
     public MainMenu() {
         PartyHandler.setIncomingMessageListener(this::messageReceived);
+
+        StringBuilder builder = new StringBuilder(MENU_HELP_TEXT);
+        for (Game game : games) {
+            builder.append(game.getHelpText()).append("\n\n");
+        }
+        helpText = builder.toString();
     }
 
     @Override
@@ -112,7 +129,7 @@ public class MainMenu extends Application {
     private void initializeElements() {
         stage.setTitle("Arcade");
         // Nice icon for the game.
-        stage.getIcons().add(new Image(getClass().getResourceAsStream("/res/images/arcade.png")));
+        stage.getIcons().add(WINDOW_ICON);
 
         menuRoot = new GridPane();
 
@@ -145,21 +162,21 @@ public class MainMenu extends Application {
         menuRoot.add(preferences, 0, 1); // Add to (0, 1)
 
         // Scores menu item.
-        StackPane scores = new StackPane();
-        formatMenuItem(scores);
-        scores.setOnMouseClicked(event -> showScores());
+        StackPane help = new StackPane();
+        formatMenuItem(help);
+        help.setOnMouseClicked(event -> showHelp());
         HBox scoresContent = new HBox(GAP);
         scoresContent.setAlignment(Pos.CENTER);
-        Text scoresLabel = new Text("Scores");
+        Text scoresLabel = new Text("Help");
         scoresLabel.setTextAlignment(TextAlignment.CENTER);
         scoresLabel.setFont(HEADER_FONT);
-        ImageView scoresImage = new ImageView(getClass().getResource("/res/images/leaderboard.png").toString());
+        ImageView scoresImage = new ImageView(getClass().getResource("/res/images/help.png").toString());
         scoresImage.setPreserveRatio(true);
         scoresImage.setFitWidth(50);
         scoresContent.getChildren().addAll(scoresImage, scoresLabel);
-        scores.getChildren().add(scoresContent);
-        scores.setBackground(new Background(new BackgroundFill(Color.MEDIUMPURPLE, CornerRadii.EMPTY, Insets.EMPTY)));
-        menuRoot.add(scores, 1, 1); // Add to (1, 1)
+        help.getChildren().add(scoresContent);
+        help.setBackground(new Background(new BackgroundFill(Color.MEDIUMPURPLE, CornerRadii.EMPTY, Insets.EMPTY)));
+        menuRoot.add(help, 1, 1); // Add to (1, 1)
 
         // Connect to party button
         connectMenuItem = new PartyMenuItem("Connect", "Connecting...");
@@ -188,7 +205,7 @@ public class MainMenu extends Application {
             hostIp = "";
             System.err.println("Couldn't get Host IP address.");
         }
-        hostMenuItem = new PartyMenuItem(String.format("Host%s", hostIp), "Waiting for Players...");
+        hostMenuItem = new PartyMenuItem(String.format("Host%s", hostIp), String.format("Hosting at %s", hostIp));
         hostMenuItem.setPadding(new Insets(15));
         hostMenuItem.getDisconnectButton().setOnAction(event -> disconnect(true));
         formatMenuItem(hostMenuItem);
@@ -410,9 +427,16 @@ public class MainMenu extends Application {
 
 
     /**
-     * Shows the scores menu.
+     * Shows the help stuff.
      */
-    private void showScores() {
+    private void showHelp() {
+        // Simply show the help text to the user.
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Help");
+        alert.setHeaderText("Arcade Quick Start");
+        alert.setContentText(helpText);
+
+        alert.showAndWait();
     }
 
     /**
