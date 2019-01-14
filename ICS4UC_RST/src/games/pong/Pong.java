@@ -35,6 +35,10 @@ public class Pong {
     public static final double PONG_BALL_VELOCITY = 250;
     // How many milliseconds to pause after a player scores.
     private static final long SCORE_PAUSE = 3000;
+    /**
+     * Number of points needed to win.
+     */
+    private static final int WINNING_POINTS = 11;
 
     private final PongBall ball;
 
@@ -66,6 +70,15 @@ public class Pong {
      * The time at which the pause should end.
      */
     private long unpauseTime;
+
+    /**
+     * Whether or not the game has ended.
+     */
+    private boolean ended;
+    /**
+     * The reason for which the game was ended.
+     */
+    private EndReason endReason;
 
     /**
      * Constructs a new pong game with the given players.
@@ -261,7 +274,7 @@ public class Pong {
      * @param timeSinceLastTick The time since the last tick, in nanoseconds.
      */
     public void renderTick(final long timeSinceLastTick) {
-        if (hasBegun && !checkPause()) {
+        if (hasBegun && !checkPause() && !ended) {
             ball.renderTick(timeSinceLastTick); // Render a tick for the ball.
 
             getRightPaddle().renderTick(timeSinceLastTick);
@@ -548,7 +561,38 @@ public class Pong {
             setPauseDuration(SCORE_PAUSE);
             // Important that listeners are called last.
             callPlayerScored(player);
+
+            // Since scores have been changed, check to see if there's a winner.
+            checkWinner();
         }
+    }
+
+    /**
+     * Checks to see if there's a winner in the game. If there's a winner, the game is ended.
+     */
+    public void checkWinner() {
+        if (!ended) {
+            if (getLocalPlayer().getPoints() >= WINNING_POINTS || getPlayer2().getPoints() >= WINNING_POINTS) {
+                end(EndReason.SCORE_LIMIT_REACHED);
+            }
+        }
+    }
+
+    /**
+     * Determines the winner of the pong game.
+     *
+     * @return The winner of the pong game.
+     */
+    public PongPlayer getWinner() {
+        PongPlayer winner;
+        if (getLocalPlayer().getPoints() >= WINNING_POINTS) {
+            winner = getLocalPlayer();
+        } else if (getPlayer2().getPoints() >= WINNING_POINTS) {
+            winner = getPlayer2();
+        } else {
+            winner = null;
+        }
+        return winner;
     }
 
     /**
@@ -768,5 +812,34 @@ public class Pong {
      */
     public long getUnpauseTime() {
         return unpauseTime;
+    }
+
+    /**
+     * Ends the pong game with a reason.
+     */
+    public void end(EndReason reason) {
+        if (!ended) {
+            ended = true;
+            endReason = reason;
+            callEvent(new PongEvent(PongEvent.EventType.GAME_ENDED));
+        }
+    }
+
+    /**
+     * Determines whether or not the pong game has ended.
+     *
+     * @return True if the game has ended, false otherwise.
+     */
+    public boolean isEnded() {
+        return ended;
+    }
+
+    /**
+     * Gets the end reason for this game.
+     *
+     * @return The end reason.
+     */
+    public EndReason getEndReason() {
+        return endReason;
     }
 }

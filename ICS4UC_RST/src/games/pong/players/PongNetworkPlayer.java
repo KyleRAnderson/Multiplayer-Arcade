@@ -1,6 +1,7 @@
 package games.pong.players;
 
 import games.player.NetworkPlayer;
+import games.pong.EndReason;
 import games.pong.Pong;
 import games.pong.PongEvent;
 import games.pong.network.PongNetworkMessage;
@@ -10,7 +11,6 @@ import games.pong.pieces.Side;
 import network.party.network.NetworkMessage;
 
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 /**
  * Represents a network player of the pong game.
@@ -22,6 +22,9 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
     private Pong game;
     private Side side;
     private int score;
+    // Name of the other host.
+    private String hostName;
+
     /**
      * Set to true if the other player has entered the game, false otherwise.
      */
@@ -33,11 +36,6 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
     }
 
     @Override
-    public void setOnPause(Consumer<PongPlayer> action) {
-
-    }
-
-    @Override
     public Side getSide() {
         return side;
     }
@@ -45,11 +43,6 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
     @Override
     public void setSide(Side side) {
         this.side = side;
-    }
-
-    @Override
-    public void addPoint() {
-        score++;
     }
 
     @Override
@@ -69,6 +62,11 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
 
     }
 
+    @Override
+    public String getName() {
+        return hostName;
+    }
+
     /**
      * Receives network data from the other player.
      *
@@ -79,21 +77,26 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
         final PongNetworkMessage gameData = PongNetworkMessage.fromJsonString(data.getGameData());
         final long timeBetweenTickAndNetwork = Math.max(game.getLastTickTime() - gameData.getNanoTimeSent(), 0);
 
+        hostName = data.getHostName();
+        final PongEvent.EventType triggeringEvent = gameData.getTriggeringEvent();
         // If the other player has started, let's start too.
-        if (gameData.isInGame() && gameData.getTriggeringEvent() == PongEvent.EventType.GAME_BEGUN && !otherPlayerBeganGame) {
+        if (gameData.isInGame() && triggeringEvent == PongEvent.EventType.GAME_BEGUN && !otherPlayerBeganGame) {
             game.begin();
             game.setPause(gameData.getUnpauseTime());
             otherPlayerBeganGame = true;
-        } else if (gameData.getTriggeringEvent() == PongEvent.EventType.GAME_READY) {
+        } else if (triggeringEvent == PongEvent.EventType.GAME_READY) {
             game.begin();
             otherPlayerBeganGame = false;
         }
         // The other machine will let us know when their local player was scored on (meaning our local player scored).
-        else if (gameData.getTriggeringEvent() == PongEvent.EventType.PLAYER_SCORED &&
+        else if (triggeringEvent == PongEvent.EventType.PLAYER_SCORED &&
                 gameData.getLocalPlayerScore() == getPoints() &&
                 gameData.getUnpauseTime() != 0) {
             game.playerScored(game.getLocalPlayer(), gameData.getNetworkPlayerScore());
             game.setPause(gameData.getUnpauseTime());
+        } else if (triggeringEvent == PongEvent.EventType.GAME_ENDED) {
+            // If the remote player ended the game, we need to notify this player.
+            game.end(EndReason.PLAYER_END);
         }
 
         // If the other client just hit the ball with the paddle, listen to them entirely.
@@ -117,6 +120,7 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
 
     @Override
     public void hostDisconnecting() {
+        game.end(EndReason.PLAYER_DISCONNECT);
     }
 
 

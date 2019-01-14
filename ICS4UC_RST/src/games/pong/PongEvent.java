@@ -28,7 +28,8 @@ public class PongEvent {
         PADDLE_STOPPED,
         PLAYER_SCORED,
         GAME_BEGUN,
-        GAME_READY
+        GAME_ENDED,
+        GAME_READY;
     }
 
     /**
