@@ -21,11 +21,6 @@ public enum PongKeyBinding implements KeyBinding {
     }
 
     @Override
-    public KeyCode getKey() {
-        return this.key;
-    }
-
-    @Override
     public String getName() {
         return this.name;
     }

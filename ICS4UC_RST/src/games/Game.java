@@ -26,13 +26,6 @@ public interface Game {
     void end();
 
     /**
-     * Gets the score data from this game.
-     *
-     * @return The Score data.
-     */
-    Score getScore();
-
-    /**
      * Gets the cover image for the
      *
      * @return Gets the cover art for this game.

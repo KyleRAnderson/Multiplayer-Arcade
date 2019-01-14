@@ -76,7 +76,7 @@ public class PongUI extends Pane implements Game {
 
 
     // Font used around the UI.
-    private Font FONT = Font.font("Bit5x3", FontWeight.BOLD, FontPosture.REGULAR, 80);
+    private static final Font FONT = Font.font("Bit5x3", FontWeight.BOLD, FontPosture.REGULAR, 80);
     private static final Paint BACKGROUND_COLOUR = Color.BLACK, FOREGROUND_COLOUR = Color.WHITE;
     /**
      * Key used to end the game.
@@ -415,11 +415,6 @@ public class PongUI extends Pane implements Game {
         }
 
         endGameListener.accept(this);
-    }
-
-    @Override
-    public Score getScore() {
-        return null;
     }
 
     @Override
