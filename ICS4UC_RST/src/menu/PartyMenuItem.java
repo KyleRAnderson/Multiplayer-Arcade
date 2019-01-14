@@ -6,7 +6,6 @@ import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
@@ -264,6 +263,7 @@ public class PartyMenuItem extends StackPane {
 
     /**
      * Gets the disconnect button
+     *
      * @return The disconnect button.
      */
     public Button getDisconnectButton() {
@@ -272,6 +272,7 @@ public class PartyMenuItem extends StackPane {
 
     /**
      * Sets whether or not this menu item is connected now.
+     *
      * @param connected True if connected, false otherwise.
      */
     public void setConnected(boolean connected) {

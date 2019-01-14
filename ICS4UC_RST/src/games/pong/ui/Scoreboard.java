@@ -8,7 +8,7 @@ import javafx.scene.text.Font;
 /**
  * Scoreboard for the pong game's UI.
  *
- * @author Kyle Anderson
+ * @author Kyle Anderson and Nicolas Hawrysh
  * ICS4U RST
  */
 public class Scoreboard extends Group {
@@ -20,6 +20,7 @@ public class Scoreboard extends Group {
      * The distance the text parts of the scoreboard will be from the centre of the game.
      */
     private static final double PERCENTAGE_DIST_FROM_CENTRE = 0.05;
+    private static final double DEFAULT_FONT_SIZE = 70;
 
     /**
      * Instantiates a new Scoreboard object.
@@ -40,8 +41,8 @@ public class Scoreboard extends Group {
     public void calculate(final double screenWidth, final double screenHeight) {
         final double height = screenHeight * 0.1; // Universal height for both text boxes.
 
-        leftScore.relocate(screenWidth / 2 - screenWidth * PERCENTAGE_DIST_FROM_CENTRE - leftScore.getWidth() * 0.75, height);
-        rightScore.relocate(screenWidth / 2 + screenWidth * PERCENTAGE_DIST_FROM_CENTRE, height);
+        leftScore.relocate(screenWidth / 2 - screenWidth * PERCENTAGE_DIST_FROM_CENTRE - (leftScore.getWidth()), height);
+        rightScore.relocate(screenWidth / 2 + screenWidth * (PERCENTAGE_DIST_FROM_CENTRE * 1.4), height);
     }
 
     /**
@@ -98,5 +99,15 @@ public class Scoreboard extends Group {
      */
     public void setRightScore(final int score) {
         rightScore.setText(String.valueOf(score));
+    }
+
+    /**
+     * sets font of text based on a scalefactor
+     *
+     * @param scaleFactor The scale factor.
+     */
+    public void changeSize(final double scaleFactor) {
+        leftScore.setStyle("-fx-font: " + Math.round(DEFAULT_FONT_SIZE * scaleFactor) + " Bit5x3;");
+        rightScore.setStyle("-fx-font: " + Math.round(DEFAULT_FONT_SIZE * scaleFactor) + " Bit5x3;");
     }
 }
