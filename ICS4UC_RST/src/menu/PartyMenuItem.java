@@ -6,7 +6,6 @@ import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
@@ -32,13 +31,14 @@ public class PartyMenuItem extends StackPane {
     private final String inactiveText, activeText;
     private boolean active;
 
+    private Button disconnectButton;
+
     private EventHandler<ActionEvent> actionHandler;
 
     // Last column occupied.
     int lastColumn = 0;
 
     private TextField portField, ipField;
-    private Label extraText;
 
     /**
      * Constructs a new Party Menu Item with the provided text for the action button when active and inactive.
@@ -52,6 +52,7 @@ public class PartyMenuItem extends StackPane {
         this.activeText = activeActionButtonText;
         actionButton = new Button(actionButtonText);
         actionButton.setOnAction(this::actionButtonPressed);
+        disconnectButton = new Button("Disconnect");
 
         organizer = new GridPane();
         organizer.setAlignment(Pos.CENTER);
@@ -90,10 +91,17 @@ public class PartyMenuItem extends StackPane {
         actionButton.setDisable(active); // Disable the button while active, enable it while not.
 
         ObservableList<Node> children = getChildren();
-        if (active && !children.contains(loadingAnimation)) {
-            children.add(loadingAnimation);
-        } else if (!active) {
+        if (active) {
+            if (!children.contains(loadingAnimation)) {
+                children.add(loadingAnimation);
+            }
+            if (!children.contains(disconnectButton)) {
+                children.add(disconnectButton);
+            }
+
+        } else {
             children.remove(loadingAnimation);
+            children.remove(disconnectButton);
         }
     }
 
@@ -252,4 +260,30 @@ public class PartyMenuItem extends StackPane {
         organizer.setHgap(spacing);
         organizer.setVgap(spacing);
     }
+
+    /**
+     * Gets the disconnect button
+     *
+     * @return The disconnect button.
+     */
+    public Button getDisconnectButton() {
+        return disconnectButton;
+    }
+
+    /**
+     * Sets whether or not this menu item is connected now.
+     *
+     * @param connected True if connected, false otherwise.
+     */
+    public void setConnected(boolean connected) {
+        // Disable the organizer if there's no
+        organizer.setDisable(connected);
+        if (connected && !getChildren().contains(disconnectButton)) {
+            getChildren().add(disconnectButton);
+        } else if (!connected) {
+            getChildren().remove(disconnectButton);
+        }
+    }
+
+
 }

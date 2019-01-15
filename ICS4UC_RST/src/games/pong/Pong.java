@@ -34,7 +34,11 @@ public class Pong {
     // Velocity of the pong ball in units per second.
     public static final double PONG_BALL_VELOCITY = 250;
     // How many milliseconds to pause after a player scores.
-    private static final long SCORE_PAUSE = 3000;
+    private static final long SCORE_PAUSE = 3000; // Set score pause to 3 seconds.
+    /**
+     * Number of points needed to win.
+     */
+    private static final int WINNING_POINTS = 11;
 
     private final PongBall ball;
 
@@ -63,9 +67,18 @@ public class Pong {
     private boolean readyNotified;
 
     /**
-     * The time at which the pause should end.
+     * The time at which the pause should end, in milliseconds.
      */
     private long unpauseTime;
+
+    /**
+     * Whether or not the game has ended.
+     */
+    private boolean ended;
+    /**
+     * The reason for which the game was ended.
+     */
+    private EndReason endReason;
 
     /**
      * Constructs a new pong game with the given players.
@@ -261,7 +274,7 @@ public class Pong {
      * @param timeSinceLastTick The time since the last tick, in nanoseconds.
      */
     public void renderTick(final long timeSinceLastTick) {
-        if (hasBegun && !checkPause()) {
+        if (hasBegun && !checkPause() && !ended) {
             ball.renderTick(timeSinceLastTick); // Render a tick for the ball.
 
             getRightPaddle().renderTick(timeSinceLastTick);
@@ -284,8 +297,8 @@ public class Pong {
      */
     public void renderTick() {
         long tempLastTick = lastTickTime;
-        lastTickTime = System.nanoTime();
-        final long timeSinceLastTick = (tempLastTick > 0) ? System.nanoTime() - tempLastTick : 0;
+        lastTickTime = System.nanoTime(); // Set last tick time to now.
+        final long timeSinceLastTick = (tempLastTick > 0) ? lastTickTime - tempLastTick : 0;
         renderTick(timeSinceLastTick);
     }
 
@@ -548,7 +561,38 @@ public class Pong {
             setPauseDuration(SCORE_PAUSE);
             // Important that listeners are called last.
             callPlayerScored(player);
+
+            // Since scores have been changed, check to see if there's a winner.
+            checkWinner();
         }
+    }
+
+    /**
+     * Checks to see if there's a winner in the game. If there's a winner, the game is ended.
+     */
+    public void checkWinner() {
+        if (!ended) {
+            if (getLocalPlayer().getPoints() >= WINNING_POINTS || getPlayer2().getPoints() >= WINNING_POINTS) {
+                end(EndReason.SCORE_LIMIT_REACHED);
+            }
+        }
+    }
+
+    /**
+     * Determines the winner of the pong game.
+     *
+     * @return The winner of the pong game.
+     */
+    public PongPlayer getWinner() {
+        PongPlayer winner;
+        if (getLocalPlayer().getPoints() >= WINNING_POINTS) {
+            winner = getLocalPlayer();
+        } else if (getPlayer2().getPoints() >= WINNING_POINTS) {
+            winner = getPlayer2();
+        } else {
+            winner = null;
+        }
+        return winner;
     }
 
     /**
@@ -732,10 +776,10 @@ public class Pong {
     /**
      * Sets a pause corresponding to the specified number of milliseconds.
      *
-     * @param millisecondPause The number of milliseconds to pause for. -1 for infinite pause.
+     * @param millisecondsPause The number of milliseconds to pause for. -1 for infinite pause.
      */
-    public void setPauseDuration(long millisecondPause) {
-        this.unpauseTime = System.currentTimeMillis() + millisecondPause;
+    public void setPauseDuration(long millisecondsPause) {
+        setPause(System.currentTimeMillis() + millisecondsPause);
     }
 
     /**
@@ -754,19 +798,48 @@ public class Pong {
      */
     private boolean checkPause() {
         boolean paused = System.currentTimeMillis() < unpauseTime || unpauseTime < 0;
-        if (!paused && lastTickTime < unpauseTime) {
-            lastTickTime = unpauseTime;
+        if (!paused) {
+            lastTickTime = System.nanoTime(); // Update the last tick time now too.
         }
 
         return paused;
     }
 
     /**
-     * Gets the time (in milliseconds) at which the game will unpause. -1 for infinite.
+     * Gets the time (in nanoseconds) at which the game will unpause. -1 for infinite.
      *
-     * @return The unpause time, in milliseconds.
+     * @return The unpause time, in nanoseconds.
      */
     public long getUnpauseTime() {
         return unpauseTime;
+    }
+
+    /**
+     * Ends the pong game with a reason.
+     */
+    public void end(EndReason reason) {
+        if (!ended) {
+            ended = true;
+            endReason = reason;
+            callEvent(new PongEvent(PongEvent.EventType.GAME_ENDED));
+        }
+    }
+
+    /**
+     * Determines whether or not the pong game has ended.
+     *
+     * @return True if the game has ended, false otherwise.
+     */
+    public boolean isEnded() {
+        return ended;
+    }
+
+    /**
+     * Gets the end reason for this game.
+     *
+     * @return The end reason.
+     */
+    public EndReason getEndReason() {
+        return endReason;
     }
 }

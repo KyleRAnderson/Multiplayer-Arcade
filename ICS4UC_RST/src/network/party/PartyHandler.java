@@ -29,6 +29,7 @@ public class PartyHandler {
     // Queues for communicating cross-thread.
     private static Queue<NetworkMessage> outgoingQueue, incomingQueue;
     private static ReceiverTask incomingTask;
+    private static SenderTask outgoingTask;
     private static Consumer<ReceivedDataEvent> incomingListener;
 
     /**
@@ -84,15 +85,27 @@ public class PartyHandler {
         return socket.isConnected();
     }
 
+    public static void terminateListeners() {
+
+    }
+
     /**
      * Disconnects from the party.
-     *
-     * @throws IOException if there is an error.
      */
-    public static void disconnect() throws IOException {
+    public static void disconnect() {
         // Only try to disconnect if connected.
-        if (isConnected()) {
-            socket.close();
+        if (incomingTask != null) {
+            incomingTask.cancel(true);
+        }
+        if (outgoingTask != null) {
+            outgoingTask.cancel(true);
+        }
+        if (socket != null && socket.isConnected()) {
+            try {
+                socket.close();
+            } catch (IOException e) {
+                System.err.println("Failed to close socket.");
+            }
         }
         role = null;
     }
@@ -112,7 +125,7 @@ public class PartyHandler {
      * @return True if there is a party in session, false otherwise.
      */
     public static boolean isConnected() {
-        return role != null;
+        return role != null && socket.isConnected();
     }
 
     /**
@@ -148,7 +161,9 @@ public class PartyHandler {
      * @param message The string to be sent.
      */
     public static void sendMessage(NetworkMessage message) {
-        outgoingQueue.add(message);
+        if (isConnected()) {
+            outgoingQueue.add(message);
+        }
     }
 
     /**
@@ -177,7 +192,7 @@ public class PartyHandler {
     public static void setIncomingMessageListener(Consumer<ReceivedDataEvent> listener) {
         incomingListener = listener;
         if (incomingTask != null) {
-            incomingTask.valueProperty().addListener((observable, oldValue, newValue) -> listener.accept(newValue));
+            incomingTask.addListener(listener);
         }
     }
 
@@ -186,7 +201,7 @@ public class PartyHandler {
      */
     private static void setupConnection() {
         outgoingQueue = new ArrayBlockingQueue<>(15);
-        SenderTask outgoingTask = new SenderTask(getTCPSocket(), outgoingQueue);
+        outgoingTask = new SenderTask(getTCPSocket(), outgoingQueue);
 
         incomingQueue = new ArrayBlockingQueue<>(15);
         incomingTask = new ReceiverTask(getTCPSocket(), incomingQueue);
@@ -222,11 +237,7 @@ public class PartyHandler {
      * Called when the incoming messages task closes.
      */
     private static void receiverClosed() {
-        try {
-            disconnect();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        disconnect();
     }
 
     /**

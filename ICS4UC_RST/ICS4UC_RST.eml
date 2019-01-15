@@ -3,14 +3,8 @@
 	<output-test url="file://$MODULE_DIR$/../../out/test/ICS4UC_RST"/>
 	<exclude-output/>
 	<contentEntry url="file://$MODULE_DIR$"/>
-	<lib name="hamcrest-core-1.3.jar" scope="COMPILE">
-		<relative-module-cls project-related="jar://$PROJECT_DIR$/rst/ICS4UC_RST/lib/hamcrest-core-1.3.jar!/"/>
-	</lib>
 	<lib name="junit-4.12.jar" scope="COMPILE">
 		<relative-module-cls project-related="jar://$PROJECT_DIR$/rst/ICS4UC_RST/lib/junit-4.12.jar!/"/>
-	</lib>
-	<lib name="xom-1.2.11.jar" scope="COMPILE">
-		<relative-module-cls project-related="jar://$PROJECT_DIR$/rst/ICS4UC_RST/lib/xom-1.2.11.jar!/"/>
 	</lib>
 	<lib name="AdvancedIO.jar" scope="COMPILE">
 		<srcroot url="jar://$MODULE_DIR$/lib/AdvancedIO.jar!/"/>
@@ -20,5 +14,8 @@
 	</lib>
 	<lib name="gson-2.6.2.jar" scope="COMPILE">
 		<relative-module-cls project-related="jar://$PROJECT_DIR$/rst/ICS4UC_RST/lib/gson-2.6.2.jar!/"/>
+	</lib>
+	<lib name="controlsfx-8.40.14.jar" scope="COMPILE">
+		<relative-module-cls project-related="jar://$PROJECT_DIR$/rst/ICS4UC_RST/lib/controlsfx-8.40.14.jar!/"/>
 	</lib>
 </component>

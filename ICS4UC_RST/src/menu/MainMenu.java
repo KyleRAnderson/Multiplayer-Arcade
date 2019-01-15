@@ -2,24 +2,28 @@ package menu;
 
 import games.Game;
 import games.pong.ui.PongUI;
+import javafx.animation.PauseTransition;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.*;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import network.Server;
 import network.TCPSocket;
 import network.party.PartyHandler;
 import network.party.network.HostStatus;
 import network.party.network.NetworkMessage;
 import network.party.network.ReceivedDataEvent;
+import org.controlsfx.control.Notifications;
 import preferences.Preferences;
 import preferences.PreferencesMenu;
 
@@ -41,6 +45,15 @@ import static javafx.scene.control.ButtonType.YES;
  */
 public class MainMenu extends Application {
     private static final double DEFAULT_WIDTH, DEFAULT_HEIGHT, SCREEN_HEIGHT, SCREEN_WIDTH, MIN_HEIGHT, MIN_WIDTH;
+    /**
+     * The window's icon.
+     */
+    private static final Image WINDOW_ICON = new Image(MainMenu.class.getResourceAsStream("/res/images/arcade.png"));
+    private static final String MENU_HELP_TEXT = "Welcome to the Arcade!\n" +
+            "Select a game to begin playing it.\n" +
+            "If you would like to play online with another player on the same network as you,\n" +
+            "one player needs to begin hosting a lobby, noting the IP address on the button, and then the other\n" +
+            "player needs to connect to the lobby at the ip address and on the same port as the host.\n\n";
 
     static {
         Rectangle2D screenDimensions = Screen.getPrimary().getBounds();
@@ -75,16 +88,33 @@ public class MainMenu extends Application {
     // The game that's currently being played.
     private Game currentGame;
 
+    // Connection tasks
+    private HostTask hostingTask;
+    private ConnectTask connectTask;
+
+    /**
+     * True if disconnect was notified, false otherwise.
+     */
+    private boolean disconnectNotified;
+
     // Array of all the playable games.
     private final Game[] games = new Game[]{
             new PongUI()
     };
+
+    private final String helpText;
 
     /**
      * Constructs a new main menu object.
      */
     public MainMenu() {
         PartyHandler.setIncomingMessageListener(this::messageReceived);
+
+        StringBuilder builder = new StringBuilder(MENU_HELP_TEXT);
+        for (Game game : games) {
+            builder.append(game.getHelpText()).append("\n\n");
+        }
+        helpText = builder.toString();
     }
 
     @Override
@@ -99,6 +129,9 @@ public class MainMenu extends Application {
      */
     private void initializeElements() {
         stage.setTitle("Arcade");
+        // Nice icon for the game.
+        stage.getIcons().add(WINDOW_ICON);
+
         menuRoot = new GridPane();
 
         // Create the welcome button at the top.
@@ -130,21 +163,21 @@ public class MainMenu extends Application {
         menuRoot.add(preferences, 0, 1); // Add to (0, 1)
 
         // Scores menu item.
-        StackPane scores = new StackPane();
-        formatMenuItem(scores);
-        scores.setOnMouseClicked(event -> showScores());
+        StackPane help = new StackPane();
+        formatMenuItem(help);
+        help.setOnMouseClicked(event -> showHelp());
         HBox scoresContent = new HBox(GAP);
         scoresContent.setAlignment(Pos.CENTER);
-        Text scoresLabel = new Text("Scores");
+        Text scoresLabel = new Text("Help");
         scoresLabel.setTextAlignment(TextAlignment.CENTER);
         scoresLabel.setFont(HEADER_FONT);
-        ImageView scoresImage = new ImageView(getClass().getResource("/res/images/leaderboard.png").toString());
+        ImageView scoresImage = new ImageView(getClass().getResource("/res/images/help.png").toString());
         scoresImage.setPreserveRatio(true);
         scoresImage.setFitWidth(50);
         scoresContent.getChildren().addAll(scoresImage, scoresLabel);
-        scores.getChildren().add(scoresContent);
-        scores.setBackground(new Background(new BackgroundFill(Color.MEDIUMPURPLE, CornerRadii.EMPTY, Insets.EMPTY)));
-        menuRoot.add(scores, 1, 1); // Add to (1, 1)
+        help.getChildren().add(scoresContent);
+        help.setBackground(new Background(new BackgroundFill(Color.MEDIUMPURPLE, CornerRadii.EMPTY, Insets.EMPTY)));
+        menuRoot.add(help, 1, 1); // Add to (1, 1)
 
         // Connect to party button
         connectMenuItem = new PartyMenuItem("Connect", "Connecting...");
@@ -155,6 +188,7 @@ public class MainMenu extends Application {
         connectButton.setFont(INPUT_FONT);
         connectButton.setBackground(new Background(new BackgroundFill(Color.rgb(77, 77, 255), CornerRadii.EMPTY, Insets.EMPTY)));
         connectMenuItem.setOnAction(event -> connectToParty());
+        connectMenuItem.getDisconnectButton().setOnAction(event -> disconnect(true));
         Text ipLabel = new Text("IP Address");
         ipLabel.setFont(INPUT_FONT);
         connectMenuItem.addIPField(ipLabel);
@@ -172,8 +206,9 @@ public class MainMenu extends Application {
             hostIp = "";
             System.err.println("Couldn't get Host IP address.");
         }
-        hostMenuItem = new PartyMenuItem(String.format("Host%s", hostIp), "Waiting for Players...");
+        hostMenuItem = new PartyMenuItem(String.format("Host%s", hostIp), String.format("Hosting at %s", hostIp));
         hostMenuItem.setPadding(new Insets(15));
+        hostMenuItem.getDisconnectButton().setOnAction(event -> disconnect(true));
         formatMenuItem(hostMenuItem);
         hostMenuItem.setBackground(new Background(new BackgroundFill(Color.RED, CornerRadii.EMPTY, Insets.EMPTY)));
         Button hostButton = hostMenuItem.getActionButton();
@@ -234,6 +269,38 @@ public class MainMenu extends Application {
     }
 
     /**
+     * Disconnects from the party.
+     *
+     * @param notifyOtherClient True to notify the connected computer that we're disconnecting, false otherwise.
+     */
+    private void disconnect(boolean notifyOtherClient) {
+        disconnectNotified = true;
+        if (hostingTask != null) {
+            hostingTask.cancel(true);
+        }
+        if (connectTask != null) {
+            connectTask.cancel(true);
+        }
+
+        if (notifyOtherClient) {
+            NetworkMessage message = new NetworkMessage(HostStatus.DISCONNECTING);
+            sendNetworkMessage(message);
+            // Need to wait to ensure that the disconnect message is sent before closing the socket.
+            PauseTransition delay = new PauseTransition(Duration.seconds(1));
+            delay.setOnFinished(event -> PartyHandler.disconnect());
+            delay.play();
+        } else {
+            PartyHandler.disconnect();
+        }
+        hostMenuItem.setConnected(false);
+        connectMenuItem.setConnected(false);
+        hostMenuItem.setDisable(false);
+        connectMenuItem.setDisable(false);
+        hostMenuItem.setActive(false);
+        connectMenuItem.setActive(false);
+    }
+
+    /**
      * SEts up the port for the PartyMenuItem
      *
      * @param menuItem The PartyMenuItem for which the port should be set up.
@@ -259,11 +326,11 @@ public class MainMenu extends Application {
             NetworkMessage message = new NetworkMessage(HostStatus.PENDING_GAME_INVITE);
             message.setCurrentGame(game.getClass().toString());
             sendNetworkMessage(message);
-            Alert inviteSent = new Alert(Alert.AlertType.INFORMATION, "Game invite sent.", ButtonType.OK);
-            inviteSent.showAndWait();
+            showNotification(Alert.AlertType.INFORMATION, "Game invite sent.");
         } else {
             currentGame = game;
             currentGame.reset();
+            currentGame.setOnEnd(this::gameEnded);
             Region window = currentGame.getWindow();
             window.setPrefWidth(menuRoot.getWidth());
             if (wasInvited) {
@@ -272,10 +339,22 @@ public class MainMenu extends Application {
             if (currentGame.isNetworkGame()) {
                 currentGame.getNetworkPlayer().setOnGameDataSend(this::sendGameData);
             }
-//            setDisplay(window);
             setDisplay(currentGame.getWorkingScene());
             currentGame.initializePlayers();
             currentGame.start();
+        }
+    }
+
+    /**
+     * Called when a game ends and is ready to exit.
+     *
+     * @param endedGame The game that ended.
+     */
+    private void gameEnded(Game endedGame) {
+        // Only actually end if the ended game was the game being played.
+        if (currentGame == endedGame) {
+            currentGame = null;
+            setDisplay(menuRoot.getScene());
         }
     }
 
@@ -349,10 +428,16 @@ public class MainMenu extends Application {
 
 
     /**
-     * Shows the scores menu.
+     * Shows the help stuff.
      */
-    private void showScores() {
+    private void showHelp() {
+        // Simply show the help text to the user.
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Help");
+        alert.setHeaderText("Arcade Quick Start");
+        alert.setContentText(helpText);
 
+        alert.showAndWait();
     }
 
     /**
@@ -368,12 +453,12 @@ public class MainMenu extends Application {
     private void connectToParty() {
         hostMenuItem.setDisable(true);
         // Need to connect in a separate thread.
-        ConnectTask task = new ConnectTask(connectMenuItem.getIpAddress(), connectMenuItem.getPort());
-        task.setOnFailed(event -> connectionOver(false));
-        task.setOnSucceeded(event -> connectionOver(task.getValue()));
+        connectTask = new ConnectTask(connectMenuItem.getIpAddress(), connectMenuItem.getPort());
+        connectTask.setOnFailed(event -> connectionOver(false));
+        connectTask.setOnSucceeded(event -> connectionOver(connectTask.getValue()));
 
         ExecutorService executorService = PartyHandler.createFixedTimeoutExecutorService(1);
-        executorService.execute(task);
+        executorService.execute(connectTask);
         executorService.shutdown();
     }
 
@@ -385,15 +470,15 @@ public class MainMenu extends Application {
     private void connectionOver(boolean succeeded) {
         final boolean allGood = PartyHandler.isConnected() && succeeded;
         if (!allGood) {
-            Alert errorAlert = new Alert(Alert.AlertType.ERROR, "Failed to connect to host.", ButtonType.OK);
-            errorAlert.showAndWait();
+            disconnect(false);
+            showNotification(Alert.AlertType.ERROR, "Failed to connect to host.");
         } else {
             onConnection();
+            // Disable the connection stuff once connected.
+            hostMenuItem.setDisable(true);
+            connectMenuItem.setActive(false);
+            connectMenuItem.setConnected(true);
         }
-        // Disable the connection stuff once connected.
-        hostMenuItem.setDisable(allGood);
-        connectMenuItem.setDisable(allGood);
-        connectMenuItem.setActive(false);
     }
 
     /**
@@ -401,12 +486,12 @@ public class MainMenu extends Application {
      */
     private void hostParty() {
         connectMenuItem.setDisable(true);
-        HostTask task = new HostTask(hostMenuItem.getPort());
-        task.setOnFailed(event -> hostingFailed());
-        task.setOnSucceeded(event -> hostSuccessful());
+        hostingTask = new HostTask(hostMenuItem.getPort());
+        hostingTask.setOnFailed(event -> hostingFailed());
+        hostingTask.setOnSucceeded(event -> hostSuccessful());
 
         ExecutorService executorService = PartyHandler.createFixedTimeoutExecutorService(1);
-        executorService.execute(task);
+        executorService.execute(hostingTask);
         executorService.shutdown();
     }
 
@@ -414,8 +499,8 @@ public class MainMenu extends Application {
      * Called when the application fails to host.
      */
     private void hostingFailed() {
-        Alert errorAlert = new Alert(Alert.AlertType.ERROR, "Failed to start host.", ButtonType.OK);
-        errorAlert.showAndWait();
+        disconnect(false);
+        showNotification(Alert.AlertType.ERROR, "Hosting Failed", "Failed to start host.");
     }
 
     /**
@@ -423,7 +508,7 @@ public class MainMenu extends Application {
      */
     private void hostSuccessful() {
         hostMenuItem.setActive(false);
-        hostMenuItem.setDisable(true);
+        hostMenuItem.setConnected(true);
         onConnection();
     }
 
@@ -444,6 +529,7 @@ public class MainMenu extends Application {
      * Called when connecting to another client has succeeded.
      */
     private void onConnection() {
+        disconnectNotified = false;
         sendNetworkMessage(new NetworkMessage(HostStatus.CONNECTED));
     }
 
@@ -453,11 +539,11 @@ public class MainMenu extends Application {
      * @param receivedEvent The event of the received data.
      */
     public void messageReceived(ReceivedDataEvent receivedEvent) {
+        // Determine if some of the data should be passed to the current game.
+        final boolean shouldSendToGame = currentGame != null && currentGame.isNetworkGame();
         if (receivedEvent == ReceivedDataEvent.RECEIVED_DATA) {
             while (PartyHandler.hasIncomingMessages()) {
                 NetworkMessage receivedMessage = PartyHandler.pollIncoming();
-                // Determine if some of the data should be passed to the current game.
-                final boolean shouldSendToGame = currentGame != null && currentGame.isNetworkGame();
 
                 switch (receivedMessage.getHostStatus()) {
                     case IN_GAME:
@@ -466,9 +552,7 @@ public class MainMenu extends Application {
                         }
                         break;
                     case DISCONNECTING:
-                        if (shouldSendToGame) {
-                            currentGame.getNetworkPlayer().hostDisconnecting();
-                        }
+                        remotePlayerDisconnecting(shouldSendToGame);
                         break;
                     case PENDING_GAME_INVITE:
                         // If the user accepts the game invite, we need to do certain things.
@@ -492,11 +576,36 @@ public class MainMenu extends Application {
                         Alert declineAlert = new Alert(Alert.AlertType.INFORMATION, String.format("%s declined your invite to play. To play solo disconnect from the party.", receivedMessage.getHostName()), ButtonType.OK);
                         declineAlert.showAndWait();
                         break;
+                    case CONNECTED:
+                        // When we receive the connected signal from the other client, let's get their name and display it.
+                        showNotification(Alert.AlertType.INFORMATION, String.format("Connected to %s", receivedMessage.getHostName()));
+                        break;
                     default:
                         break;
                 }
             }
+        } else if (receivedEvent == ReceivedDataEvent.DISCONNECTED) {
+            remotePlayerDisconnecting(shouldSendToGame);
         }
+    }
+
+    /**
+     * Called when the remote player disconnects.
+     *
+     * @param shouldSendToGame True to send the information to the game, false otherwise.
+     */
+    private void remotePlayerDisconnecting(boolean shouldSendToGame) {
+        if (shouldSendToGame) {
+            currentGame.getNetworkPlayer().hostDisconnecting();
+        }
+        // If we don't send data to the game, the main menu should be expected to handle notification.
+        else {
+            if (!disconnectNotified) {
+                disconnectNotified = true;
+                showNotification(Alert.AlertType.WARNING, "Disconnected", "Remote player disconnected.");
+            }
+        }
+        disconnect(false);
     }
 
     /**
@@ -547,6 +656,47 @@ public class MainMenu extends Application {
             }
         }
         return foundGame;
+    }
+
+    /**
+     * Shows a notification with the given title and text.
+     *
+     * @param type    The type of notification to be shown.
+     * @param title   The title of the notification.
+     * @param content The notification's content text.
+     */
+    public static void showNotification(Alert.AlertType type, final String title, final String content) {
+        Notifications notifications = Notifications.create();
+        notifications.title(title);
+        notifications.text(content);
+
+        switch (type) {
+            case ERROR:
+                notifications.showError();
+                break;
+            case INFORMATION:
+                notifications.showInformation();
+                break;
+            case WARNING:
+                notifications.showWarning();
+                break;
+            case CONFIRMATION:
+                notifications.showConfirm();
+                break;
+            default:
+                notifications.show();
+                break;
+        }
+    }
+
+    /**
+     * Shows a notification with the given title and text.
+     *
+     * @param type    The type of notification to be shown.
+     * @param content The notification's content text.
+     */
+    public static void showNotification(Alert.AlertType type, final String content) {
+        showNotification(type, "", content);
     }
 
     /**

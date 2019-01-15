@@ -1,6 +1,7 @@
 package games.pong.players;
 
 import games.player.NetworkPlayer;
+import games.pong.EndReason;
 import games.pong.Pong;
 import games.pong.PongEvent;
 import games.pong.network.PongNetworkMessage;
@@ -9,8 +10,9 @@ import games.pong.pieces.PongBall;
 import games.pong.pieces.Side;
 import network.party.network.NetworkMessage;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 /**
  * Represents a network player of the pong game.
@@ -22,18 +24,35 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
     private Pong game;
     private Side side;
     private int score;
+    // Name of the other host.
+    private String hostName;
+
+    private static final PongEvent.EventType[] EVENT_FILTER = {
+            PongEvent.EventType.BALL_HIT_PADDLE,
+            PongEvent.EventType.GAME_BEGUN,
+            PongEvent.EventType.GAME_ENDED,
+            PongEvent.EventType.GAME_READY,
+            PongEvent.EventType.PADDLE_MOVED_DOWN,
+            PongEvent.EventType.PADDLE_MOVED_UP,
+            PongEvent.EventType.PADDLE_STOPPED,
+            PongEvent.EventType.PLAYER_SCORED
+    };
+    private final List<PongEvent.EventType> typeFilter;
+
     /**
      * Set to true if the other player has entered the game, false otherwise.
      */
     private boolean otherPlayerBeganGame;
 
-    @Override
-    public void setOnActionChanged(BiConsumer<PongPlayer, Action> listener) {
-
+    /**
+     * Initializes a new pong network player.
+     */
+    public PongNetworkPlayer() {
+        typeFilter = Arrays.asList(EVENT_FILTER);
     }
 
     @Override
-    public void setOnPause(Consumer<PongPlayer> action) {
+    public void setOnActionChanged(BiConsumer<PongPlayer, Action> listener) {
 
     }
 
@@ -45,11 +64,6 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
     @Override
     public void setSide(Side side) {
         this.side = side;
-    }
-
-    @Override
-    public void addPoint() {
-        score++;
     }
 
     @Override
@@ -69,6 +83,11 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
 
     }
 
+    @Override
+    public String getName() {
+        return hostName;
+    }
+
     /**
      * Receives network data from the other player.
      *
@@ -77,23 +96,26 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
     @Override
     public void receiveData(NetworkMessage data) {
         final PongNetworkMessage gameData = PongNetworkMessage.fromJsonString(data.getGameData());
-        final long timeBetweenTickAndNetwork = Math.max(game.getLastTickTime() - gameData.getNanoTimeSent(), 0);
+        final long timeBetweenTickAndNetwork = Math.max(getTimeStamp() - gameData.timestamp(), 0);
 
-        // If the other player has started, let's start too.
-        if (gameData.isInGame() && gameData.getTriggeringEvent() == PongEvent.EventType.GAME_BEGUN && !otherPlayerBeganGame) {
+        hostName = data.getHostName();
+        final PongEvent.EventType triggeringEvent = gameData.getTriggeringEvent();
+        // If the other player has started, let's start too, but only if we didn't already start.
+        if (gameData.isInGame() && triggeringEvent == PongEvent.EventType.GAME_BEGUN && !otherPlayerBeganGame
+                && !game.hasBegun()) {
             game.begin();
-            game.setPause(gameData.getUnpauseTime());
             otherPlayerBeganGame = true;
-        } else if (gameData.getTriggeringEvent() == PongEvent.EventType.GAME_READY) {
+        } else if (triggeringEvent == PongEvent.EventType.GAME_READY) {
             game.begin();
             otherPlayerBeganGame = false;
         }
         // The other machine will let us know when their local player was scored on (meaning our local player scored).
-        else if (gameData.getTriggeringEvent() == PongEvent.EventType.PLAYER_SCORED &&
-                gameData.getLocalPlayerScore() == getPoints() &&
-                gameData.getUnpauseTime() != 0) {
+        else if (triggeringEvent == PongEvent.EventType.PLAYER_SCORED &&
+                gameData.getLocalPlayerScore() == getPoints()) {
             game.playerScored(game.getLocalPlayer(), gameData.getNetworkPlayerScore());
-            game.setPause(gameData.getUnpauseTime());
+        } else if (triggeringEvent == PongEvent.EventType.GAME_ENDED) {
+            // If the remote player ended the game, we need to notify this player.
+            game.end(EndReason.PLAYER_END);
         }
 
         // If the other client just hit the ball with the paddle, listen to them entirely.
@@ -112,11 +134,11 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
         gamePaddle.setY(networkPaddle.getY());
         gamePaddle.setVelX(networkPaddle.getVelX());
         gamePaddle.setVelY(networkPaddle.getVelY());
-        gamePaddle.renderTick(timeBetweenTickAndNetwork);
     }
 
     @Override
     public void hostDisconnecting() {
+        game.end(EndReason.PLAYER_DISCONNECT);
     }
 
 
@@ -126,40 +148,41 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
      * @param changeEvent The change event.
      */
     private void gameUpdated(PongEvent changeEvent) {
-        PongNetworkMessage message = new PongNetworkMessage(System.nanoTime());
-        PongPlayer localPlayer = game.getLocalPlayer();
+        if (typeFilter.contains((changeEvent.getType()))) {
+            PongNetworkMessage message = new PongNetworkMessage(getTimeStamp());
+            PongPlayer localPlayer = game.getLocalPlayer();
 
-        message.setTriggeringEvent(changeEvent.getType());
-        message.setLocalPlayerScore(localPlayer.getPoints());
-        message.setNetworkPlayerScore(getPoints());
-        message.setBall(game.getBall());
-        message.setLocalPlayerPaddle(game.getPaddle(localPlayer));
-        message.setInGame(true);
+            message.setTriggeringEvent(changeEvent.getType());
+            message.setLocalPlayerScore(localPlayer.getPoints());
+            message.setNetworkPlayerScore(getPoints());
+            message.setBall(game.getBall());
+            message.setLocalPlayerPaddle(game.getPaddle(localPlayer));
+            message.setInGame(true);
 
-        // If the player just scored, send the unpause time in the message.
-        switch (changeEvent.getType()) {
-            case PLAYER_SCORED:
-                /* Only do stuff if the player that was scored on was the local player
-                (i.e the person who scored was not the local player). */
-                if (!changeEvent.getPlayer().equals(localPlayer)) {
-                    message.setUnpauseTime(game.getUnpauseTime());
-                }
-                break;
-            case GAME_BEGUN:
-                // Only notify the other player that the game has started it they didn't already start.
-                if (!otherPlayerBeganGame) {
-                    message.setUnpauseTime(game.getUnpauseTime());
-                }
-                break;
-            default:
-                break;
+            // If the local player just hit the paddle, set that up in the message.
+            message.setBallHitPaddle(changeEvent.getType() == PongEvent.EventType.BALL_HIT_PADDLE &&
+                    changeEvent.getPaddle().getSide() == localPlayer.getSide());
+
+            final String sending = message.toJson();
+            // Send the data as a last step.
+            gameDataListener.accept(sending);
         }
+    }
 
-        // If the local player just hit the paddle, set that up in the message.
-        message.setBallHitPaddle(changeEvent.getType() == PongEvent.EventType.BALL_HIT_PADDLE &&
-                changeEvent.getPaddle().getSide() == localPlayer.getSide());
+    /**
+     * Gets the timestamp to be used in network calls.
+     * @return The timestamp to be used in network calls.
+     */
+    private static long getTimeStamp() {
+        return System.currentTimeMillis() / 1000L;
+    }
 
-        // Send the data as a last step.
-        this.gameDataListener.accept(message.toJson());
+    /**
+     * Converts a timestamp difference into nanoseconds.
+     * @param timestamp The timestamp to be converted.
+     * @return The nanoseconds, approximately.
+     */
+    private static long timeStampToNanoSeconds(long timestamp) {
+        return timestamp / 1000000000L; // Seconds / 1E9 = nanoseconds.
     }
 }

@@ -100,14 +100,14 @@ public class Scoreboard extends Group {
     public void setRightScore(final int score) {
         rightScore.setText(String.valueOf(score));
     }
-    
+
     /**
      * sets font of text based on a scalefactor
      *
      * @param scaleFactor The scale factor.
      */
     public void changeSize(final double scaleFactor) {
-    	leftScore.setStyle("-fx-font: " + Math.round(DEFAULT_FONT_SIZE * scaleFactor) + " Bit5x3;");
-    	rightScore.setStyle("-fx-font: " + Math.round(DEFAULT_FONT_SIZE * scaleFactor) + " Bit5x3;");
+        leftScore.setStyle("-fx-font: " + Math.round(DEFAULT_FONT_SIZE * scaleFactor) + " Bit5x3;");
+        rightScore.setStyle("-fx-font: " + Math.round(DEFAULT_FONT_SIZE * scaleFactor) + " Bit5x3;");
     }
 }

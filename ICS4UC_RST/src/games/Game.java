@@ -6,6 +6,8 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.Region;
 import javafx.scene.text.Text;
 
+import java.util.function.Consumer;
+
 /**
  * Enforces structure for games of all sort.
  *
@@ -22,13 +24,6 @@ public interface Game {
      * Ends the game.
      */
     void end();
-
-    /**
-     * Gets the score data from this game.
-     *
-     * @return The Score data.
-     */
-    Score getScore();
 
     /**
      * Gets the cover image for the
@@ -93,4 +88,17 @@ public interface Game {
      * @return The game's scene.
      */
     Scene getWorkingScene();
+
+    /**
+     * Sets a listener to be notified when the game ends.
+     *
+     * @param endListener The end game listener.
+     */
+    void setOnEnd(Consumer<Game> endListener);
+
+    /**
+     * Gets help text for the game.
+     * @return The help string for the game.
+     */
+    String getHelpText();
 }

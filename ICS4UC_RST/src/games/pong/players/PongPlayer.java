@@ -4,7 +4,6 @@ import games.pong.Pong;
 import games.pong.pieces.Side;
 
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 /**
  * Represents a player in the game of pong, whether it be a network (online) player, a physical player or a bot.
@@ -21,13 +20,6 @@ public interface PongPlayer {
     void setOnActionChanged(BiConsumer<PongPlayer, Action> listener);
 
     /**
-     * Sets an action to be called when the player attempts to pause the game.
-     *
-     * @param action The action function to be called when the event occurs.
-     */
-    void setOnPause(Consumer<PongPlayer> action);
-
-    /**
      * Gets the side on which this pong player is.
      *
      * @return {@link games.pong.pieces.Side#LEFT} or {@link games.pong.pieces.Side#RIGHT}.
@@ -40,11 +32,6 @@ public interface PongPlayer {
      * @param side {@link games.pong.pieces.Side#LEFT} or {@link games.pong.pieces.Side#RIGHT}.
      */
     void setSide(Side side);
-
-    /**
-     * Adds a point to this player's score.
-     */
-    void addPoint();
 
 
     /**
@@ -67,4 +54,11 @@ public interface PongPlayer {
      * @param game The game to which the player belongs.
      */
     void setGame(Pong game);
+
+    /**
+     * Gets the name of the player.
+     *
+     * @return The name of the player.
+     */
+    String getName();
 }

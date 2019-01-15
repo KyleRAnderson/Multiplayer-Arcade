@@ -5,11 +5,12 @@ import games.player.PongKeyBinding;
 import games.pong.Pong;
 import games.pong.pieces.Side;
 import javafx.scene.input.KeyCode;
+import network.party.PartyHandler;
+import preferences.Preferences;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 public class PongKeyboardPlayer extends KeyboardPlayer<PongKeyBinding> implements PongPlayer {
     private Side side;
     private int points;
+    private String playerName;
 
     public PongKeyboardPlayer() {
     }
@@ -28,11 +30,15 @@ public class PongKeyboardPlayer extends KeyboardPlayer<PongKeyBinding> implement
     @Override
     public void setSide(Side side) {
         this.side = side;
-    }
-
-    @Override
-    public void addPoint() {
-        points++;
+        if (PartyHandler.isConnected()) {
+            playerName = Preferences.getInstance().getHostName();
+        } else if (getSide() == Side.RIGHT) {
+            playerName = "Right Player";
+        } else if (getSide() == Side.LEFT) {
+            playerName = "Left Player";
+        } else {
+            playerName = "unknown";
+        }
     }
 
     @Override
@@ -50,13 +56,13 @@ public class PongKeyboardPlayer extends KeyboardPlayer<PongKeyBinding> implement
     }
 
     @Override
-    public Side getSide() {
-        return this.side;
+    public String getName() {
+        return playerName;
     }
 
     @Override
-    public void setOnPause(Consumer<PongPlayer> action) {
-
+    public Side getSide() {
+        return this.side;
     }
 
     // The listener for when the action changes.

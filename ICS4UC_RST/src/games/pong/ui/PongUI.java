@@ -3,6 +3,7 @@ package games.pong.ui;
 import games.Game;
 import games.Score;
 import games.player.PongKeyBinding;
+import games.pong.EndReason;
 import games.pong.Pong;
 import games.pong.PongEvent;
 import games.pong.pieces.Paddle;
@@ -14,8 +15,10 @@ import games.pong.players.PongNetworkPlayer;
 import games.pong.players.PongPlayer;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -31,6 +34,7 @@ import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
+import menu.MainMenu;
 import network.party.PartyHandler;
 import network.party.PartyRole;
 
@@ -40,6 +44,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -52,6 +57,8 @@ public class PongUI extends Pane implements Game {
 
     private static final double
             FPS = 60; // Frames per second
+    private static final String HELP_TEXT = "Press the up and down arrows to move your player (or the q and a keys for local multiplayer)\n" +
+            "End the game by pressing the escape key repeatedly.";
 
     private final Scene scene;
 
@@ -69,8 +76,17 @@ public class PongUI extends Pane implements Game {
 
 
     // Font used around the UI.
-    private Font FONT = Font.font("Bit5x3", FontWeight.BOLD, FontPosture.REGULAR, 80);
+    private static final Font FONT = Font.font("Bit5x3", FontWeight.BOLD, FontPosture.REGULAR, 80);
     private static final Paint BACKGROUND_COLOUR = Color.BLACK, FOREGROUND_COLOUR = Color.WHITE;
+    /**
+     * Key used to end the game.
+     */
+    private static final KeyCode END_GAME_KEYCODE = KeyCode.ESCAPE;
+    /**
+     * The time period in which the player must hit the end key to end the game.
+     */
+    private static final long END_KEY_MILLISECONDS = 3000;
+    private static final int END_KEY_NUMBER_PRESSES = 3;
     private Pong game;
     // How much the units in the pong game backend are scaled to make a nice looking UI.
     private double scaleFactor;
@@ -88,17 +104,28 @@ public class PongUI extends Pane implements Game {
     private Timeline renderFrameTimer;
 
     // Used for keeping track of the keys that are being pressed down so we don't repeat calls.
-    private final ArrayList<KeyCode> keysDown = new ArrayList<KeyCode>();
+    private final ArrayList<KeyCode> keysDown = new ArrayList<>();
 
     // List of the keyboard players in this game.
     private final ArrayList<PongKeyboardPlayer> keyboardPlayerList = new ArrayList<>();
     private final ArrayList<KeyCode> keyCodesWeCareAbout = new ArrayList<>();
+    /**
+     * Listener for when the game ends.
+     */
+    private Consumer<Game> endGameListener;
+
+    /*
+    We want to make it so that if the player presses the end key END_KEY_NUMBER_PRESSES times in END_KEY_MILLISECONDS
+    milliseconds, the game quits.
+     */
+    private Long[] endKeyPressTimes = new Long[END_KEY_NUMBER_PRESSES];
 
     /**
      * Constructs a new PongUI with the given width and height and Game object.
      */
     public PongUI() {
         this.scene = new Scene(this);
+
         // Set the background to the proper background colour.
         setBackground(new Background(new BackgroundFill(BACKGROUND_COLOUR, CornerRadii.EMPTY, Insets.EMPTY)));
         // Reset and set up game.
@@ -188,7 +215,9 @@ public class PongUI extends Pane implements Game {
      */
     private void keyPressed(KeyEvent event) {
         KeyCode keyDown = event.getCode();
-        if (!keysDown.contains(keyDown)) {
+        if (keyDown.equals(END_GAME_KEYCODE)) {
+            endGameKeyPressed();
+        } else if (!keysDown.contains(keyDown)) {
             keysDown.add(keyDown);
             updatePlayerKeys();
         }
@@ -209,12 +238,37 @@ public class PongUI extends Pane implements Game {
      * Updates the players on which keys are being pressed down.
      */
     private void updatePlayerKeys() {
-        List<KeyCode> goodKeys = keysDown.stream().filter(keyCode -> keyCodesWeCareAbout.contains(keyCode)).collect(Collectors.toList());
+        List<KeyCode> goodKeys = keysDown.stream().filter(keyCodesWeCareAbout::contains).collect(Collectors.toList());
         if (game.getLocalPlayer() instanceof PongKeyboardPlayer) {
             ((PongKeyboardPlayer) game.getLocalPlayer()).setKeysDown(goodKeys);
         }
         if (game.getPlayer2() instanceof PongKeyboardPlayer) {
             ((PongKeyboardPlayer) game.getPlayer2()).setKeysDown(goodKeys);
+        }
+    }
+
+    /**
+     * Called when the end key is pressed.
+     */
+    private void endGameKeyPressed() {
+        shiftAndAppend(endKeyPressTimes, System.currentTimeMillis());
+
+        // If the second element is null, the player needs some encouragement.
+        if (endKeyPressTimes[endKeyPressTimes.length - 2] == null) {
+            showNotification(Alert.AlertType.INFORMATION, String.format("Continue pressing %s to quit the game.", END_GAME_KEYCODE.getName()));
+        }
+
+        checkEnd();
+    }
+
+    /**
+     * Checks to see if the player wishes to end the game.
+     */
+    private void checkEnd() {
+        if ((endKeyPressTimes[endKeyPressTimes.length - 1] != null)
+                && (endKeyPressTimes[0] != null)
+                && ((endKeyPressTimes[endKeyPressTimes.length - 1] - endKeyPressTimes[0]) <= END_KEY_MILLISECONDS)) {
+            game.end(EndReason.PLAYER_END);
         }
     }
 
@@ -342,11 +396,25 @@ public class PongUI extends Pane implements Game {
     @Override
     public void end() {
         renderFrameTimer.stop();
-    }
 
-    @Override
-    public Score getScore() {
-        return null;
+        // If the game ended because of player disconnect, notify the user.
+        switch (game.getEndReason()) {
+            case PLAYER_DISCONNECT:
+                showNotification(Alert.AlertType.ERROR, "Game ended because player disconnected.");
+                break;
+            case PLAYER_END:
+                showNotification(Alert.AlertType.INFORMATION, "Game was ended by a player.");
+                break;
+            case SCORE_LIMIT_REACHED:
+                Alert alert = new Alert(Alert.AlertType.INFORMATION, String.format("%s won the game!", game.getWinner().getName()));
+                alert.showAndWait();
+                break;
+            default:
+                showNotification(Alert.AlertType.ERROR, "Game ended for some unknown reason.");
+                break;
+        }
+
+        endGameListener.accept(this);
     }
 
     @Override
@@ -407,6 +475,9 @@ public class PongUI extends Pane implements Game {
             SfxPongPlayer.playHitPaddle();
         } else if (type == PongEvent.EventType.BALL_HIT_BOTTOM_WALL || type == PongEvent.EventType.BALL_HIT_TOP_WALL) {
             SfxPongPlayer.playHitWall();
+        } else if (type == PongEvent.EventType.GAME_ENDED) {
+            // We want this to run after everything else, so set this to Platform.runLater
+            Platform.runLater(this::end);
         }
     }
 
@@ -500,6 +571,16 @@ public class PongUI extends Pane implements Game {
         return this.scene;
     }
 
+    @Override
+    public void setOnEnd(Consumer<Game> endListener) {
+        this.endGameListener = endListener;
+    }
+
+    @Override
+    public String getHelpText() {
+        return HELP_TEXT;
+    }
+
     /**
      * Sets up key bindings for the given player.
      *
@@ -539,5 +620,42 @@ public class PongUI extends Pane implements Game {
             player = (PongNetworkPlayer) game.getPlayer2();
         }
         return player;
+    }
+
+    /**
+     * Shifts the elements in {@code elementsToAppend} into {@code array}.
+     * Basically, this maintains the size of the array while appending the elements,
+     * thereby deleting some of the first couple of items in the array.
+     *
+     * @param array            The array for the elements to be shifted (appended) to.
+     * @param elementsToAppend The elements to append.
+     * @param <T>              The type of the elements in the array.
+     */
+    @SafeVarargs
+    private static <T> void shiftAndAppend(T[] array, T... elementsToAppend) {
+        if (elementsToAppend.length >= array.length) {
+            for (int i = 0; i < array.length; i++) {
+                array[i] = elementsToAppend[elementsToAppend.length - i];
+            }
+        } else {
+            // First shift.
+            for (int i = elementsToAppend.length; i < array.length; i++) {
+                array[i - elementsToAppend.length] = array[i];
+            }
+            // Then append.
+            for (int i = 0; i < elementsToAppend.length; i++) {
+                array[array.length - i - 1] = elementsToAppend[i];
+            }
+        }
+    }
+
+
+    /**
+     * Shows a notification.
+     *
+     * @param contentText The text to be displayed on the notification.
+     */
+    private void showNotification(Alert.AlertType type, final String contentText) {
+        MainMenu.showNotification(type, contentText);
     }
 }
