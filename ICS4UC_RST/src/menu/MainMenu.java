@@ -16,6 +16,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.*;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.util.Duration;
 import network.Server;
 import network.TCPSocket;
@@ -433,6 +434,7 @@ public class MainMenu extends Application {
     private void showHelp() {
         // Simply show the help text to the user.
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.initStyle(StageStyle.UTILITY);
         alert.setTitle("Help");
         alert.setHeaderText("Arcade Quick Start");
         alert.setContentText(helpText);
