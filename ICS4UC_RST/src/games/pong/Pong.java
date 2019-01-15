@@ -34,7 +34,7 @@ public class Pong {
     // Velocity of the pong ball in units per second.
     public static final double PONG_BALL_VELOCITY = 250;
     // How many milliseconds to pause after a player scores.
-    private static final long SCORE_PAUSE = 3000;
+    private static final long SCORE_PAUSE = 3000; // Set score pause to 3 seconds.
     /**
      * Number of points needed to win.
      */
@@ -67,7 +67,7 @@ public class Pong {
     private boolean readyNotified;
 
     /**
-     * The time at which the pause should end.
+     * The time at which the pause should end, in milliseconds.
      */
     private long unpauseTime;
 
@@ -297,8 +297,8 @@ public class Pong {
      */
     public void renderTick() {
         long tempLastTick = lastTickTime;
-        lastTickTime = System.nanoTime();
-        final long timeSinceLastTick = (tempLastTick > 0) ? System.nanoTime() - tempLastTick : 0;
+        lastTickTime = System.nanoTime(); // Set last tick time to now.
+        final long timeSinceLastTick = (tempLastTick > 0) ? lastTickTime - tempLastTick : 0;
         renderTick(timeSinceLastTick);
     }
 
@@ -776,10 +776,10 @@ public class Pong {
     /**
      * Sets a pause corresponding to the specified number of milliseconds.
      *
-     * @param millisecondPause The number of milliseconds to pause for. -1 for infinite pause.
+     * @param millisecondsPause The number of milliseconds to pause for. -1 for infinite pause.
      */
-    public void setPauseDuration(long millisecondPause) {
-        this.unpauseTime = System.currentTimeMillis() + millisecondPause;
+    public void setPauseDuration(long millisecondsPause) {
+        setPause(System.currentTimeMillis() + millisecondsPause);
     }
 
     /**
@@ -798,17 +798,17 @@ public class Pong {
      */
     private boolean checkPause() {
         boolean paused = System.currentTimeMillis() < unpauseTime || unpauseTime < 0;
-        if (!paused && lastTickTime < unpauseTime) {
-            lastTickTime = unpauseTime;
+        if (!paused) {
+            lastTickTime = System.nanoTime(); // Update the last tick time now too.
         }
 
         return paused;
     }
 
     /**
-     * Gets the time (in milliseconds) at which the game will unpause. -1 for infinite.
+     * Gets the time (in nanoseconds) at which the game will unpause. -1 for infinite.
      *
-     * @return The unpause time, in milliseconds.
+     * @return The unpause time, in nanoseconds.
      */
     public long getUnpauseTime() {
         return unpauseTime;

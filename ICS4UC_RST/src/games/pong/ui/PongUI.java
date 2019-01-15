@@ -57,6 +57,8 @@ public class PongUI extends Pane implements Game {
 
     private static final double
             FPS = 60; // Frames per second
+    private static final String HELP_TEXT = "Press the up and down arrows to move your player (or the q and a keys for local multiplayer)\n" +
+            "End the game by pressing the escape key repeatedly.";
 
     private final Scene scene;
 
@@ -74,7 +76,7 @@ public class PongUI extends Pane implements Game {
 
 
     // Font used around the UI.
-    private Font FONT = Font.font("Bit5x3", FontWeight.BOLD, FontPosture.REGULAR, 80);
+    private static final Font FONT = Font.font("Bit5x3", FontWeight.BOLD, FontPosture.REGULAR, 80);
     private static final Paint BACKGROUND_COLOUR = Color.BLACK, FOREGROUND_COLOUR = Color.WHITE;
     /**
      * Key used to end the game.
@@ -416,11 +418,6 @@ public class PongUI extends Pane implements Game {
     }
 
     @Override
-    public Score getScore() {
-        return null;
-    }
-
-    @Override
     public Image getCoverArt() {
         //noinspection SpellCheckingInspection
         return new Image(getClass().getResource("/res/pong/images/coverart.png").toString());
@@ -577,6 +574,11 @@ public class PongUI extends Pane implements Game {
     @Override
     public void setOnEnd(Consumer<Game> endListener) {
         this.endGameListener = endListener;
+    }
+
+    @Override
+    public String getHelpText() {
+        return HELP_TEXT;
     }
 
     /**

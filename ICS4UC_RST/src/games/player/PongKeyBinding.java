@@ -10,19 +10,12 @@ import javafx.scene.input.KeyCode;
  * ICS4U RST
  */
 public enum PongKeyBinding implements KeyBinding {
-    MOVE_UP("Paddle Move Up", KeyCode.UP), MOVE_DOWN("Paddle Move Down", KeyCode.DOWN);
+    MOVE_UP("Paddle Move Up"), MOVE_DOWN("Paddle Move Down");
 
-    private final KeyCode key;
     private final String name;
 
-    PongKeyBinding(String name, KeyCode key) {
+    PongKeyBinding(String name) {
         this.name = name;
-        this.key = key;
-    }
-
-    @Override
-    public KeyCode getKey() {
-        return this.key;
     }
 
     @Override

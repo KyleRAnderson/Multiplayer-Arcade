@@ -16,7 +16,7 @@ public class PongNetworkMessage {
 
 
     // Time at which this data was calculated.
-    private long nanoTimeSent;
+    private long timestampSent;
     private Paddle localPlayerPaddle;
     private PongBall ball;
     // True if the ball hit the paddle and bounced off, false otherwise.
@@ -29,35 +29,30 @@ public class PongNetworkMessage {
     private boolean isInGame;
 
     /**
-     * An unpause time that this client has set.
-     */
-    private long unpauseTime;
-
-    /**
      * Instantiates a new PongNetworkMessage object with the given time in nanoseconds.
      *
-     * @param nanoTime The time (in nanoseconds) that the frame was rendered.
+     * @param millisTime The time (in milliseconds) that the frame was rendered.
      */
-    public PongNetworkMessage(long nanoTime) {
-        setNanoTimeSent(nanoTime);
+    public PongNetworkMessage(long millisTime) {
+        setTimestampSent(millisTime);
     }
 
     /**
-     * Gets the time (in nanosecond) at which this data was calculated and sent.
+     * Gets the time (in milliseconds) at which this data was calculated and sent.
      *
-     * @return The time (in nanoseconds) at which the data was calculated (when frame was rendered).
+     * @return The time (in milliseconds) at which the data was calculated (when frame was rendered).
      */
-    public long getNanoTimeSent() {
-        return nanoTimeSent;
+    public long timestamp() {
+        return timestampSent;
     }
 
     /**
      * Sets the time (in nanosecond) at which this data was calculated and sent.
      *
-     * @param nanoTimeSent The time (in nanoseconds) at which the data was calculated (when frame was rendered).
+     * @param timestampSent The time (in nanoseconds) at which the data was calculated (when frame was rendered).
      */
-    public void setNanoTimeSent(long nanoTimeSent) {
-        this.nanoTimeSent = nanoTimeSent;
+    public void setTimestampSent(long timestampSent) {
+        this.timestampSent = timestampSent;
     }
 
     /**
@@ -149,24 +144,6 @@ public class PongNetworkMessage {
      */
     public void setTriggeringEvent(PongEvent.EventType triggeringEvent) {
         this.triggeringEvent = triggeringEvent;
-    }
-
-    /**
-     * Gets the time at which the sender game will unpause.
-     *
-     * @return The unpause time, in milliseconds. -1 for infinite.
-     */
-    public long getUnpauseTime() {
-        return unpauseTime;
-    }
-
-    /**
-     * Sets the time at which the sender game will unpause.
-     *
-     * @param unpauseTime The unpause time, in milliseconds. -1 for infinite.
-     */
-    public void setUnpauseTime(long unpauseTime) {
-        this.unpauseTime = unpauseTime;
     }
 
     /**
