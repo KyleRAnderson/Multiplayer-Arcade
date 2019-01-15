@@ -29,7 +29,7 @@ public class PongEvent {
         PLAYER_SCORED,
         GAME_BEGUN,
         GAME_ENDED,
-        GAME_READY;
+        GAME_READY
     }
 
     /**

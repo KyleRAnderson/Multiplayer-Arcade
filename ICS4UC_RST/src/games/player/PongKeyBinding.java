@@ -1,7 +1,6 @@
 package games.player;
 
 import games.KeyBinding;
-import javafx.scene.input.KeyCode;
 
 /**
  * The default key bindings for the game of pong, which can be reset if necessary.

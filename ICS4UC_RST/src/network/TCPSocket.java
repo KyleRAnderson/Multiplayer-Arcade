@@ -1,7 +1,9 @@
 package network;
 
 import java.io.*;
+import java.net.InetAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 
 /**
  * @author s405751 (Nicolas Hawrysh)
@@ -105,5 +107,15 @@ public class TCPSocket {
         if (pwOut != null) {
             pwOut.close();
         }
+    }
+
+    /**
+     * Method to get the local hostname
+     *
+     * @return the local hostname
+     * @throws UnknownHostException if there is no name
+     */
+    public static String getLocalHostName() throws UnknownHostException {
+        return InetAddress.getLocalHost().getHostName();
     }
 }

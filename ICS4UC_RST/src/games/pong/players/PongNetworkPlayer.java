@@ -171,6 +171,7 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
 
     /**
      * Gets the timestamp to be used in network calls.
+     *
      * @return The timestamp to be used in network calls.
      */
     private static long getTimeStamp() {
@@ -179,6 +180,7 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
 
     /**
      * Converts a timestamp difference into nanoseconds.
+     *
      * @param timestamp The timestamp to be converted.
      * @return The nanoseconds, approximately.
      */

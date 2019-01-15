@@ -25,6 +25,7 @@ import network.party.network.NetworkMessage;
 import network.party.network.ReceivedDataEvent;
 import org.controlsfx.control.Notifications;
 import preferences.Preferences;
+import preferences.PreferencesMenu;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -443,14 +444,8 @@ public class MainMenu extends Application {
      * Displays the user preferences menu.
      */
     private void displayPreferences() {
-        // TODO the code below is all temporary, eventually will make real preferences.
-        TextInputDialog inputDialog = new TextInputDialog(Preferences.getInstance().getHostName());
-        inputDialog.setHeaderText("Preferences");
-        inputDialog.setTitle("Preferences");
-        inputDialog.setContentText("User Name: ");
-        Optional<String> result = inputDialog.showAndWait();
-
-        result.ifPresent(s -> Preferences.getInstance().setHostName(s));
+        PreferencesMenu menu =  new PreferencesMenu();
+        menu.showAndWait();
     }
 
     /**
