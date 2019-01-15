@@ -131,7 +131,7 @@ public class MainMenu extends Application {
     private void initializeElements() {
         stage.setTitle("Arcade");
         // Nice icon for the game.
-        stage.getIcons().add(WINDOW_ICON);
+        setIcon(stage);
 
         menuRoot = new GridPane();
 
@@ -446,7 +446,7 @@ public class MainMenu extends Application {
      * Displays the user preferences menu.
      */
     private void displayPreferences() {
-        PreferencesMenu menu =  new PreferencesMenu();
+        PreferencesMenu menu = new PreferencesMenu();
         menu.showAndWait();
     }
 
@@ -576,8 +576,7 @@ public class MainMenu extends Application {
                         break;
                     case DECLINED_GAME_INVITE:
                         // Show the user an error about the game invitation.
-                        Alert declineAlert = new Alert(Alert.AlertType.INFORMATION, String.format("%s declined your invite to play. To play solo disconnect from the party.", receivedMessage.getHostName()), ButtonType.OK);
-                        declineAlert.showAndWait();
+                        showNotification(Alert.AlertType.INFORMATION, String.format("%s declined your invite to play. To play solo disconnect from the party.", receivedMessage.getHostName()));
                         break;
                     case CONNECTED:
                         // When we receive the connected signal from the other client, let's get their name and display it.
@@ -634,6 +633,7 @@ public class MainMenu extends Application {
         boolean userAccepted = false;
         if (game != null) {
             Alert inviteAlert = new Alert(Alert.AlertType.CONFIRMATION, String.format("%s has invited you to play %s. Do you accept?", otherPlayerName, game.getName()), YES, ButtonType.NO);
+            setIcon((Stage) inviteAlert.getDialogPane().getScene().getWindow());
             Optional<ButtonType> result = inviteAlert.showAndWait();
             if (result.isPresent()) {
                 ButtonType type = result.get();
@@ -709,5 +709,14 @@ public class MainMenu extends Application {
      */
     public static void main(String[] args) {
         launch(args);
+    }
+
+    /**
+     * Sets the proper icon for the stage.
+     *
+     * @param stage The stage for which the icon should be set.
+     */
+    public static void setIcon(Stage stage) {
+        stage.getIcons().add(WINDOW_ICON);
     }
 }
