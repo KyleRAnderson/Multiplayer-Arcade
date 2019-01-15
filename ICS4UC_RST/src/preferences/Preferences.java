@@ -1,6 +1,9 @@
 package preferences;
 
+import network.TCPSocket;
+
 import java.io.IOException;
+import java.net.UnknownHostException;
 
 /**
  * Utility class for a singleton object for modifying preferences.
@@ -55,8 +58,12 @@ public class Preferences {
      *
      * @throws IOException if there is trouble accessing/reading the file.
      */
-    public void save() throws IOException {
-        DataHandler.save(this);
+    public void save() {
+        try {
+            DataHandler.save(this);
+        } catch (IOException e) {
+            System.err.println("Saving data failed.");
+        }
     }
 
 
@@ -69,6 +76,15 @@ public class Preferences {
         } catch (IOException e) {
             // If we fail to load, then assume there's nothing to load and go with blank preferences.
             currentInstance = new Preferences();
+        }
+
+        // If the host name isn't initialized, set it to the default.
+        if (currentInstance.getHostName() == null || currentInstance.getHostName().isEmpty()) {
+            try {
+                currentInstance.setHostName(TCPSocket.getLocalHostName());
+            } catch (UnknownHostException e) {
+                System.err.println("Failed to get local host name.");
+            }
         }
     }
 }

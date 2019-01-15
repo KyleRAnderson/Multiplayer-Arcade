@@ -444,7 +444,8 @@ public class MainMenu extends Application {
      * Displays the user preferences menu.
      */
     private void displayPreferences() {
-    	new PreferencesMenu();
+        PreferencesMenu menu =  new PreferencesMenu();
+        menu.showAndWait();
     }
 
     /**

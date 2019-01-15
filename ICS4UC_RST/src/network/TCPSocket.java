@@ -108,7 +108,7 @@ public class TCPSocket {
             pwOut.close();
         }
     }
-    
+
     /**
      * Method to get the local hostname
      *
@@ -116,6 +116,6 @@ public class TCPSocket {
      * @throws UnknownHostException if there is no name
      */
     public static String getLocalHostName() throws UnknownHostException {
-    	return InetAddress.getLocalHost().getHostName();
+        return InetAddress.getLocalHost().getHostName();
     }
 }

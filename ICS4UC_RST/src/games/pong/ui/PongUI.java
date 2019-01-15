@@ -1,7 +1,6 @@
 package games.pong.ui;
 
 import games.Game;
-import games.Score;
 import games.player.PongKeyBinding;
 import games.pong.EndReason;
 import games.pong.Pong;

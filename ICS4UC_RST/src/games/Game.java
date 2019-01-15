@@ -98,6 +98,7 @@ public interface Game {
 
     /**
      * Gets help text for the game.
+     *
      * @return The help string for the game.
      */
     String getHelpText();
