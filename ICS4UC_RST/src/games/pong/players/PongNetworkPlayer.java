@@ -95,9 +95,8 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
      */
     @Override
     public void receiveData(NetworkMessage data) {
-        System.out.println("Received : " + data.getGameData()); // TODO remove
         final PongNetworkMessage gameData = PongNetworkMessage.fromJsonString(data.getGameData());
-        final long timeBetweenTickAndNetwork = Math.max(System.currentTimeMillis() - gameData.getMillisTimeSent(), 0);
+        final long timeBetweenTickAndNetwork = Math.max(getTimeStamp() - gameData.timestamp(), 0);
 
         hostName = data.getHostName();
         final PongEvent.EventType triggeringEvent = gameData.getTriggeringEvent();
@@ -105,7 +104,6 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
         if (gameData.isInGame() && triggeringEvent == PongEvent.EventType.GAME_BEGUN && !otherPlayerBeganGame
                 && !game.hasBegun()) {
             game.begin();
-            game.setPause(gameData.getUnpauseTime());
             otherPlayerBeganGame = true;
         } else if (triggeringEvent == PongEvent.EventType.GAME_READY) {
             game.begin();
@@ -116,7 +114,6 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
                 gameData.getLocalPlayerScore() == getPoints() &&
                 gameData.getUnpauseTime() != 0) {
             game.playerScored(game.getLocalPlayer(), gameData.getNetworkPlayerScore());
-            game.setPause(gameData.getUnpauseTime());
         } else if (triggeringEvent == PongEvent.EventType.GAME_ENDED) {
             // If the remote player ended the game, we need to notify this player.
             game.end(EndReason.PLAYER_END);
@@ -138,7 +135,6 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
         gamePaddle.setY(networkPaddle.getY());
         gamePaddle.setVelX(networkPaddle.getVelX());
         gamePaddle.setVelY(networkPaddle.getVelY());
-        gamePaddle.renderTick(timeBetweenTickAndNetwork / 1000000L);
     }
 
     @Override
@@ -154,7 +150,7 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
      */
     private void gameUpdated(PongEvent changeEvent) {
         if (typeFilter.contains((changeEvent.getType()))) {
-            PongNetworkMessage message = new PongNetworkMessage(System.currentTimeMillis());
+            PongNetworkMessage message = new PongNetworkMessage(getTimeStamp());
             PongPlayer localPlayer = game.getLocalPlayer();
 
             message.setTriggeringEvent(changeEvent.getType());
@@ -165,7 +161,6 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
             message.setInGame(true);
             if (changeEvent.getType() == PongEvent.EventType.GAME_BEGUN ||
                     changeEvent.getType() == PongEvent.EventType.PLAYER_SCORED) {
-                System.out.println("Sending unpause of " + game.getUnpauseTime() + " Event: " + changeEvent.getType()); // TODO Remove
                 message.setUnpauseTime(game.getUnpauseTime());
             }
 
@@ -176,7 +171,23 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
             final String sending = message.toJson();
             // Send the data as a last step.
             gameDataListener.accept(sending);
-            System.out.println("Sending : " + sending); // TODO remove
         }
+    }
+
+    /**
+     * Gets the timestamp to be used in network calls.
+     * @return The timestamp to be used in network calls.
+     */
+    private static long getTimeStamp() {
+        return System.currentTimeMillis() / 1000L;
+    }
+
+    /**
+     * Converts a timestamp difference into nanoseconds.
+     * @param timestamp The timestamp to be converted.
+     * @return The nanoseconds, approximately.
+     */
+    private static long timeStampToNanoSeconds(long timestamp) {
+        return timestamp / 1000000000L; // Seconds / 1E9 = nanoseconds.
     }
 }

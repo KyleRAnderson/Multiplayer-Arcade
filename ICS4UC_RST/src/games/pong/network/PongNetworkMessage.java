@@ -16,7 +16,7 @@ public class PongNetworkMessage {
 
 
     // Time at which this data was calculated.
-    private long millisTimeSent;
+    private long timestampSent;
     private Paddle localPlayerPaddle;
     private PongBall ball;
     // True if the ball hit the paddle and bounced off, false otherwise.
@@ -36,10 +36,10 @@ public class PongNetworkMessage {
     /**
      * Instantiates a new PongNetworkMessage object with the given time in nanoseconds.
      *
-     * @param nanoTime The time (in nanoseconds) that the frame was rendered.
+     * @param millisTime The time (in milliseconds) that the frame was rendered.
      */
-    public PongNetworkMessage(long nanoTime) {
-        setMillisTimeSent(nanoTime);
+    public PongNetworkMessage(long millisTime) {
+        setTimestampSent(millisTime);
     }
 
     /**
@@ -47,17 +47,17 @@ public class PongNetworkMessage {
      *
      * @return The time (in milliseconds) at which the data was calculated (when frame was rendered).
      */
-    public long getMillisTimeSent() {
-        return millisTimeSent;
+    public long timestamp() {
+        return timestampSent;
     }
 
     /**
      * Sets the time (in nanosecond) at which this data was calculated and sent.
      *
-     * @param millisTimeSent The time (in nanoseconds) at which the data was calculated (when frame was rendered).
+     * @param timestampSent The time (in nanoseconds) at which the data was calculated (when frame was rendered).
      */
-    public void setMillisTimeSent(long millisTimeSent) {
-        this.millisTimeSent = millisTimeSent;
+    public void setTimestampSent(long timestampSent) {
+        this.timestampSent = timestampSent;
     }
 
     /**
