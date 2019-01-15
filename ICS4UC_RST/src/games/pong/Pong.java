@@ -6,7 +6,6 @@ import games.pong.pieces.PongBall;
 import games.pong.pieces.PongPiece;
 import games.pong.pieces.Side;
 import games.pong.players.PongKeyboardPlayer;
-import games.pong.players.PongNetworkPlayer;
 import games.pong.players.PongPlayer;
 
 import java.util.ArrayList;

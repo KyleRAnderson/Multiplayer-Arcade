@@ -8,7 +8,6 @@ import games.pong.network.PongNetworkMessage;
 import games.pong.pieces.Paddle;
 import games.pong.pieces.PongBall;
 import games.pong.pieces.Side;
-import games.pong.ui.PongUI;
 import network.party.network.NetworkMessage;
 
 import java.util.Arrays;

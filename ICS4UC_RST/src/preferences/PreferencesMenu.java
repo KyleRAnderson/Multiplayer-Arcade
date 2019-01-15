@@ -101,7 +101,7 @@ public class PreferencesMenu extends Stage {
      * method to display error message box\
      *
      * @param message to display
-     * @param title box title
+     * @param title   box title
      */
     public static void errorMessageBox(String message, String title) {
         // create new message box with an error icon
