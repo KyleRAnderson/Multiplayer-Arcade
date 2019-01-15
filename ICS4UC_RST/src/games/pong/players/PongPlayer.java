@@ -61,4 +61,10 @@ public interface PongPlayer {
      * @return The name of the player.
      */
     String getName();
+
+    /**
+     * Determines if this type of player is allowed to be scored on.
+     * @return True if allowed to be scored on, false otherwise.
+     */
+    boolean canBeScoredOn();
 }
