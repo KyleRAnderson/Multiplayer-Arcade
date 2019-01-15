@@ -1,6 +1,7 @@
 package preferences;
 
 import java.net.UnknownHostException;
+
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.VPos;
@@ -42,7 +43,7 @@ public class PreferencesMenu extends Stage {
 		// create a stage and set the title and prevent from being resized
 		stgMainWindow = new Stage();
 		stgMainWindow.setTitle(TITLE);
-		stgMainWindow.setResizable(false);			
+		stgMainWindow.setResizable(false);
 
 		// create new grid pane with spacing to look nice
 		GridPane grdGridPane = new GridPane();
@@ -64,12 +65,18 @@ public class PreferencesMenu extends Stage {
 		// textfield for the username
 		TextField txtUserName = new TextField();
 		
-		// try to get the local host name and set as default text
-		try {
-			txtUserName.setText(TCPSocket.getLocalHostName());
-		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		// get host name from preferences
+		txtUserName.setText(Preferences.getInstance().getHostName());
+		
+		// if the text is null or empty
+		if (txtUserName.getText() == null || txtUserName.getText().isEmpty()) {
+			// try to get the local host name and set as default text
+			try {
+				txtUserName.setText(TCPSocket.getLocalHostName());
+			} catch (UnknownHostException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		
 		// set size and place it in the window
@@ -98,7 +105,7 @@ public class PreferencesMenu extends Stage {
      */
 	private void validate(String name) {
 		// check to make sure that name is not blank and as a size of at least three characters and does not contain any spaces
-		if (name == "" || name == null || name.length() < MIN_USERNAME_CHARS || name.contains(" ")) {
+		if (name.isEmpty() || name == null || name.length() < MIN_USERNAME_CHARS || name.contains(" ")) {
 			// if so, show error message box
 			errorMessageBox("You must have a name at least " + MIN_USERNAME_CHARS + " characters long and have no spaces.", "Error");
 		} else {
