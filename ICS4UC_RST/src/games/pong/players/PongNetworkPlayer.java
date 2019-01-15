@@ -97,7 +97,7 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
     public void receiveData(NetworkMessage data) {
         System.out.println("Received : " + data.getGameData()); // TODO remove
         final PongNetworkMessage gameData = PongNetworkMessage.fromJsonString(data.getGameData());
-        final long timeBetweenTickAndNetwork = Math.max(game.getLastTickTime() - gameData.getNanoTimeSent(), 0);
+        final long timeBetweenTickAndNetwork = Math.max(System.currentTimeMillis() - gameData.getMillisTimeSent(), 0);
 
         hostName = data.getHostName();
         final PongEvent.EventType triggeringEvent = gameData.getTriggeringEvent();
@@ -138,7 +138,7 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
         gamePaddle.setY(networkPaddle.getY());
         gamePaddle.setVelX(networkPaddle.getVelX());
         gamePaddle.setVelY(networkPaddle.getVelY());
-        gamePaddle.renderTick(timeBetweenTickAndNetwork);
+        gamePaddle.renderTick(timeBetweenTickAndNetwork / 1000000L);
     }
 
     @Override
@@ -154,7 +154,7 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
      */
     private void gameUpdated(PongEvent changeEvent) {
         if (typeFilter.contains((changeEvent.getType()))) {
-            PongNetworkMessage message = new PongNetworkMessage(game.getLastTickTime());
+            PongNetworkMessage message = new PongNetworkMessage(System.currentTimeMillis());
             PongPlayer localPlayer = game.getLocalPlayer();
 
             message.setTriggeringEvent(changeEvent.getType());

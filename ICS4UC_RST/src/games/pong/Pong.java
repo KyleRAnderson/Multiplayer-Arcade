@@ -34,7 +34,7 @@ public class Pong {
     // Velocity of the pong ball in units per second.
     public static final double PONG_BALL_VELOCITY = 250;
     // How many milliseconds to pause after a player scores.
-    private static final long SCORE_PAUSE = 3000000000L; // Set score pause to 3*10^9 nanoseconds (or 3 seconds).
+    private static final long SCORE_PAUSE = 3000L; // Set score pause to 3*10^3 milliseconds (or 3 seconds).
     /**
      * Number of points needed to win.
      */
@@ -67,7 +67,7 @@ public class Pong {
     private boolean readyNotified;
 
     /**
-     * The time at which the pause should end.
+     * The time at which the pause should end, in milliseconds.
      */
     private long unpauseTime;
 
@@ -268,14 +268,19 @@ public class Pong {
         return Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2));
     }
 
+    boolean entered = false ; // TODO delete
     /**
      * Completes a tick of the game.
      *
      * @param timeSinceLastTick The time since the last tick, in nanoseconds.
      */
     public void renderTick(final long timeSinceLastTick) {
-        System.out.println("Has begun : " + hasBegun + " Pause : " + checkPause() + " ended : " + ended); // TODO remove
         if (hasBegun && !checkPause() && !ended) {
+            if (!entered) {
+                System.out.println("Entered start. Time is " + System.currentTimeMillis() + " and unpause was " + getUnpauseTime()); // TODO remove
+                System.out.println("timeSinceLastTick : " + timeSinceLastTick); // TODO remove
+                        entered = true;
+            }
             ball.renderTick(timeSinceLastTick); // Render a tick for the ball.
 
             getRightPaddle().renderTick(timeSinceLastTick);
@@ -777,16 +782,16 @@ public class Pong {
     /**
      * Sets a pause corresponding to the specified number of nanoseconds.
      *
-     * @param nanosecondPause The number of nanoseconds to pause for. -1 for infinite pause.
+     * @param millisecondPause The number of milliseconds to pause for. -1 for infinite pause.
      */
-    public void setPauseDuration(long nanosecondPause) {
-        setPause(System.nanoTime() + nanosecondPause);
+    public void setPauseDuration(long millisecondPause) {
+        setPause(System.currentTimeMillis() + millisecondPause);
     }
 
     /**
      * Sets a pause that will end at the given time.
      *
-     * @param unpauseTime The time (in nanoseconds) at which the pausing should end.
+     * @param unpauseTime The time (in milliseconds) at which the pausing should end.
      */
     public void setPause(long unpauseTime) {
         this.unpauseTime = unpauseTime;
@@ -799,10 +804,9 @@ public class Pong {
      * @return True if the game should be paused, false otherwise.
      */
     private boolean checkPause() {
-        System.out.println("Current time : " + System.nanoTime() + " Unpause : " + unpauseTime); // TODO Remove
-        boolean paused = System.nanoTime() < unpauseTime || unpauseTime < 0;
-        if (!paused && lastTickTime < unpauseTime) {
-            lastTickTime = unpauseTime; // Update the last tick time now too.
+        boolean paused = System.currentTimeMillis() < unpauseTime || unpauseTime < 0;
+        if (!paused) {
+            lastTickTime = System.nanoTime(); // Update the last tick time now too.
         }
 
         return paused;

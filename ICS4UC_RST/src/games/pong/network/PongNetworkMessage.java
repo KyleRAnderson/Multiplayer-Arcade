@@ -16,7 +16,7 @@ public class PongNetworkMessage {
 
 
     // Time at which this data was calculated.
-    private long nanoTimeSent;
+    private long millisTimeSent;
     private Paddle localPlayerPaddle;
     private PongBall ball;
     // True if the ball hit the paddle and bounced off, false otherwise.
@@ -39,25 +39,25 @@ public class PongNetworkMessage {
      * @param nanoTime The time (in nanoseconds) that the frame was rendered.
      */
     public PongNetworkMessage(long nanoTime) {
-        setNanoTimeSent(nanoTime);
+        setMillisTimeSent(nanoTime);
     }
 
     /**
-     * Gets the time (in nanosecond) at which this data was calculated and sent.
+     * Gets the time (in milliseconds) at which this data was calculated and sent.
      *
-     * @return The time (in nanoseconds) at which the data was calculated (when frame was rendered).
+     * @return The time (in milliseconds) at which the data was calculated (when frame was rendered).
      */
-    public long getNanoTimeSent() {
-        return nanoTimeSent;
+    public long getMillisTimeSent() {
+        return millisTimeSent;
     }
 
     /**
      * Sets the time (in nanosecond) at which this data was calculated and sent.
      *
-     * @param nanoTimeSent The time (in nanoseconds) at which the data was calculated (when frame was rendered).
+     * @param millisTimeSent The time (in nanoseconds) at which the data was calculated (when frame was rendered).
      */
-    public void setNanoTimeSent(long nanoTimeSent) {
-        this.nanoTimeSent = nanoTimeSent;
+    public void setMillisTimeSent(long millisTimeSent) {
+        this.millisTimeSent = millisTimeSent;
     }
 
     /**
@@ -154,7 +154,7 @@ public class PongNetworkMessage {
     /**
      * Gets the time at which the sender game will unpause.
      *
-     * @return The unpause time, in nanoseconds. -1 for infinite.
+     * @return The unpause time, in milliseconds. -1 for infinite.
      */
     public long getUnpauseTime() {
         return unpauseTime;
@@ -163,7 +163,7 @@ public class PongNetworkMessage {
     /**
      * Sets the time at which the sender game will unpause.
      *
-     * @param unpauseTime The unpause time, in nanoseconds. -1 for infinite.
+     * @param unpauseTime The unpause time, in milliseconds. -1 for infinite.
      */
     public void setUnpauseTime(long unpauseTime) {
         this.unpauseTime = unpauseTime;
