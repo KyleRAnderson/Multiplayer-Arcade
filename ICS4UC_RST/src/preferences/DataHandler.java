@@ -16,6 +16,7 @@ import java.nio.file.Paths;
  * ICS4U RST
  */
 class DataHandler {
+    @SuppressWarnings("SpellCheckingInspection")
     private static final Gson gsonParser = new Gson();
 
     private final static String FILE_NAME = "pong_preferences.json",
@@ -38,11 +39,11 @@ class DataHandler {
      * Method to load preferences from the default file.
      *
      * @return preferences object
-     * @throws IOException  problem with reading line or closing file reader and buffered reader
+     * @throws IOException         problem with reading line or closing file reader and buffered reader
      * @throws JsonSyntaxException when there is an error with the syntax of the json in the read file.
      */
     static Preferences load() throws JsonSyntaxException, IOException {
-        Preferences preferences = null;
+        Preferences preferences;
         try (BufferedReader reader = new BufferedReader(new FileReader(Paths.get(SAVE_DIR, FILE_NAME).toString()))) {
             preferences = gsonParser.fromJson(reader, Preferences.class);
         }
