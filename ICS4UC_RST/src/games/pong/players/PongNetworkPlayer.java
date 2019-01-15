@@ -111,8 +111,7 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
         }
         // The other machine will let us know when their local player was scored on (meaning our local player scored).
         else if (triggeringEvent == PongEvent.EventType.PLAYER_SCORED &&
-                gameData.getLocalPlayerScore() == getPoints() &&
-                gameData.getUnpauseTime() != 0) {
+                gameData.getLocalPlayerScore() == getPoints()) {
             game.playerScored(game.getLocalPlayer(), gameData.getNetworkPlayerScore());
         } else if (triggeringEvent == PongEvent.EventType.GAME_ENDED) {
             // If the remote player ended the game, we need to notify this player.
@@ -159,10 +158,6 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
             message.setBall(game.getBall());
             message.setLocalPlayerPaddle(game.getPaddle(localPlayer));
             message.setInGame(true);
-            if (changeEvent.getType() == PongEvent.EventType.GAME_BEGUN ||
-                    changeEvent.getType() == PongEvent.EventType.PLAYER_SCORED) {
-                message.setUnpauseTime(game.getUnpauseTime());
-            }
 
             // If the local player just hit the paddle, set that up in the message.
             message.setBallHitPaddle(changeEvent.getType() == PongEvent.EventType.BALL_HIT_PADDLE &&

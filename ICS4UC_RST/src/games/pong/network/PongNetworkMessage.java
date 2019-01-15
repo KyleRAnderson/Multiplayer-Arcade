@@ -29,11 +29,6 @@ public class PongNetworkMessage {
     private boolean isInGame;
 
     /**
-     * An unpause time that this client has set.
-     */
-    private long unpauseTime;
-
-    /**
      * Instantiates a new PongNetworkMessage object with the given time in nanoseconds.
      *
      * @param millisTime The time (in milliseconds) that the frame was rendered.
@@ -149,24 +144,6 @@ public class PongNetworkMessage {
      */
     public void setTriggeringEvent(PongEvent.EventType triggeringEvent) {
         this.triggeringEvent = triggeringEvent;
-    }
-
-    /**
-     * Gets the time at which the sender game will unpause.
-     *
-     * @return The unpause time, in milliseconds. -1 for infinite.
-     */
-    public long getUnpauseTime() {
-        return unpauseTime;
-    }
-
-    /**
-     * Sets the time at which the sender game will unpause.
-     *
-     * @param unpauseTime The unpause time, in milliseconds. -1 for infinite.
-     */
-    public void setUnpauseTime(long unpauseTime) {
-        this.unpauseTime = unpauseTime;
     }
 
     /**

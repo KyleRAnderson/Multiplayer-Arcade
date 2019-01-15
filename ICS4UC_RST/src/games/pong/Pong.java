@@ -34,7 +34,7 @@ public class Pong {
     // Velocity of the pong ball in units per second.
     public static final double PONG_BALL_VELOCITY = 250;
     // How many milliseconds to pause after a player scores.
-    private static final int SCORE_PAUSE = 3; // Set score pause to 3 seconds.
+    private static final long SCORE_PAUSE = 3000; // Set score pause to 3 seconds.
     /**
      * Number of points needed to win.
      */
@@ -774,18 +774,18 @@ public class Pong {
     }
 
     /**
-     * Sets a pause corresponding to the specified number of seconds.
+     * Sets a pause corresponding to the specified number of milliseconds.
      *
-     * @param secondsPause The number of seconds to pause for. -1 for infinite pause.
+     * @param millisecondsPause The number of milliseconds to pause for. -1 for infinite pause.
      */
-    public void setPauseDuration(int secondsPause) {
-        setPause(System.currentTimeMillis() / 1000L + secondsPause);
+    public void setPauseDuration(long millisecondsPause) {
+        setPause(System.currentTimeMillis() + millisecondsPause);
     }
 
     /**
      * Sets a pause that will end at the given time.
      *
-     * @param unpauseTime The time (in seconds) at which the pausing should end.
+     * @param unpauseTime The time (in milliseconds) at which the pausing should end.
      */
     public void setPause(long unpauseTime) {
         this.unpauseTime = unpauseTime;
@@ -797,7 +797,7 @@ public class Pong {
      * @return True if the game should be paused, false otherwise.
      */
     private boolean checkPause() {
-        boolean paused = System.currentTimeMillis() / 1000L < unpauseTime || unpauseTime < 0;
+        boolean paused = System.currentTimeMillis() < unpauseTime || unpauseTime < 0;
         if (!paused) {
             lastTickTime = System.nanoTime(); // Update the last tick time now too.
         }
