@@ -102,7 +102,7 @@ public class Scoreboard extends Group {
     }
 
     /**
-     * sets font of text based on a scalefactor
+     * sets font of text based on a scale factor
      *
      * @param scaleFactor The scale factor.
      */

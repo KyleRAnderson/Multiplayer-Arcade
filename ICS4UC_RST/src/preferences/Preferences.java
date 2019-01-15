@@ -54,9 +54,7 @@ public class Preferences {
     }
 
     /**
-     * Saves current object to json file
-     *
-     * @throws IOException if there is trouble accessing/reading the file.
+     * Saves current object to json file.
      */
     public void save() {
         try {
