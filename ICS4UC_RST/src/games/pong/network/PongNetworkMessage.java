@@ -154,7 +154,7 @@ public class PongNetworkMessage {
     /**
      * Gets the time at which the sender game will unpause.
      *
-     * @return The unpause time, in milliseconds. -1 for infinite.
+     * @return The unpause time, in nanoseconds. -1 for infinite.
      */
     public long getUnpauseTime() {
         return unpauseTime;
@@ -163,7 +163,7 @@ public class PongNetworkMessage {
     /**
      * Sets the time at which the sender game will unpause.
      *
-     * @param unpauseTime The unpause time, in milliseconds. -1 for infinite.
+     * @param unpauseTime The unpause time, in nanoseconds. -1 for infinite.
      */
     public void setUnpauseTime(long unpauseTime) {
         this.unpauseTime = unpauseTime;

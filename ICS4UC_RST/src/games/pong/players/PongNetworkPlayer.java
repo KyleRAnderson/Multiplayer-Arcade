@@ -95,13 +95,15 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
      */
     @Override
     public void receiveData(NetworkMessage data) {
+        System.out.println("Received : " + data.getGameData()); // TODO remove
         final PongNetworkMessage gameData = PongNetworkMessage.fromJsonString(data.getGameData());
         final long timeBetweenTickAndNetwork = Math.max(game.getLastTickTime() - gameData.getNanoTimeSent(), 0);
 
         hostName = data.getHostName();
         final PongEvent.EventType triggeringEvent = gameData.getTriggeringEvent();
-        // If the other player has started, let's start too.
-        if (gameData.isInGame() && triggeringEvent == PongEvent.EventType.GAME_BEGUN && !otherPlayerBeganGame) {
+        // If the other player has started, let's start too, but only if we didn't already start.
+        if (gameData.isInGame() && triggeringEvent == PongEvent.EventType.GAME_BEGUN && !otherPlayerBeganGame
+                && !game.hasBegun()) {
             game.begin();
             game.setPause(gameData.getUnpauseTime());
             otherPlayerBeganGame = true;
@@ -152,7 +154,7 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
      */
     private void gameUpdated(PongEvent changeEvent) {
         if (typeFilter.contains((changeEvent.getType()))) {
-            PongNetworkMessage message = new PongNetworkMessage(System.nanoTime());
+            PongNetworkMessage message = new PongNetworkMessage(game.getLastTickTime());
             PongPlayer localPlayer = game.getLocalPlayer();
 
             message.setTriggeringEvent(changeEvent.getType());
@@ -161,32 +163,20 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
             message.setBall(game.getBall());
             message.setLocalPlayerPaddle(game.getPaddle(localPlayer));
             message.setInGame(true);
-
-            // If the player just scored, send the unpause time in the message.
-            switch (changeEvent.getType()) {
-                case PLAYER_SCORED:
-                    /* Only do stuff if the player that was scored on was the local player
-                    (i.e the person who scored was not the local player). */
-                    if (!changeEvent.getPlayer().equals(localPlayer)) {
-                        message.setUnpauseTime(game.getUnpauseTime());
-                    }
-                    break;
-                case GAME_BEGUN:
-                    // Only notify the other player that the game has started it they didn't already start.
-                    if (!otherPlayerBeganGame) {
-                        message.setUnpauseTime(game.getUnpauseTime());
-                    }
-                    break;
-                default:
-                    break;
+            if (changeEvent.getType() == PongEvent.EventType.GAME_BEGUN ||
+                    changeEvent.getType() == PongEvent.EventType.PLAYER_SCORED) {
+                System.out.println("Sending unpause of " + game.getUnpauseTime() + " Event: " + changeEvent.getType()); // TODO Remove
+                message.setUnpauseTime(game.getUnpauseTime());
             }
 
             // If the local player just hit the paddle, set that up in the message.
             message.setBallHitPaddle(changeEvent.getType() == PongEvent.EventType.BALL_HIT_PADDLE &&
                     changeEvent.getPaddle().getSide() == localPlayer.getSide());
 
+            final String sending = message.toJson();
             // Send the data as a last step.
-            this.gameDataListener.accept(message.toJson());
+            gameDataListener.accept(sending);
+            System.out.println("Sending : " + sending); // TODO remove
         }
     }
 }
