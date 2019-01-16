@@ -14,6 +14,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 /**
  * Preferences Menu for accessing and modifying user preferences from the UI.
@@ -33,6 +34,7 @@ public class PreferencesMenu extends Stage {
         String TITLE = "Preferences";
         setTitle(TITLE);
         setResizable(false);
+        initStyle(StageStyle.UTILITY);
 
         // create new grid pane with spacing to look nice
         GridPane grdGridPane = new GridPane();
