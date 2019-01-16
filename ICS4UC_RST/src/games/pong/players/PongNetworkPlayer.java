@@ -26,6 +26,7 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
     private int score;
     // Name of the other host.
     private String hostName;
+    private boolean allowScoringOn;
 
     private static final PongEvent.EventType[] EVENT_FILTER = {
             PongEvent.EventType.BALL_HIT_PADDLE,
@@ -88,6 +89,11 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
         return hostName;
     }
 
+    @Override
+    public boolean canBeScoredOn() {
+        return allowScoringOn;
+    }
+
     /**
      * Receives network data from the other player.
      *
@@ -112,7 +118,9 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
         // The other machine will let us know when their local player was scored on (meaning our local player scored).
         else if (triggeringEvent == PongEvent.EventType.PLAYER_SCORED &&
                 gameData.getLocalPlayerScore() == getPoints()) {
+            allowScoringOn = true;
             game.playerScored(game.getLocalPlayer(), gameData.getNetworkPlayerScore());
+            allowScoringOn = false;
         } else if (triggeringEvent == PongEvent.EventType.GAME_ENDED) {
             // If the remote player ended the game, we need to notify this player.
             game.end(EndReason.PLAYER_END);
@@ -176,15 +184,5 @@ public class PongNetworkPlayer extends NetworkPlayer implements PongPlayer {
      */
     private static long getTimeStamp() {
         return System.currentTimeMillis() / 1000L;
-    }
-
-    /**
-     * Converts a timestamp difference into nanoseconds.
-     *
-     * @param timestamp The timestamp to be converted.
-     * @return The nanoseconds, approximately.
-     */
-    private static long timeStampToNanoSeconds(long timestamp) {
-        return timestamp / 1000000000L; // Seconds / 1E9 = nanoseconds.
     }
 }

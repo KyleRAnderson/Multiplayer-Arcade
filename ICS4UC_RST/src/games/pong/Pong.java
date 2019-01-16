@@ -554,8 +554,10 @@ public class Pong {
      * @param player    The player who scored.
      * @param newPoints The new amount of points the player should have.
      */
-    public void playerScored(PongPlayer player, final int newPoints) {
-        if (player.getPoints() != newPoints) {
+    public void playerScored(final PongPlayer player, final int newPoints) {
+        final PongPlayer otherPlayer = (getLocalPlayer().equals(player)) ? getPlayer2() : getLocalPlayer();
+        // Only call the listeners and do the stuff if something has actually changed.
+        if (player.getPoints() != newPoints && otherPlayer.canBeScoredOn()) {
             player.setPoints(newPoints);
             resetBall((player.getSide() == Side.LEFT) ? Side.RIGHT : Side.LEFT);
             setPauseDuration(SCORE_PAUSE);
