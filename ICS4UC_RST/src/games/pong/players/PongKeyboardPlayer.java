@@ -24,9 +24,6 @@ public class PongKeyboardPlayer extends KeyboardPlayer<PongKeyBinding> implement
     private int points;
     private String playerName;
 
-    public PongKeyboardPlayer() {
-    }
-
     @Override
     public void setSide(Side side) {
         this.side = side;
@@ -58,6 +55,12 @@ public class PongKeyboardPlayer extends KeyboardPlayer<PongKeyBinding> implement
     @Override
     public String getName() {
         return playerName;
+    }
+
+    @Override
+    public boolean canBeScoredOn() {
+        // Keyboard players can always be scored on.
+        return true;
     }
 
     @Override
