@@ -9,6 +9,7 @@ import games.pong.pieces.Paddle;
 import games.pong.pieces.PongPiece;
 import games.pong.pieces.Side;
 import games.pong.players.Action;
+import games.pong.players.PongBotPlayer;
 import games.pong.players.PongKeyboardPlayer;
 import games.pong.players.PongNetworkPlayer;
 import games.pong.players.PongPlayer;
@@ -18,6 +19,8 @@ import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -32,6 +35,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 import menu.MainMenu;
 import network.party.PartyHandler;
@@ -43,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -525,11 +530,17 @@ public class PongUI extends Pane implements Game {
      */
     @Override
     public void initializePlayers() {
-        PongPlayer p1 = game.getLocalPlayer(), p2 = game.getPlayer2();
-
+    	PongPlayer p1 = game.getLocalPlayer(), p2 = game.getPlayer2();
+    	
+    	if (p1 == null && p2 == null) {
+        	askBotOrPlayer();
+        	p1 = game.getLocalPlayer();
+        	p2 = game.getPlayer2();
+        }
+    	
         // If we are making both players now, we should determine if we're going to place them too.
         boolean overrideSides = p1 == null && p2 == null;
-
+        
         if (p1 == null) {
             p1 = new PongKeyboardPlayer();
             game.setLocalPlayer(p1);
@@ -656,5 +667,31 @@ public class PongUI extends Pane implements Game {
      */
     private void showNotification(Alert.AlertType type, final String contentText) {
         MainMenu.showNotification(type, contentText);
+    }
+    
+    public void askBotOrPlayer() {
+    	// create new message box with an error icon
+        Alert altAlert = new Alert(AlertType.ERROR);
+        MainMenu.setIcon((Stage)((altAlert.getDialogPane().getScene().getWindow())));
+
+        // set the title and message to display
+        altAlert.setTitle("Choose");
+        altAlert.setHeaderText(null);
+        altAlert.setContentText("What would you like to play?");
+        
+        // add two buttons
+        ButtonType btLocalSinglePlayer = new ButtonType("Local single player");
+        ButtonType btLocalMultiPlayer = new ButtonType("Local multiplayer");
+        
+        // add buttons to alert box
+        altAlert.getButtonTypes().setAll(btLocalSinglePlayer, btLocalMultiPlayer);
+
+        // show the message box        
+        Optional<ButtonType> oButtonType = altAlert.showAndWait();
+        
+        if (oButtonType.get() == btLocalSinglePlayer) {
+        	game.setLocalPlayer(new PongKeyboardPlayer());
+        	game.setPlayer2(new PongBotPlayer());
+        }
     }
 }
