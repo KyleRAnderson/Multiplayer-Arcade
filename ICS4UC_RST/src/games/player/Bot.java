@@ -14,6 +14,6 @@ public abstract class Bot {
      *
      * @param ball y position
      */
-	public abstract void moveToBall(final int ypos);
+	public abstract void moveToBall(final int ballypos, final int paddleypos);
 
 }
