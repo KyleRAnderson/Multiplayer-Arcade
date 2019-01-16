@@ -79,6 +79,10 @@ public class Pong {
      * The reason for which the game was ended.
      */
     private EndReason endReason;
+    /**
+     * An action to be run after each tick.
+     */
+    private Runnable tickAction;
 
     /**
      * Constructs a new pong game with the given players.
@@ -286,6 +290,10 @@ public class Pong {
             checkBallBounds();
             // Make sure the paddle is in bounds as well.
             checkPaddleBounds();
+
+            if (tickAction != null) {
+                tickAction.run();
+            }
         } else if (!hasBegun && !readyNotified) {
             callEvent(new PongEvent(PongEvent.EventType.GAME_READY));
             readyNotified = true;
@@ -300,6 +308,14 @@ public class Pong {
         lastTickTime = System.nanoTime(); // Set last tick time to now.
         final long timeSinceLastTick = (tempLastTick > 0) ? lastTickTime - tempLastTick : 0;
         renderTick(timeSinceLastTick);
+    }
+
+    /**
+     * Sets an action to be run at the end of each tick. The action should run quickly so as not to delay the ticks.
+     * @param action The action to be run.
+     */
+    public void setOnTick(Runnable action) {
+        tickAction = action;
     }
 
     /**
