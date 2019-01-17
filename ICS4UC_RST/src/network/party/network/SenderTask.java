@@ -4,6 +4,7 @@ import javafx.concurrent.Task;
 import network.TCPSocket;
 import network.party.PartyHandler;
 
+import java.io.IOException;
 import java.util.Queue;
 
 /**
@@ -29,11 +30,17 @@ public class SenderTask extends Task<Void> {
 
 
     @Override
-    protected Void call() throws Exception {
-        while (PartyHandler.isConnected()) {
+    protected Void call() {
+        boolean exit = false;
+        while (!exit) {
             NetworkMessage message = queue.poll();
             if (message != null) {
-                socket.send(message.toJsonString());
+                exit = message.getHostStatus() == HostStatus.DISCONNECTING;
+                try {
+                    socket.send(message.toJsonString());
+                } catch (IOException e) {
+                    exit = true;
+                }
             }
         }
         return null;

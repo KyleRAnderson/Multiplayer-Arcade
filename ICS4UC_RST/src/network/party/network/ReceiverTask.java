@@ -36,7 +36,7 @@ public class ReceiverTask extends Task<Void> {
     @Override
     protected Void call() {
         ReceivedDataEvent event = null;
-        while (PartyHandler.isConnected() && event != ReceivedDataEvent.DISCONNECTED) {
+        while (event != ReceivedDataEvent.DISCONNECTED) {
             String receivedMessage = null;
             try {
                 receivedMessage = socket.listenForData();

@@ -286,10 +286,6 @@ public class MainMenu extends Application {
         if (notifyOtherClient) {
             NetworkMessage message = new NetworkMessage(HostStatus.DISCONNECTING);
             sendNetworkMessage(message);
-            // Need to wait to ensure that the disconnect message is sent before closing the socket.
-            PauseTransition delay = new PauseTransition(Duration.seconds(1));
-            delay.setOnFinished(event -> PartyHandler.disconnect());
-            delay.play();
         } else {
             PartyHandler.disconnect();
         }
