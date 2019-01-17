@@ -1,18 +1,27 @@
 package menu;
 
+import com.sun.istack.internal.Nullable;
 import games.Game;
 import games.pong.ui.PongUI;
 import javafx.application.Application;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.text.*;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -32,6 +41,7 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
 
 import static javafx.scene.control.ButtonType.YES;
 
@@ -76,9 +86,14 @@ public class MainMenu extends Application {
 
 
     private static final int GAP = 15;
+    // Font size ratios
+    private static final int HEADER_FONT_SIZE_RATIO = 13, INPUT_FONT_SIZE_RATIO = 40, GAME_FONT_SIZE_RATIO = 5;
+    private DoubleProperty headerFontSize = new SimpleDoubleProperty(HEADER_FONT_SIZE_RATIO);
+    private DoubleProperty inputFontSize = new SimpleDoubleProperty(INPUT_FONT_SIZE_RATIO);
+    private DoubleProperty gameFontSize = new SimpleDoubleProperty(GAME_FONT_SIZE_RATIO);
     private static final Font
-            HEADER_FONT = Font.font("ArcadeClassic", FontWeight.BOLD, FontPosture.REGULAR, 38),
-            INPUT_FONT = Font.font("Book Antiqua", FontWeight.NORMAL, FontPosture.REGULAR, 12);
+            HEADER_FONT = Font.font("ArcadeClassic", FontWeight.BOLD, 36),
+            INPUT_FONT = Font.font("Book Antiqua");
     private GridPane menuRoot;
     private Stage stage;
 
@@ -136,7 +151,7 @@ public class MainMenu extends Application {
         // Create the welcome button at the top.
         Text welcomeText = new Text("Welcome to the Arcade!");
         welcomeText.setTextAlignment(TextAlignment.CENTER);
-        welcomeText.setFont(HEADER_FONT);
+        setupFont(welcomeText, true);
         StackPane welcomeButton = new StackPane();
         formatMenuItem(welcomeButton);
         welcomeButton.getChildren().add(welcomeText);
@@ -152,7 +167,7 @@ public class MainMenu extends Application {
         contents.setAlignment(Pos.CENTER);
         Text labelText = new Text("Preferences");
         labelText.setTextAlignment(TextAlignment.CENTER);
-        labelText.setFont(HEADER_FONT);
+        setupFont(labelText, true);
         ImageView image = new ImageView(getClass().getResource("/res/images/preferences.png").toString());
         image.setPreserveRatio(true);
         image.setFitWidth(50);
@@ -169,7 +184,7 @@ public class MainMenu extends Application {
         scoresContent.setAlignment(Pos.CENTER);
         Text scoresLabel = new Text("Help");
         scoresLabel.setTextAlignment(TextAlignment.CENTER);
-        scoresLabel.setFont(HEADER_FONT);
+        setupFont(scoresLabel, true);
         ImageView scoresImage = new ImageView(getClass().getResource("/res/images/help.png").toString());
         scoresImage.setPreserveRatio(true);
         scoresImage.setFitWidth(50);
@@ -184,15 +199,15 @@ public class MainMenu extends Application {
         formatMenuItem(connectMenuItem);
         connectMenuItem.setBackground(new Background(new BackgroundFill(Color.YELLOW, CornerRadii.EMPTY, Insets.EMPTY)));
         Button connectButton = connectMenuItem.getActionButton();
-        connectButton.setFont(INPUT_FONT);
+        setupFont(connectButton, false);
         connectButton.setBackground(new Background(new BackgroundFill(Color.rgb(77, 77, 255), CornerRadii.EMPTY, Insets.EMPTY)));
         connectMenuItem.setOnAction(event -> connectToParty());
         connectMenuItem.getDisconnectButton().setOnAction(event -> disconnect(true));
         Text ipLabel = new Text("IP Address");
-        ipLabel.setFont(INPUT_FONT);
+        setupFont(ipLabel, false);
         connectMenuItem.addIPField(ipLabel);
         TextField addressField = connectMenuItem.getIPField();
-        addressField.setFont(INPUT_FONT);
+        setupFont(addressField, false);
         setupPort(connectMenuItem);
         menuRoot.add(connectMenuItem, 0, 2); // Add to (0, 2)
 
@@ -211,6 +226,7 @@ public class MainMenu extends Application {
         formatMenuItem(hostMenuItem);
         hostMenuItem.setBackground(new Background(new BackgroundFill(Color.RED, CornerRadii.EMPTY, Insets.EMPTY)));
         Button hostButton = hostMenuItem.getActionButton();
+        setupFont(hostButton, false);
         hostButton.setBackground(new Background(new BackgroundFill(Color.rgb(255, 77, 255), CornerRadii.EMPTY, Insets.EMPTY)));
         hostMenuItem.setOnAction(event -> hostParty());
         setupPort(hostMenuItem);
@@ -218,12 +234,12 @@ public class MainMenu extends Application {
 
         // Now for the games themselves, held within a scroll pane.
         VBox games = new VBox(); // New VBox with no gap for displaying game menu items.
+        games.widthProperty().addListener((observable, oldValue, newValue) -> System.out.println("New vbox width: " + newValue));
         games.setAlignment(Pos.TOP_CENTER);
-        ScrollPane gamesScrollPane = new ScrollPane();
+        ScrollPane gamesScrollPane = new ScrollPane(games);
         gamesScrollPane.setFitToWidth(true);
         gamesScrollPane.setFitToHeight(true);
         gamesScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        gamesScrollPane.setContent(games);
         GridPane.setHgrow(gamesScrollPane, Priority.ALWAYS);
         GridPane.setVgrow(gamesScrollPane, Priority.ALWAYS);
         menuRoot.add(gamesScrollPane, 0, 3, 2, 1); // Add to (0, 3) with colspan and rowspan of 2.
@@ -231,18 +247,22 @@ public class MainMenu extends Application {
         // Now for adding all of the games to the list.
         for (Game game : this.games) {
             StackPane menuItem = new StackPane();
-            formatMenuItem(menuItem);
+            menuItem.prefWidthProperty().bind(games.widthProperty());
+            menuItem.setAlignment(Pos.CENTER);
             menuItem.setOnMouseClicked(event -> playGame(game));
             Text menuText = game.getTextDisplay();
+            setupFont(menuText, null, gameFontSize, null);
             menuText.setTextAlignment(TextAlignment.CENTER);
-            VBox.setVgrow(menuItem, Priority.SOMETIMES);
 
             // Set the background up nicely.
             ImageView coverArtImage = new ImageView(game.getCoverArt());
-            coverArtImage.fitWidthProperty().bind(menuItem.widthProperty());
-            coverArtImage.fitHeightProperty().bind(menuItem.heightProperty());
+            coverArtImage.setPreserveRatio(false);
+            coverArtImage.fitWidthProperty().bind(gamesScrollPane.widthProperty());
+            coverArtImage.fitHeightProperty().bind(gamesScrollPane.heightProperty());
+
             menuItem.getChildren().addAll(coverArtImage, menuText);
             games.getChildren().add(menuItem);
+            VBox.setVgrow(menuItem, Priority.ALWAYS);
         }
 
 
@@ -265,6 +285,77 @@ public class MainMenu extends Application {
         // Set the scene at the end.
         Scene scene = new Scene(menuRoot);
         setDisplay(scene);
+
+        // Bind font sizes
+        inputFontSize.bind(scene.heightProperty().divide(INPUT_FONT_SIZE_RATIO));
+        headerFontSize.bind(scene.heightProperty().divide(HEADER_FONT_SIZE_RATIO));
+        gameFontSize.bind(scene.heightProperty().divide(GAME_FONT_SIZE_RATIO));
+
+        menuRoot.requestFocus();
+    }
+
+    /**
+     * Binds the font size of the Node to the font size property given.
+     *
+     * @param element    The element to be bound.
+     * @param headerFont True if this is a header font, false otherwise.
+     */
+    private void setupFont(Text element, boolean headerFont) {
+        setupFont(element, element::setFont, headerFont);
+    }
+
+    /**
+     * Sets up a button's font for resizability.
+     *
+     * @param button     The button.
+     * @param headerFont True to be header font, false otherwise.
+     */
+    private void setupFont(Button button, boolean headerFont) {
+        setupFont(button, button::setFont, headerFont);
+    }
+
+    /**
+     * Sets up a text field's font.
+     *
+     * @param field      The field to be set up.
+     * @param headerFont True to be header font, false otherwise.
+     */
+    private void setupFont(TextField field, boolean headerFont) {
+        setupFont(field, field::setFont, headerFont);
+    }
+
+    /**
+     * Sets up the font for the given element.
+     *
+     * @param element    The element for which the font needs to be set.
+     * @param fontSetter The function to call to set the font.
+     * @param headerFont True to be header font, false otherwise.
+     */
+    private void setupFont(Node element, Consumer<Font> fontSetter, boolean headerFont) {
+        final DoubleProperty property = (headerFont) ? headerFontSize : inputFontSize;
+        setupFont(element, fontSetter, property, (headerFont) ? HEADER_FONT : INPUT_FONT);
+    }
+
+    /**
+     * Sets up the font with the correct font.
+     *
+     * @param element    The element to set the font on.
+     * @param fontSetter The font setter.
+     * @param property   The property to which the font size depends on.
+     * @param font       The font to be used.
+     */
+    private static void setupFont(Node element, @Nullable Consumer<Font> fontSetter, DoubleProperty property, @Nullable Font font) {
+        if (fontSetter != null && font != null) {
+            fontSetter.accept(font);
+        }
+        element.styleProperty().bind(Bindings.concat("-fx-font-size: ", property.asString(), ";"));
+    }
+
+    /**
+     * Toggles the fullscreen state of the game.
+     */
+    private void toggleFullScreen() {
+        stage.setFullScreen(!stage.isFullScreen());
     }
 
     /**
@@ -300,12 +391,13 @@ public class MainMenu extends Application {
      *
      * @param menuItem The PartyMenuItem for which the port should be set up.
      */
-    private static void setupPort(PartyMenuItem menuItem) {
+    private void setupPort(PartyMenuItem menuItem) {
         Text portLabel = new Text("Port");
-        portLabel.setFont(INPUT_FONT);
+        portLabel.setFont(null);
+        setupFont(portLabel, false);
         menuItem.addPortField(TCPSocket.DEFAULT_PORT, portLabel);
         TextField portField = menuItem.getPortField();
-        portField.setFont(INPUT_FONT);
+        setupFont(portField, false);
         menuItem.setSpacing(GAP);
     }
 
