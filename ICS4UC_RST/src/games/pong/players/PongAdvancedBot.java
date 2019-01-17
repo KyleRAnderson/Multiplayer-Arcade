@@ -1,4 +1,4 @@
-package games.player;
+package games.pong.players;
 
 import games.pong.Pong;
 import games.pong.PongEvent;
