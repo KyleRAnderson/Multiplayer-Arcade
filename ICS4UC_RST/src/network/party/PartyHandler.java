@@ -100,7 +100,7 @@ public class PartyHandler {
         if (outgoingTask != null) {
             outgoingTask.cancel(true);
         }
-        if (socket != null && socket.isConnected()) {
+        if (socket != null) {
             try {
                 socket.close();
             } catch (IOException e) {
