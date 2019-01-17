@@ -1,7 +1,7 @@
 package games.pong.ui;
 
 import games.Game;
-import games.player.PongAdvancedBot;
+import games.pong.players.PongAdvancedBot;
 import games.player.PongKeyBinding;
 import games.pong.EndReason;
 import games.pong.Pong;
