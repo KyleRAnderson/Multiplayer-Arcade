@@ -3,7 +3,6 @@ package network.party.network;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import network.TCPSocket;
-import network.party.PartyHandler;
 
 import java.io.IOException;
 import java.util.Queue;
@@ -36,7 +35,7 @@ public class ReceiverTask extends Task<Void> {
     @Override
     protected Void call() {
         ReceivedDataEvent event = null;
-        while (PartyHandler.isConnected() && event != ReceivedDataEvent.DISCONNECTED) {
+        while (event != ReceivedDataEvent.DISCONNECTED) {
             String receivedMessage = null;
             try {
                 receivedMessage = socket.listenForData();

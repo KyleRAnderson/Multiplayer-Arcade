@@ -85,10 +85,6 @@ public class PartyHandler {
         return socket.isConnected();
     }
 
-    public static void terminateListeners() {
-
-    }
-
     /**
      * Disconnects from the party.
      */
@@ -100,7 +96,7 @@ public class PartyHandler {
         if (outgoingTask != null) {
             outgoingTask.cancel(true);
         }
-        if (socket != null && socket.isConnected()) {
+        if (socket != null) {
             try {
                 socket.close();
             } catch (IOException e) {
@@ -202,10 +198,15 @@ public class PartyHandler {
     private static void setupConnection() {
         outgoingQueue = new ArrayBlockingQueue<>(15);
         outgoingTask = new SenderTask(getTCPSocket(), outgoingQueue);
+        outgoingTask.setOnFailed(event -> receiverClosed());
+        outgoingTask.setOnSucceeded(event -> receiverClosed());
+        outgoingTask.setOnCancelled(event -> receiverClosed());
 
         incomingQueue = new ArrayBlockingQueue<>(15);
         incomingTask = new ReceiverTask(getTCPSocket(), incomingQueue);
         incomingTask.setOnSucceeded(event -> receiverClosed());
+        incomingTask.setOnFailed(event -> receiverClosed());
+        incomingTask.setOnCancelled(event -> receiverClosed());
         if (incomingListener != null) {
             incomingTask.addListener(incomingListener);
         }
