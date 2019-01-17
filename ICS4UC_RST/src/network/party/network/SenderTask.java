@@ -2,7 +2,6 @@ package network.party.network;
 
 import javafx.concurrent.Task;
 import network.TCPSocket;
-import network.party.PartyHandler;
 
 import java.io.IOException;
 import java.util.Queue;

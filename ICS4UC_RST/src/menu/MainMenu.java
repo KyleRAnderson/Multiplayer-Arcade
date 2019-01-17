@@ -2,7 +2,6 @@ package menu;
 
 import games.Game;
 import games.pong.ui.PongUI;
-import javafx.animation.PauseTransition;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -17,7 +16,6 @@ import javafx.scene.text.*;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import javafx.util.Duration;
 import network.Server;
 import network.TCPSocket;
 import network.party.PartyHandler;
