@@ -127,8 +127,6 @@ public class PongUI extends Pane implements Game {
 
         // Set the background to the proper background colour.
         setBackground(new Background(new BackgroundFill(BACKGROUND_COLOUR, CornerRadii.EMPTY, Insets.EMPTY)));
-        // Reset and set up game.
-        reset();
 
         // init paddles, ball and scoreboard
         leftPaddle = new Rectangle();
@@ -177,6 +175,9 @@ public class PongUI extends Pane implements Game {
                 recalculateScreenDimensions();
             }
         });
+
+        // Reset and set up game.
+        reset();
     }
 
     /**
