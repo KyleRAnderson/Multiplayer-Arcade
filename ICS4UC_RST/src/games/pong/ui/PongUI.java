@@ -1,6 +1,7 @@
 package games.pong.ui;
 
 import games.Game;
+import games.player.PongAdvancedBot;
 import games.player.PongKeyBinding;
 import games.pong.EndReason;
 import games.pong.Pong;
@@ -18,6 +19,7 @@ import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -32,6 +34,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 import menu.MainMenu;
 import network.party.PartyHandler;
@@ -39,10 +42,7 @@ import network.party.PartyRole;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -127,8 +127,6 @@ public class PongUI extends Pane implements Game {
 
         // Set the background to the proper background colour.
         setBackground(new Background(new BackgroundFill(BACKGROUND_COLOUR, CornerRadii.EMPTY, Insets.EMPTY)));
-        // Reset and set up game.
-        reset();
 
         // init paddles, ball and scoreboard
         leftPaddle = new Rectangle();
@@ -177,6 +175,9 @@ public class PongUI extends Pane implements Game {
                 recalculateScreenDimensions();
             }
         });
+
+        // Reset and set up game.
+        reset();
     }
 
     /**
@@ -530,15 +531,21 @@ public class PongUI extends Pane implements Game {
         // If we are making both players now, we should determine if we're going to place them too.
         boolean overrideSides = p1 == null && p2 == null;
 
+        if (p1 == null && p2 == null) {
+            PongPlayer[] players = promptForPlayers();
+            p1 = players[0];
+            p2 = players[1];
+            game.setLocalPlayer(p1);
+            game.setPlayer2(p2);
+        }
+
         if (p1 == null) {
             p1 = new PongKeyboardPlayer();
             game.setLocalPlayer(p1);
-            if (overrideSides) p1.setSide(Side.RIGHT);
         }
         if (p2 == null) {
             p2 = new PongKeyboardPlayer();
             game.setPlayer2(p2);
-            if (overrideSides) p2.setSide(Side.LEFT);
         }
         if (p1 instanceof PongKeyboardPlayer) {
             setupBindings((PongKeyboardPlayer) p1);
@@ -548,12 +555,59 @@ public class PongUI extends Pane implements Game {
             setupBindings((PongKeyboardPlayer) p2);
             keyboardPlayerList.add((PongKeyboardPlayer) p2);
         }
+        if (overrideSides) {
+            p1.setSide(Side.RIGHT);
+            p2.setSide(Side.LEFT);
+        }
+
         setupKeyCodes();
 
         game.initialize(); // Initialize pong game now that players are set up.
 
         p1.setOnActionChanged(this::paddleActionChanged);
         p2.setOnActionChanged(this::paddleActionChanged);
+    }
+
+    /**
+     * Prompts the user, asking them what type of game they would like: local singleplayer, local multiplayer, etc.
+     *
+     * @return The pong players created in the demand.
+     */
+    private PongPlayer[] promptForPlayers() {
+        final ButtonType localMultiplayer = new ButtonType("Local Multiplayer"),
+                advancedBot = new ButtonType("Expert Bot"),
+                spectate = new ButtonType("Spectate Bots");
+
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Select your game type.",
+                localMultiplayer, advancedBot, spectate);
+        MainMenu.setIcon((Stage) alert.getDialogPane().getScene().getWindow());
+        Optional<ButtonType> result = alert.showAndWait();
+
+
+        PongPlayer[] players = null;
+
+        // Only continue if there's something to continue with.
+        if (result.isPresent()) {
+            players = new PongPlayer[2];
+            ButtonType resultType = result.get();
+
+            if (resultType == advancedBot) {
+                players[0] = new PongKeyboardPlayer();
+                players[1] = new PongAdvancedBot();
+            }
+            // If the user wants to spectate two bots fighting each other, go for it.
+            else if (resultType == spectate) {
+                players[0] = new PongAdvancedBot();
+                players[1] = new PongAdvancedBot();
+            }
+            // The default case is always local multiplayer.
+            else {
+                players[0] = new PongKeyboardPlayer();
+                players[1] = new PongKeyboardPlayer();
+            }
+        }
+
+        return players;
     }
 
     /**
