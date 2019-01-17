@@ -13,6 +13,7 @@ import games.pong.players.Action;
 import games.pong.players.PongKeyboardPlayer;
 import games.pong.players.PongNetworkPlayer;
 import games.pong.players.PongPlayer;
+import games.pong.players.PongSimpleBot;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -575,11 +576,12 @@ public class PongUI extends Pane implements Game {
      */
     private PongPlayer[] promptForPlayers() {
         final ButtonType localMultiplayer = new ButtonType("Local Multiplayer"),
+        		beginnerbot = new ButtonType("Beginner Bot"),
                 advancedBot = new ButtonType("Expert Bot"),
                 spectate = new ButtonType("Spectate Bots");
 
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Select your game type.",
-                localMultiplayer, advancedBot, spectate);
+                localMultiplayer, beginnerbot, advancedBot, spectate);
         MainMenu.setIcon((Stage) alert.getDialogPane().getScene().getWindow());
         Optional<ButtonType> result = alert.showAndWait();
 
@@ -591,7 +593,11 @@ public class PongUI extends Pane implements Game {
             players = new PongPlayer[2];
             ButtonType resultType = result.get();
 
-            if (resultType == advancedBot) {
+            if (resultType == beginnerbot) {
+            	players[0] = new PongKeyboardPlayer();
+            	players[1] = new PongSimpleBot();
+            	
+            } else if (resultType == advancedBot) {
                 players[0] = new PongKeyboardPlayer();
                 players[1] = new PongAdvancedBot();
             }

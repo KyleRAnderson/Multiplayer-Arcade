@@ -10,8 +10,7 @@ import games.pong.players.PongPlayer;
 
 import java.util.function.BiConsumer;
 
-public class PongAdvancedBot implements PongPlayer {
-    private static final int PADDLE_HEIGHT_DIVISOR = 10;
+public class PongAdvancedBot extends PongBot implements PongPlayer {
 
     private Side side;
     private int points;
@@ -63,10 +62,8 @@ public class PongAdvancedBot implements PongPlayer {
         return true;
     }
 
-    /**
-     * Runs the bot's logic every tick.
-     */
-    private void runGoTo() {
+    @Override
+    protected void runGoTo() {
         // If we have a target, do logic to try and go to the target.
         if (hasTarget()) {
             final Paddle thisPaddle = game.getPaddle(this);
@@ -98,30 +95,19 @@ public class PongAdvancedBot implements PongPlayer {
         oldAction = newAction;
     }
 
-    /**
-     * Determines if this bot is trying to go to a target vertical position.
-     *
-     * @return True if the bot is trying to go to a position, false otherwise.
-     */
-    private boolean hasTarget() {
+    @Override
+    protected boolean hasTarget() {
         return targetY >= 0;
     }
-
-    /**
-     * Sets a position that the bot shall attempt to reach.
-     *
-     * @param y The y position that the bot will reach.
-     */
-    private void setGoTo(final double y) {
+    
+    @Override
+    protected void setGoTo(final double y) {
         targetY = y;
     }
+    
 
-    /**
-     * Called when a pong event changes.
-     *
-     * @param pongEvent The event.
-     */
-    private void pongEvent(PongEvent pongEvent) {
+    @Override
+    protected void pongEvent(PongEvent pongEvent) {
         switch (pongEvent.getType()) {
             case PLAYER_SCORED:
                 setGoTo(game.getBoardHeight() / 2);
@@ -138,13 +124,8 @@ public class PongAdvancedBot implements PongPlayer {
         }
     }
 
-    /**
-     * Determines the future height of the ball in order to go to that position
-     * and hit the ball.
-     *
-     * @return The future y position of the ball.
-     */
-    private double calculateFutureBallHeight() {
+    @Override
+	protected double calculateFutureBallHeight() {
         final Paddle thisPaddle = game.getPaddle(this);
         final PongBall ball = game.getBall();
         final Side ballCollisionSide = getSide();
