@@ -312,6 +312,7 @@ public class Pong {
 
     /**
      * Sets an action to be run at the end of each tick. The action should run quickly so as not to delay the ticks.
+     *
      * @param action The action to be run.
      */
     public void setOnTick(Runnable action) {
