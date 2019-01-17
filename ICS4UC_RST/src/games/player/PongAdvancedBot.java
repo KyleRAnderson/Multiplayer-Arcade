@@ -11,7 +11,7 @@ import games.pong.players.PongPlayer;
 import java.util.function.BiConsumer;
 
 public class PongAdvancedBot implements PongPlayer {
-    private static final int PADDLE_HEIGHT_DIVISOR = 8;
+    private static final int PADDLE_HEIGHT_DIVISOR = 10;
 
     private Side side;
     private int points;
@@ -50,12 +50,12 @@ public class PongAdvancedBot implements PongPlayer {
         this.game = game;
         this.game.setOnTick(this::runGoTo);
         this.game.addEventListener(this::pongEvent);
-        setGoTo(this.game.getBoardHeight() / 2);
+        setGoTo(this.game.getBoardHeight() / 2 + 5);
     }
 
     @Override
     public String getName() {
-        return "Advanced Bot";
+        return "Advanced Bot " + getSide();
     }
 
     @Override

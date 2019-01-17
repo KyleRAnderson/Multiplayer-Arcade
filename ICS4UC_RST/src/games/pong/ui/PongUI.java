@@ -574,9 +574,11 @@ public class PongUI extends Pane implements Game {
      */
     private PongPlayer[] promptForPlayers() {
         final ButtonType localMultiplayer = new ButtonType("Local Multiplayer"),
-                advancedBot = new ButtonType("Expert Bot");
+                advancedBot = new ButtonType("Expert Bot"),
+                spectate = new ButtonType("Spectate Bots");
 
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Select your game type.", localMultiplayer, advancedBot);
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Select your game type.",
+                localMultiplayer, advancedBot, spectate);
         MainMenu.setIcon((Stage) alert.getDialogPane().getScene().getWindow());
         Optional<ButtonType> result = alert.showAndWait();
 
@@ -590,6 +592,11 @@ public class PongUI extends Pane implements Game {
 
             if (resultType == advancedBot) {
                 players[0] = new PongKeyboardPlayer();
+                players[1] = new PongAdvancedBot();
+            }
+            // If the user wants to spectate two bots fighting each other, go for it.
+            else if (resultType == spectate) {
+                players[0] = new PongAdvancedBot();
                 players[1] = new PongAdvancedBot();
             }
             // The default case is always local multiplayer.

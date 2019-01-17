@@ -82,7 +82,7 @@ public class Pong {
     /**
      * An action to be run after each tick.
      */
-    private Runnable tickAction;
+    private ArrayList<Runnable> tickActions = new ArrayList<>();
 
     /**
      * Constructs a new pong game with the given players.
@@ -291,8 +291,8 @@ public class Pong {
             // Make sure the paddle is in bounds as well.
             checkPaddleBounds();
 
-            if (tickAction != null) {
-                tickAction.run();
+            if (tickActions.size() > 0) {
+                tickActions.forEach(Runnable::run);
             }
         } else if (!hasBegun && !readyNotified) {
             callEvent(new PongEvent(PongEvent.EventType.GAME_READY));
@@ -316,7 +316,7 @@ public class Pong {
      * @param action The action to be run.
      */
     public void setOnTick(Runnable action) {
-        tickAction = action;
+        tickActions.add(action);
     }
 
     /**
