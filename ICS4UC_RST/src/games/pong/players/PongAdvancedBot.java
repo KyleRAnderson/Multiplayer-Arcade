@@ -109,6 +109,7 @@ public class PongAdvancedBot extends PongBot implements PongPlayer {
     @Override
     protected void pongEvent(PongEvent pongEvent) {
         switch (pongEvent.getType()) {
+        	// if player scored, move paddle to center
             case PLAYER_SCORED:
                 setGoTo(game.getBoardHeight() / 2);
                 break;

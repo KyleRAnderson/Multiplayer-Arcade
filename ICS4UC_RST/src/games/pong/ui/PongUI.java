@@ -61,6 +61,8 @@ public class PongUI extends Pane implements Game {
             "End the game by pressing the escape key repeatedly.";
 
     private final Scene scene;
+    
+    private boolean beforeDifficultySelection = true;
 
     // Load custom blocky font
     static {
@@ -136,11 +138,10 @@ public class PongUI extends Pane implements Game {
         rightPaddle.setFill(FOREGROUND_COLOUR);
 
         divider = new Divider(FOREGROUND_COLOUR);
+        scoreboard = new Scoreboard(FOREGROUND_COLOUR, FONT);
 
         ball = new Rectangle();
         ball.setFill(FOREGROUND_COLOUR);
-
-        scoreboard = initializeScoreboard();
 
         getChildren().addAll(divider, leftPaddle, rightPaddle, ball, scoreboard);
 
@@ -194,19 +195,6 @@ public class PongUI extends Pane implements Game {
             setWidth(game.getBoardWidth() / game.getBoardHeight() * getHeight());
         }
         calculateScaleFactor();
-    }
-
-    /**
-     * Initializes the scoreboard object to be used in the game.
-     *
-     * @return The Scoreboard object.
-     */
-    private Scoreboard initializeScoreboard() {
-        Scoreboard board = new Scoreboard();
-        board.setFont(FONT);
-        board.setFontFill(Color.WHITE);
-
-        return board;
     }
 
     /**
@@ -286,6 +274,10 @@ public class PongUI extends Pane implements Game {
         ball.setWidth(game.getBall().getWidth() * scaleFactor);
         ball.setHeight(game.getBall().getHeight() * scaleFactor);
         scoreboard.changeSize(scaleFactor);
+        
+        // place scoreboard correctly before difficulty selection
+        if (beforeDifficultySelection) { scoreboard.calculate(getWorkingWidth(), getWorkingHeight(), 2.36);}
+        
         divider.calculate(getWorkingWidth(), getWorkingHeight());
         updatePaddleLocations();
         updateBallLocation();
@@ -345,7 +337,7 @@ public class PongUI extends Pane implements Game {
     private void updateScoreboard() {
         scoreboard.setLeftScore(game.getLeftPlayer().getPoints());
         scoreboard.setRightScore(game.getRightPlayer().getPoints());
-        scoreboard.calculate(getWorkingWidth(), getWorkingHeight());
+        scoreboard.calculate(getWorkingWidth(), getWorkingHeight(), 1D);
     }
 
     /**
@@ -584,6 +576,8 @@ public class PongUI extends Pane implements Game {
                 localMultiplayer, beginnerbot, advancedBot, spectate);
         MainMenu.setIcon((Stage) alert.getDialogPane().getScene().getWindow());
         Optional<ButtonType> result = alert.showAndWait();
+        
+        beforeDifficultySelection = false;
 
 
         PongPlayer[] players = null;

@@ -79,10 +79,12 @@ public class PongBeginnerBot extends PongBot implements PongPlayer {
 	@Override
 	protected void pongEvent(PongEvent pongEvent) {
 		switch (pongEvent.getType()) {
+			// if the player scored, move paddle to center
         	case PLAYER_SCORED:
         		setGoTo(game.getBoardHeight() / 2);
         		break;
         	default:
+        		// set paddle to move where to center of the ball is
         		setGoTo(game.getBall().getY() - game.getBall().getRadius());
         		break;
 		}
