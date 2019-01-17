@@ -124,8 +124,13 @@ public class PongAdvancedBot extends PongBot implements PongPlayer {
         }
     }
 
-    @Override
-	protected double calculateFutureBallHeight() {
+    /**
+     * Determines the future height of the ball in order to go to that position
+     * and hit the ball.
+     *
+     * @return The future y position of the ball.
+     */
+	private double calculateFutureBallHeight() {
         final Paddle thisPaddle = game.getPaddle(this);
         final PongBall ball = game.getBall();
         final Side ballCollisionSide = getSide();

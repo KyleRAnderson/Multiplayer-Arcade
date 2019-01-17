@@ -13,7 +13,7 @@ import games.pong.players.Action;
 import games.pong.players.PongKeyboardPlayer;
 import games.pong.players.PongNetworkPlayer;
 import games.pong.players.PongPlayer;
-import games.pong.players.PongSimpleBot;
+import games.pong.players.PongBeginnerBot;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -595,7 +595,7 @@ public class PongUI extends Pane implements Game {
 
             if (resultType == beginnerbot) {
             	players[0] = new PongKeyboardPlayer();
-            	players[1] = new PongSimpleBot();
+            	players[1] = new PongBeginnerBot();
             	
             } else if (resultType == advancedBot) {
                 players[0] = new PongKeyboardPlayer();

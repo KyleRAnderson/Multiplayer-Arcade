@@ -17,14 +17,6 @@ public abstract class PongBot
 	protected static final int PADDLE_HEIGHT_DIVISOR = 10;
 	
 	/**
-     * Determines the future height of the ball in order to go to that position
-     * and hit the ball.
-     *
-     * @return The future y position of the ball.
-     */
-	protected abstract double calculateFutureBallHeight();
-	
-	/**
      * Sets a position that the bot shall attempt to reach.
      *
      * @param y The y position that the bot will reach.

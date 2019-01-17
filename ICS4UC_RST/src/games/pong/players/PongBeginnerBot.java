@@ -4,9 +4,7 @@ import java.util.function.BiConsumer;
 import games.pong.Pong;
 import games.pong.PongEvent;
 import games.pong.pieces.Paddle;
-import games.pong.pieces.PongBall;
 import games.pong.pieces.Side;
-import games.pong.PongEvent;
 
 /**
  * Class for representing and controlling a bot
@@ -14,7 +12,7 @@ import games.pong.PongEvent;
  * @author s405751 (Nicolas Hawrysh)
  * ICS4U RST
  */
-public class PongSimpleBot extends PongBot implements PongPlayer {
+public class PongBeginnerBot extends PongBot implements PongPlayer {
     private Side side;
 	private int points;
 	private double targetY;
@@ -28,7 +26,7 @@ public class PongSimpleBot extends PongBot implements PongPlayer {
 	
 	@Override
 	public Side getSide() {
-		return this.getSide();
+		return this.side;
 	}
 	@Override
 	public void setSide(Side side) {
@@ -74,16 +72,6 @@ public class PongSimpleBot extends PongBot implements PongPlayer {
     }
 	
 	@Override
-	protected double calculateFutureBallHeight() {
-		final Paddle thisPaddle = game.getPaddle(this);
-        final PongBall ball = game.getBall();
-        
-        double endY = ball.getHeight();
- 
-        
-		return endY;
-	}
-	@Override
 	protected void setGoTo(double y) {
 		targetY = y;
     }
@@ -94,14 +82,8 @@ public class PongSimpleBot extends PongBot implements PongPlayer {
         	case PLAYER_SCORED:
         		setGoTo(game.getBoardHeight() / 2);
         		break;
-        	case BALL_HIT_PADDLE:
-        		if (pongEvent.getPaddle().equals(game.getPaddle(this))) {
-        			setGoTo(game.getBoardHeight() / 2);
-        		} else {
-        			setGoTo(calculateFutureBallHeight());
-        		}
-        		break;
         	default:
+        		setGoTo(game.getBall().getY() - game.getBall().getRadius());
         		break;
 		}
 	}
@@ -134,15 +116,14 @@ public class PongSimpleBot extends PongBot implements PongPlayer {
 	
 	
 	/**
-     * Sets a new action to be done by the paddle.
+     * Called when the bot's action should change.
      *
-     * @param newAction The new action.
+     * @param newAction The new action that the player should take.
      */
     private void setAction(Action newAction) {
-		if (newAction != oldAction && actionListener != null) {
+        if (actionListener != null) {
             actionListener.accept(this, newAction);
         }
-        oldAction = newAction;
     }
 
 }
