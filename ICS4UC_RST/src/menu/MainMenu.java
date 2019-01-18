@@ -15,6 +15,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -37,7 +38,6 @@ import network.party.network.HostStatus;
 import network.party.network.NetworkMessage;
 import network.party.network.ReceivedDataEvent;
 import org.controlsfx.control.Notifications;
-import org.controlsfx.control.action.Action;
 import preferences.Preferences;
 import preferences.PreferencesMenu;
 
@@ -45,11 +45,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.UnknownHostException;
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
-
-import static javafx.scene.control.ButtonType.YES;
 
 /**
  * Main menu for users to use to launch whatever game they want to or to customize settings.
@@ -59,6 +56,8 @@ import static javafx.scene.control.ButtonType.YES;
  * ICS4U RST
  */
 public class MainMenu extends Application {
+    private static MainMenu currentInstace;
+
     private static final double DEFAULT_WIDTH, DEFAULT_HEIGHT, SCREEN_HEIGHT, SCREEN_WIDTH, MIN_HEIGHT, MIN_WIDTH;
     /**
      * The window's icon.
@@ -123,6 +122,8 @@ public class MainMenu extends Application {
      */
     private boolean disconnectNotified;
 
+    private Scene scene;
+
     // Array of all the playable games.
     private final Game[] games = new Game[]{
             new PongUI()
@@ -134,6 +135,7 @@ public class MainMenu extends Application {
      * Constructs a new main menu object.
      */
     public MainMenu() {
+        currentInstace = this;
         PartyHandler.setIncomingMessageListener(this::messageReceived);
 
         StringBuilder builder = new StringBuilder(MENU_HELP_TEXT);
@@ -141,6 +143,24 @@ public class MainMenu extends Application {
             builder.append(game.getHelpText()).append("\n\n");
         }
         helpText = builder.toString();
+    }
+
+    /**
+     * Gets the current instance of the main menu.
+     *
+     * @return The current main menu.
+     */
+    public static MainMenu getCurrentInstance() {
+        return currentInstace;
+    }
+
+    /**
+     * Called in order to resize the window to the scene.
+     */
+    public void sizeToScene() {
+        if (!stage.isFullScreen()) {
+            stage.sizeToScene();
+        }
     }
 
     @Override
@@ -302,8 +322,8 @@ public class MainMenu extends Application {
         screenRoot = new StackPane(menuRoot);
         screenRoot.setAlignment(Pos.CENTER);
 
-        Scene scene = new Scene(screenRoot);
-        setDisplay(scene);
+        scene = new Scene(screenRoot);
+        stage.setScene(scene);
 
         // Bind font sizes
         inputFontSize.bind(scene.heightProperty().divide(INPUT_FONT_SIZE_RATIO));
@@ -344,9 +364,9 @@ public class MainMenu extends Application {
     /**
      * Sets up the font with the correct font.
      *
-     * @param element    The element to set the font on.
-     * @param property   The property to which the font size depends on.
-     * @param font       The font to be used.
+     * @param element  The element to set the font on.
+     * @param property The property to which the font size depends on.
+     * @param font     The font to be used.
      */
     public static void setupFont(Node element, DoubleProperty property, @Nullable Font font) {
         String fontFamily = "";
@@ -424,6 +444,7 @@ public class MainMenu extends Application {
             currentGame.reset();
             currentGame.setOnEnd(this::gameEnded);
             Region window = currentGame.getWindow();
+            setDisplay(window);
             window.setPrefWidth(menuRoot.getWidth());
             if (wasInvited) {
                 currentGame.setNetworkGame();
@@ -431,7 +452,6 @@ public class MainMenu extends Application {
             if (currentGame.isNetworkGame()) {
                 currentGame.getNetworkPlayer().setOnGameDataSend(this::sendGameData);
             }
-            setDisplay(currentGame.getWorkingScene());
             currentGame.initializePlayers();
             currentGame.start();
         }
@@ -446,7 +466,7 @@ public class MainMenu extends Application {
         // Only actually end if the ended game was the game being played.
         if (currentGame == endedGame) {
             currentGame = null;
-            setDisplay(menuRoot.getScene());
+            setDisplay(screenRoot);
         }
     }
 
@@ -472,12 +492,10 @@ public class MainMenu extends Application {
     /**
      * Sets the display to be shown on the screen.
      *
-     * @param scene The scene to be shown.
+     * @param window The window to be shown.
      */
-    private void setDisplay(Scene scene) {
-        boolean wasFullScreen = stage.isFullScreen();
-        stage.setScene(scene);
-        stage.setFullScreen(wasFullScreen);
+    private void setDisplay(Parent window) {
+        scene.setRoot(window);
     }
 
     /**
@@ -523,6 +541,7 @@ public class MainMenu extends Application {
 
     /**
      * Shows the help stuff.
+     *
      * @param show True to show the help, false to hide it.
      */
     private void showHelp(boolean show) {
@@ -535,6 +554,7 @@ public class MainMenu extends Application {
 
     /**
      * Displays the user preferences menu.
+     *
      * @param show True to show, false to hide.
      */
     private void showPreferences(boolean show) {
@@ -679,8 +699,9 @@ public class MainMenu extends Application {
 
     /**
      * Called when the user either accepts or declines the invite.
+     *
      * @param userAccepted True if the user accepted the game invite, false otherwise.
-     * @param invitedGame The game that the user was invited to.
+     * @param invitedGame  The game that the user was invited to.
      */
     private void gameInviteDecision(Boolean userAccepted, Game invitedGame) {
         HostStatus newStatus = (userAccepted) ? HostStatus.ACCEPTED_GAME_INVITE : HostStatus.DECLINED_GAME_INVITE;
@@ -726,8 +747,8 @@ public class MainMenu extends Application {
     /**
      * Invites this user to play a game initiated by the other user.
      *
-     * @param otherPlayerName The gamer tag of the player inviting this player to play the game.
-     * @param game            The game to which the user was invited.
+     * @param otherPlayerName  The gamer tag of the player inviting this player to play the game.
+     * @param game             The game to which the user was invited.
      * @param onInviteDecision The action to be called when the user either accepts or declines the invite.
      * @return True if this user accepts playing the game, false otherwise.
      */
@@ -770,10 +791,11 @@ public class MainMenu extends Application {
 
     /**
      * Shows a notification with the given title and text.
-     *  @param type    The type of notification to be shown.
+     *
+     * @param type    The type of notification to be shown.
      * @param title   The title of the notification.
      * @param content The notification's content text.
-     * @param action The action to be called when the notification is clicked.
+     * @param action  The action to be called when the notification is clicked.
      */
     public static void showNotification(Alert.AlertType type, final String title, final String content, @Nullable EventHandler<ActionEvent> action) {
         Notifications notifications = Notifications.create();
@@ -801,9 +823,11 @@ public class MainMenu extends Application {
                 break;
         }
     }
+
     /**
      * Shows a notification with the given title and text.
-     *  @param type    The type of notification to be shown.
+     *
+     * @param type    The type of notification to be shown.
      * @param title   The title of the notification.
      * @param content The notification's content text.
      */

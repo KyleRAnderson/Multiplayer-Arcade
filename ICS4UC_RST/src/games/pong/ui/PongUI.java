@@ -53,8 +53,6 @@ public class PongUI extends Pane implements Game {
     private static final double
             FPS = 60; // Frames per second
 
-    private final Scene scene;
-
     // Load custom blocky font
     static {
         InputStream stream = PongUI.class.getResourceAsStream("/res/pong/fonts/pong.ttf");
@@ -121,9 +119,6 @@ public class PongUI extends Pane implements Game {
      * Constructs a new PongUI with the given width and height and Game object.
      */
     public PongUI() {
-        this.scene = new Scene(this);
-
-
         // Set the background to the proper background colour.
         setBackground(new Background(new BackgroundFill(BACKGROUND_COLOUR, CornerRadii.EMPTY, Insets.EMPTY)));
 
@@ -145,54 +140,56 @@ public class PongUI extends Pane implements Game {
         setOnKeyPressed(this::keyPressed);
         setOnKeyReleased(this::keyReleased);
 
-        prefWidthProperty().addListener((observable, oldValue, newValue) -> {
-            // Only resize if the changed width is the same as the old width.
-            if (!oldValue.equals(newValue)) {
-                recalculateScreenDimensions();
-            }
-        });
-
-        prefHeightProperty().addListener((observable, oldValue, newValue) -> {
-            // Only resize if the changed width is the same as the old width.
-            if (!oldValue.equals(newValue)) {
-                recalculateScreenDimensions();
-            }
-        });
-
-        // Add listeners to resize when the user resizes the screen.
-        scene.widthProperty().addListener((observable, oldValue, newValue) -> {
-            if (!oldValue.equals(newValue)) {
-                recalculateScreenDimensions();
-            }
-        });
-        scene.heightProperty().addListener((observable, oldValue, newValue) -> {
-            if (!oldValue.equals(newValue)) {
-                recalculateScreenDimensions();
-            }
-        });
+        // Add a listener on the scene so we know when it's ready.
+        sceneProperty().addListener((observable, oldValue, newValue) -> sceneChanged(newValue));
 
         // Reset and set up game.
         reset();
     }
 
     /**
+     * Called when the scene is changed.
+     *
+     * @param newScene The new scene
+     */
+    private void sceneChanged(Scene newScene) {
+        if (newScene != null) {
+            // Add listeners to resize when the user resizes the screen.
+            newScene.widthProperty().addListener((observable, oldValue, newValue) -> {
+                if (!oldValue.equals(newValue)) {
+                    recalculateScreenDimensions();
+                }
+            });
+            newScene.heightProperty().addListener((observable, oldValue, newValue) -> {
+                if (!oldValue.equals(newValue)) {
+                    recalculateScreenDimensions();
+                }
+            });
+            recalculateScreenDimensions();
+        }
+    }
+
+    /**
      * Calculates the proper height and width for screen based off of the ratio set in the game.
      */
     private void recalculateScreenDimensions() {
-        final double sceneHeight = scene.getHeight(), sceneWidth = scene.getWidth();
+        final Scene scene = getScene();
+        if (scene != null) {
+            final double sceneHeight = scene.getHeight(), sceneWidth = scene.getWidth();
 
-        // If the height/width ratio of the screen is larger than the one on the board, the width is limiting.
-        if (sceneHeight / sceneWidth > game.getBoardHeight() / game.getBoardWidth()) {
-            setHeight(game.getBoardHeight() / game.getBoardWidth() * sceneWidth);
-            setWidth(sceneWidth);
-        }
-        // Height is limiting.
-        else {
-            setWidth(game.getBoardWidth() / game.getBoardHeight() * sceneHeight);
-            setHeight(sceneHeight);
-        }
+            // If the height/width ratio of the screen is larger than the one on the board, the width is limiting.
+            if (sceneHeight / sceneWidth > game.getBoardHeight() / game.getBoardWidth()) {
+                setHeight(game.getBoardHeight() / game.getBoardWidth() * sceneWidth);
+                setWidth(sceneWidth);
+            }
+            // Height is limiting.
+            else {
+                setWidth(game.getBoardWidth() / game.getBoardHeight() * sceneHeight);
+                setHeight(sceneHeight);
+            }
 
-        calculateScaleFactor();
+            calculateScaleFactor();
+        }
     }
 
     /**
@@ -296,8 +293,9 @@ public class PongUI extends Pane implements Game {
     @Override
     public void start() {
         if (hasInitializedPlayers) {
+            MainMenu.getCurrentInstance().sizeToScene();
+            recalculateScreenDimensions();
             requestFocus();
-            calculateScaleFactor();
 
             renderFrameTimer = new Timeline(new KeyFrame(Duration.millis(1000.0 / FPS), event -> renderFrame()));
             renderFrameTimer.setCycleCount(Timeline.INDEFINITE);
@@ -546,8 +544,8 @@ public class PongUI extends Pane implements Game {
         } else {
             PongPlayer p1 = game.getLocalPlayer(), p2 = game.getPlayer2();
 
-            // If we are making both players now, we should determine if we're going to place them too.
-            boolean overrideSides = p1 instanceof PongKeyboardPlayer && p2 instanceof PongKeyboardPlayer;
+            // We can override which sides everybody is on if it's not a network game.
+            boolean overrideSides = !isNetworkGame();
 
             if (p1 == null) {
                 p1 = new PongKeyboardPlayer();
@@ -627,11 +625,6 @@ public class PongUI extends Pane implements Game {
         for (PongKeyboardPlayer player : keyboardPlayerList) {
             keyCodesWeCareAbout.addAll(player.getKeyBindings().keySet());
         }
-    }
-
-    @Override
-    public Scene getWorkingScene() {
-        return this.scene;
     }
 
     @Override

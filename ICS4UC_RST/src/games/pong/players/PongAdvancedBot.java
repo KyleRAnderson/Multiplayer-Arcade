@@ -5,8 +5,6 @@ import games.pong.PongEvent;
 import games.pong.pieces.Paddle;
 import games.pong.pieces.PongBall;
 import games.pong.pieces.Side;
-import games.pong.players.Action;
-import games.pong.players.PongPlayer;
 
 import java.util.function.BiConsumer;
 
