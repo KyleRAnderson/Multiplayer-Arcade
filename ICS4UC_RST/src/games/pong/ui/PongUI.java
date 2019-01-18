@@ -114,6 +114,7 @@ public class PongUI extends Pane implements Game {
     milliseconds, the game quits.
      */
     private Long[] endKeyPressTimes = new Long[END_KEY_NUMBER_PRESSES];
+    private VBox selector;
 
     /**
      * Constructs a new PongUI with the given width and height and Game object.
@@ -577,36 +578,35 @@ public class PongUI extends Pane implements Game {
         Text text = new Text("Select Game");
         text.setFont(FONT);
 
-        VBox selector = new VBox(15);
+        selector = new VBox(15);
         selector.prefWidthProperty().bind(widthProperty());
         selector.prefHeightProperty().bind(heightProperty());
         selector.setAlignment(Pos.CENTER);
         selector.setBackground(new Background(new BackgroundFill(Color.ORANGE, CornerRadii.EMPTY, Insets.EMPTY)));
 
         Button localMultiplayer = new Button("Local Multiplayer");
-        localMultiplayer.setOnAction(event -> {
-            game.setLocalPlayer(new PongKeyboardPlayer());
-            game.setPlayer2(new PongKeyboardPlayer());
-            getWindow().getChildren().remove(selector);
-            initializePlayers(true);
-        });
+        localMultiplayer.setOnAction(event -> playerPromptClosed(new PongKeyboardPlayer(), new PongKeyboardPlayer()));
         Button advancedBot = new Button("Advanced Bot");
-        advancedBot.setOnAction(event -> {
-            game.setLocalPlayer(new PongKeyboardPlayer());
-            game.setPlayer2(new PongAdvancedBot());
-            getWindow().getChildren().remove(selector);
-            initializePlayers(true);
-        });
+        advancedBot.setOnAction(event -> playerPromptClosed(new PongKeyboardPlayer(), new PongAdvancedBot()));
         Button spectateBots = new Button("Spectate Bots");
-        spectateBots.setOnAction(event -> {
-            game.setLocalPlayer(new PongAdvancedBot());
-            game.setPlayer2(new PongAdvancedBot());
-            getWindow().getChildren().remove(selector);
-            initializePlayers(true);
-        });
+        spectateBots.setOnAction(event -> playerPromptClosed(new PongAdvancedBot(), new PongAdvancedBot()));
+        Button simpleBot = new Button("Easy Bot");
+        simpleBot.setOnAction(event -> playerPromptClosed(new PongKeyboardPlayer(), new PongBeginnerBot()));
 
-        selector.getChildren().addAll(text, localMultiplayer, advancedBot, spectateBots);
+        selector.getChildren().addAll(text, localMultiplayer, advancedBot, simpleBot, spectateBots);
         getWindow().getChildren().add(selector);
+    }
+
+    /**
+     * Called after prompting the player to choose how the game will be played.
+     * @param localPlayer The local player to be used.
+     * @param player2 The second player.
+     */
+    private void playerPromptClosed(PongPlayer localPlayer, PongPlayer player2) {
+        game.setLocalPlayer(localPlayer);
+        game.setPlayer2(player2);
+        getWindow().getChildren().remove(selector);
+        initializePlayers(true);
     }
 
     /**
