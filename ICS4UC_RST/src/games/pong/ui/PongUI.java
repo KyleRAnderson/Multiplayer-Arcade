@@ -61,8 +61,6 @@ public class PongUI extends Pane implements Game {
             "End the game by pressing the escape key repeatedly.";
 
     private final Scene scene;
-    
-    private boolean beforeDifficultySelection = true;
 
     // Load custom blocky font
     static {
@@ -138,7 +136,9 @@ public class PongUI extends Pane implements Game {
         rightPaddle.setFill(FOREGROUND_COLOUR);
 
         divider = new Divider(FOREGROUND_COLOUR);
-        scoreboard = new Scoreboard(FOREGROUND_COLOUR, FONT);
+        
+        // set to background color so it can be set back to foreground when needed
+        scoreboard = new Scoreboard(BACKGROUND_COLOUR, FONT);
 
         ball = new Rectangle();
         ball.setFill(FOREGROUND_COLOUR);
@@ -274,10 +274,6 @@ public class PongUI extends Pane implements Game {
         ball.setWidth(game.getBall().getWidth() * scaleFactor);
         ball.setHeight(game.getBall().getHeight() * scaleFactor);
         scoreboard.changeSize(scaleFactor);
-        
-        // place scoreboard correctly before difficulty selection
-        if (beforeDifficultySelection) { scoreboard.calculate(getWorkingWidth(), getWorkingHeight(), 2.36);}
-        
         divider.calculate(getWorkingWidth(), getWorkingHeight());
         updatePaddleLocations();
         updateBallLocation();
@@ -337,7 +333,7 @@ public class PongUI extends Pane implements Game {
     private void updateScoreboard() {
         scoreboard.setLeftScore(game.getLeftPlayer().getPoints());
         scoreboard.setRightScore(game.getRightPlayer().getPoints());
-        scoreboard.calculate(getWorkingWidth(), getWorkingHeight(), 1D);
+        scoreboard.calculate(getWorkingWidth(), getWorkingHeight());
     }
 
     /**
@@ -449,6 +445,7 @@ public class PongUI extends Pane implements Game {
     public void reset() {
         game = new Pong(); // Initialize new pong game with the correct type of players
         resetKeyBindings();
+        // set up proper location for scoreboard
         game.addEventListener(this::gameEventHappened);
         SfxPongPlayer.init();
     }
@@ -567,6 +564,9 @@ public class PongUI extends Pane implements Game {
      * @return The pong players created in the demand.
      */
     private PongPlayer[] promptForPlayers() {
+    	// show scoreboard right before prompting for players, ensures proper positioning for scoreboard while waiting for input
+    	showScoreboard();
+    	
         final ButtonType localMultiplayer = new ButtonType("Local Multiplayer"),
         		beginnerbot = new ButtonType("Beginner Bot"),
                 advancedBot = new ButtonType("Expert Bot"),
@@ -576,9 +576,6 @@ public class PongUI extends Pane implements Game {
                 localMultiplayer, beginnerbot, advancedBot, spectate);
         MainMenu.setIcon((Stage) alert.getDialogPane().getScene().getWindow());
         Optional<ButtonType> result = alert.showAndWait();
-        
-        beforeDifficultySelection = false;
-
 
         PongPlayer[] players = null;
 
@@ -608,6 +605,14 @@ public class PongUI extends Pane implements Game {
         }
 
         return players;
+    }
+    
+    /**
+     * Sets default working pos for scoreboard to be centered and set to be visible.
+     */
+    private void showScoreboard() {
+    	scoreboard.calculate(getWorkingWidth(), getWorkingHeight());
+    	scoreboard.setFontFill(FOREGROUND_COLOUR);
     }
 
     /**

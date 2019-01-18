@@ -43,10 +43,10 @@ public class Scoreboard extends Group {
      * @param screenWidth  The width of the screen.
      * @param screenHeight The height of the screen.
      */
-    public void calculate(final double screenWidth, final double screenHeight, final double leftoffset) {
+    public void calculate(final double screenWidth, final double screenHeight) {
         final double height = screenHeight * 0.1; // Universal height for both text boxes.
 
-        leftScore.relocate(screenWidth / 2 - screenWidth * PERCENTAGE_DIST_FROM_CENTRE * leftoffset - leftScore.getWidth(), height);
+        leftScore.relocate(screenWidth / 2 - screenWidth * PERCENTAGE_DIST_FROM_CENTRE - leftScore.getWidth(), height);
         rightScore.relocate(screenWidth / 2 + screenWidth * (PERCENTAGE_DIST_FROM_CENTRE * 1.4), height);
     }
 

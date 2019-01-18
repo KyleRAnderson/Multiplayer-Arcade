@@ -7,7 +7,7 @@ import games.pong.pieces.Paddle;
 import games.pong.pieces.Side;
 
 /**
- * Class for representing and controlling a bot
+ * Class for representing and controlling a beginner bot
  *
  * @author s405751 (Nicolas Hawrysh)
  * ICS4U RST
