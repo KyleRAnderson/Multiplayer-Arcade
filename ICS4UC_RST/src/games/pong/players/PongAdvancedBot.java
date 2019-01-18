@@ -5,8 +5,6 @@ import games.pong.PongEvent;
 import games.pong.pieces.Paddle;
 import games.pong.pieces.PongBall;
 import games.pong.pieces.Side;
-import games.pong.players.Action;
-import games.pong.players.PongPlayer;
 
 import java.util.function.BiConsumer;
 
@@ -99,17 +97,17 @@ public class PongAdvancedBot extends PongBot implements PongPlayer {
     protected boolean hasTarget() {
         return targetY >= 0;
     }
-    
+
     @Override
     protected void setGoTo(final double y) {
         targetY = y;
     }
-    
+
 
     @Override
     protected void pongEvent(PongEvent pongEvent) {
         switch (pongEvent.getType()) {
-        	// if player scored, move paddle to center
+            // if player scored, move paddle to center
             case PLAYER_SCORED:
                 setGoTo(game.getBoardHeight() / 2);
                 break;
@@ -131,7 +129,7 @@ public class PongAdvancedBot extends PongBot implements PongPlayer {
      *
      * @return The future y position of the ball.
      */
-	private double calculateFutureBallHeight() {
+    private double calculateFutureBallHeight() {
         final Paddle thisPaddle = game.getPaddle(this);
         final PongBall ball = game.getBall();
         final Side ballCollisionSide = getSide();

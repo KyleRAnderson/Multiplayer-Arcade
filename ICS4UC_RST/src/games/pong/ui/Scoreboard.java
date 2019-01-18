@@ -24,16 +24,17 @@ public class Scoreboard extends Group {
 
     /**
      * Instantiates a new Scoreboard object.
-     * @param font 
-     * @param foregroundColour 
+     *
+     * @param font
+     * @param foregroundColour
      */
     public Scoreboard(Paint foregroundColour, Font font) {
         leftScore = new Label("0");
         rightScore = new Label("0");
-        
+
         this.setFont(font);
         this.setFontFill(foregroundColour);
-        
+
         getChildren().addAll(leftScore, rightScore);
     }
 

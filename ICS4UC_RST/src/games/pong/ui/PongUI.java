@@ -1,7 +1,6 @@
 package games.pong.ui;
 
 import games.Game;
-import games.pong.players.PongAdvancedBot;
 import games.player.PongKeyBinding;
 import games.pong.EndReason;
 import games.pong.Pong;
@@ -9,11 +8,7 @@ import games.pong.PongEvent;
 import games.pong.pieces.Paddle;
 import games.pong.pieces.PongPiece;
 import games.pong.pieces.Side;
-import games.pong.players.Action;
-import games.pong.players.PongKeyboardPlayer;
-import games.pong.players.PongNetworkPlayer;
-import games.pong.players.PongPlayer;
-import games.pong.players.PongBeginnerBot;
+import games.pong.players.*;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -136,7 +131,7 @@ public class PongUI extends Pane implements Game {
         rightPaddle.setFill(FOREGROUND_COLOUR);
 
         divider = new Divider(FOREGROUND_COLOUR);
-        
+
         // set to background color and font for scoreboard, and hide it
         scoreboard = new Scoreboard(FOREGROUND_COLOUR, FONT);
         scoreboard.setVisible(false);
@@ -516,9 +511,9 @@ public class PongUI extends Pane implements Game {
      */
     @Override
     public void initializePlayers() {
-    	// show scoreboard right before prompting for players, ensures proper positioning for scoreboard while waiting for input
-    	showScoreboard();
-    	
+        // show scoreboard right before prompting for players, ensures proper positioning for scoreboard while waiting for input
+        showScoreboard();
+
         PongPlayer p1 = game.getLocalPlayer(), p2 = game.getPlayer2();
 
         // If we are making both players now, we should determine if we're going to place them too.
@@ -567,9 +562,9 @@ public class PongUI extends Pane implements Game {
      * @return The pong players created in the demand.
      */
     private PongPlayer[] promptForPlayers() {
-    	
+
         final ButtonType localMultiplayer = new ButtonType("Local Multiplayer"),
-        		beginnerbot = new ButtonType("Beginner Bot"),
+                beginnerbot = new ButtonType("Beginner Bot"),
                 advancedBot = new ButtonType("Expert Bot"),
                 spectate = new ButtonType("Spectate Bots");
 
@@ -586,9 +581,9 @@ public class PongUI extends Pane implements Game {
             ButtonType resultType = result.get();
 
             if (resultType == beginnerbot) {
-            	players[0] = new PongKeyboardPlayer();
-            	players[1] = new PongBeginnerBot();
-            	
+                players[0] = new PongKeyboardPlayer();
+                players[1] = new PongBeginnerBot();
+
             } else if (resultType == advancedBot) {
                 players[0] = new PongKeyboardPlayer();
                 players[1] = new PongAdvancedBot();
@@ -607,13 +602,13 @@ public class PongUI extends Pane implements Game {
 
         return players;
     }
-    
+
     /**
      * Sets default working pos for scoreboard to be centered and set to be visible.
      */
     private void showScoreboard() {
-    	scoreboard.calculate(getWorkingWidth(), getWorkingHeight());
-    	scoreboard.setVisible(true);
+        scoreboard.calculate(getWorkingWidth(), getWorkingHeight());
+        scoreboard.setVisible(true);
     }
 
     /**
