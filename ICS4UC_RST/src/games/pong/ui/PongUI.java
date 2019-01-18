@@ -1,7 +1,6 @@
 package games.pong.ui;
 
 import games.Game;
-import games.pong.players.PongAdvancedBot;
 import games.player.PongKeyBinding;
 import games.pong.EndReason;
 import games.pong.Pong;
@@ -9,10 +8,7 @@ import games.pong.PongEvent;
 import games.pong.pieces.Paddle;
 import games.pong.pieces.PongPiece;
 import games.pong.pieces.Side;
-import games.pong.players.Action;
-import games.pong.players.PongKeyboardPlayer;
-import games.pong.players.PongNetworkPlayer;
-import games.pong.players.PongPlayer;
+import games.pong.players.*;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -56,8 +52,6 @@ public class PongUI extends Pane implements Game {
 
     private static final double
             FPS = 60; // Frames per second
-    private static final String HELP_TEXT = "Press the up and down arrows to move your player (or the q and a keys for local multiplayer)\n" +
-            "End the game by pressing the escape key repeatedly.";
 
     private final Scene scene;
 
@@ -80,7 +74,9 @@ public class PongUI extends Pane implements Game {
     /**
      * Key used to end the game.
      */
-    private static final KeyCode END_GAME_KEYCODE = KeyCode.ESCAPE;
+    private static final KeyCode END_GAME_KEYCODE = KeyCode.BACK_SPACE;
+    private static final String HELP_TEXT = String.format("Press the up and down arrows to move your player (or the q and a keys for local multiplayer)\n" +
+            "End the game by pressing the %s key repeatedly.", END_GAME_KEYCODE.getName());
     /**
      * The time period in which the player must hit the end key to end the game.
      */
@@ -149,18 +145,14 @@ public class PongUI extends Pane implements Game {
         prefWidthProperty().addListener((observable, oldValue, newValue) -> {
             // Only resize if the changed width is the same as the old width.
             if (!oldValue.equals(newValue)) {
-                // Maintain the same height/width ratio.
-                setPrefHeight(game.getBoardHeight() / game.getBoardWidth() * getPrefWidth());
-                calculateScaleFactor();
+                recalculateScreenDimensions();
             }
         });
 
         prefHeightProperty().addListener((observable, oldValue, newValue) -> {
             // Only resize if the changed width is the same as the old width.
             if (!oldValue.equals(newValue)) {
-                // Maintain the same height/width ratio.
-                setPrefWidth(game.getBoardWidth() / game.getBoardHeight() * getPrefHeight());
-                calculateScaleFactor();
+                recalculateScreenDimensions();
             }
         });
 
@@ -186,12 +178,17 @@ public class PongUI extends Pane implements Game {
     private void recalculateScreenDimensions() {
         final double sceneHeight = scene.getHeight(), sceneWidth = scene.getWidth();
 
-        // If the height/width ratio of teh screen is larger than the one on the board, the width is limiting.
+        // If the height/width ratio of the screen is larger than the one on the board, the width is limiting.
         if (sceneHeight / sceneWidth > game.getBoardHeight() / game.getBoardWidth()) {
-            setHeight(game.getBoardHeight() / game.getBoardWidth() * getWidth());
-        } else {
-            setWidth(game.getBoardWidth() / game.getBoardHeight() * getHeight());
+            setHeight(game.getBoardHeight() / game.getBoardWidth() * sceneWidth);
+            setWidth(sceneWidth);
         }
+        // Height is limiting.
+        else {
+            setWidth(game.getBoardWidth() / game.getBoardHeight() * sceneHeight);
+            setHeight(sceneHeight);
+        }
+
         calculateScaleFactor();
     }
 

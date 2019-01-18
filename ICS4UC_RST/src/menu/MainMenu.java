@@ -16,6 +16,7 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -58,11 +59,6 @@ public class MainMenu extends Application {
      * The window's icon.
      */
     private static final Image WINDOW_ICON = new Image(MainMenu.class.getResourceAsStream("/res/images/arcade.png"));
-    private static final String MENU_HELP_TEXT = "Welcome to the Arcade!\n" +
-            "Select a game to begin playing it.\n" +
-            "If you would like to play online with another player on the same network as you,\n" +
-            "one player needs to begin hosting a lobby, noting the IP address on the button, and then the other\n" +
-            "player needs to connect to the lobby at the ip address and on the same port as the host.\n\n";
 
     static {
         Rectangle2D screenDimensions = Screen.getPrimary().getBounds();
@@ -84,7 +80,15 @@ public class MainMenu extends Application {
         }
     }
 
-
+    /**
+     * The key to be pressed whewn the user wants to toggle fullscreen.
+     */
+    private static final KeyCode FULLSCREEN_KEYCODE = KeyCode.F11;
+    private static final String MENU_HELP_TEXT = String.format("Welcome to the Arcade!\n" +
+            "Select a game to begin playing it. Press %s for full screen\n" +
+            "If you would like to play online with another player on the same network as you,\n" +
+            "one player needs to begin hosting a lobby, noting the IP address on the button, and then the other\n" +
+            "player needs to connect to the lobby at the ip address and on the same port as the host.\n\n", FULLSCREEN_KEYCODE);
     private static final int GAP = 15;
     // Font size ratios
     private static final int HEADER_FONT_SIZE_RATIO = 13, INPUT_FONT_SIZE_RATIO = 40, GAME_FONT_SIZE_RATIO = 5;
@@ -234,7 +238,6 @@ public class MainMenu extends Application {
 
         // Now for the games themselves, held within a scroll pane.
         VBox games = new VBox(); // New VBox with no gap for displaying game menu items.
-        games.widthProperty().addListener((observable, oldValue, newValue) -> System.out.println("New vbox width: " + newValue));
         games.setAlignment(Pos.TOP_CENTER);
         ScrollPane gamesScrollPane = new ScrollPane(games);
         gamesScrollPane.setFitToWidth(true);
@@ -251,7 +254,7 @@ public class MainMenu extends Application {
             menuItem.setAlignment(Pos.CENTER);
             menuItem.setOnMouseClicked(event -> playGame(game));
             Text menuText = game.getTextDisplay();
-            setupFont(menuText, null, gameFontSize, null);
+            setupFont(menuText, gameFontSize, null);
             menuText.setTextAlignment(TextAlignment.CENTER);
 
             // Set the background up nicely.
@@ -282,6 +285,11 @@ public class MainMenu extends Application {
         menuRoot.getColumnConstraints().addAll(column1, column2);
         menuRoot.getRowConstraints().addAll(row1, row2, row3, row4);
 
+        stage.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode().equals(FULLSCREEN_KEYCODE)) {
+                toggleFullScreen();
+            }
+        });
         // Set the scene at the end.
         Scene scene = new Scene(menuRoot);
         setDisplay(scene);
@@ -295,60 +303,29 @@ public class MainMenu extends Application {
     }
 
     /**
-     * Binds the font size of the Node to the font size property given.
-     *
-     * @param element    The element to be bound.
-     * @param headerFont True if this is a header font, false otherwise.
-     */
-    private void setupFont(Text element, boolean headerFont) {
-        setupFont(element, element::setFont, headerFont);
-    }
-
-    /**
-     * Sets up a button's font for resizability.
-     *
-     * @param button     The button.
-     * @param headerFont True to be header font, false otherwise.
-     */
-    private void setupFont(Button button, boolean headerFont) {
-        setupFont(button, button::setFont, headerFont);
-    }
-
-    /**
-     * Sets up a text field's font.
-     *
-     * @param field      The field to be set up.
-     * @param headerFont True to be header font, false otherwise.
-     */
-    private void setupFont(TextField field, boolean headerFont) {
-        setupFont(field, field::setFont, headerFont);
-    }
-
-    /**
      * Sets up the font for the given element.
      *
      * @param element    The element for which the font needs to be set.
-     * @param fontSetter The function to call to set the font.
      * @param headerFont True to be header font, false otherwise.
      */
-    private void setupFont(Node element, Consumer<Font> fontSetter, boolean headerFont) {
+    private void setupFont(Node element, boolean headerFont) {
         final DoubleProperty property = (headerFont) ? headerFontSize : inputFontSize;
-        setupFont(element, fontSetter, property, (headerFont) ? HEADER_FONT : INPUT_FONT);
+        setupFont(element, property, (headerFont) ? HEADER_FONT : INPUT_FONT);
     }
 
     /**
      * Sets up the font with the correct font.
      *
      * @param element    The element to set the font on.
-     * @param fontSetter The font setter.
      * @param property   The property to which the font size depends on.
      * @param font       The font to be used.
      */
-    private static void setupFont(Node element, @Nullable Consumer<Font> fontSetter, DoubleProperty property, @Nullable Font font) {
-        if (fontSetter != null && font != null) {
-            fontSetter.accept(font);
+    private static void setupFont(Node element, DoubleProperty property, @Nullable Font font) {
+        String fontFamily = "";
+        if (font != null) {
+            fontFamily = String.format("-fx-font-family: %s;", font.getFamily());
         }
-        element.styleProperty().bind(Bindings.concat("-fx-font-size: ", property.asString(), ";"));
+        element.styleProperty().bind(Bindings.concat("-fx-font-size: ", property.asString(), ";", fontFamily));
     }
 
     /**
@@ -470,7 +447,9 @@ public class MainMenu extends Application {
      * @param scene The scene to be shown.
      */
     private void setDisplay(Scene scene) {
+        boolean wasFullScreen = stage.isFullScreen();
         stage.setScene(scene);
+        stage.setFullScreen(wasFullScreen);
     }
 
     /**
