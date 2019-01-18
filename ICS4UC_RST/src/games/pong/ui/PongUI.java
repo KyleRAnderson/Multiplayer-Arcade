@@ -445,7 +445,6 @@ public class PongUI extends Pane implements Game {
     public void reset() {
         game = new Pong(); // Initialize new pong game with the correct type of players
         resetKeyBindings();
-        // set up proper location for scoreboard
         game.addEventListener(this::gameEventHappened);
         SfxPongPlayer.init();
     }
