@@ -578,8 +578,8 @@ public class PongUI extends Pane implements Game {
         text.setFont(FONT);
 
         VBox selector = new VBox(15);
-        selector.setPrefWidth(getWorkingWidth());
-        selector.setPrefHeight(getWorkingHeight());
+        selector.prefWidthProperty().bind(widthProperty());
+        selector.prefHeightProperty().bind(heightProperty());
         selector.setAlignment(Pos.CENTER);
         selector.setBackground(new Background(new BackgroundFill(Color.ORANGE, CornerRadii.EMPTY, Insets.EMPTY)));
 
