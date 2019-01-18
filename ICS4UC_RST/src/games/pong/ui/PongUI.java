@@ -515,6 +515,9 @@ public class PongUI extends Pane implements Game {
      */
     @Override
     public void initializePlayers() {
+    	// show scoreboard right before prompting for players, ensures proper positioning for scoreboard while waiting for input
+    	showScoreboard();
+    	
         PongPlayer p1 = game.getLocalPlayer(), p2 = game.getPlayer2();
 
         // If we are making both players now, we should determine if we're going to place them too.
@@ -563,8 +566,6 @@ public class PongUI extends Pane implements Game {
      * @return The pong players created in the demand.
      */
     private PongPlayer[] promptForPlayers() {
-    	// show scoreboard right before prompting for players, ensures proper positioning for scoreboard while waiting for input
-    	showScoreboard();
     	
         final ButtonType localMultiplayer = new ButtonType("Local Multiplayer"),
         		beginnerbot = new ButtonType("Beginner Bot"),
