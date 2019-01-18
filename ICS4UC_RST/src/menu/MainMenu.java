@@ -25,7 +25,6 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import network.Server;
 import network.TCPSocket;
 import network.party.PartyHandler;
@@ -42,7 +41,6 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
-import java.util.function.Consumer;
 
 import static javafx.scene.control.ButtonType.YES;
 
@@ -89,7 +87,7 @@ public class MainMenu extends Application {
             "If you would like to play online with another player on the same network as you,\n" +
             "one player needs to begin hosting a lobby, noting the IP address on the button, and then the other\n" +
             "player needs to connect to the lobby at the ip address and on the same port as the host.\n\n", FULLSCREEN_KEYCODE);
-    private static final int GAP = 15;
+    public static final int GAP = 15;
     // Font size ratios
     private static final int HEADER_FONT_SIZE_RATIO = 13, INPUT_FONT_SIZE_RATIO = 40, GAME_FONT_SIZE_RATIO = 5;
     private DoubleProperty headerFontSize = new SimpleDoubleProperty(HEADER_FONT_SIZE_RATIO);
@@ -99,7 +97,10 @@ public class MainMenu extends Application {
             HEADER_FONT = Font.font("ArcadeClassic", FontWeight.BOLD, 36),
             INPUT_FONT = Font.font("Book Antiqua");
     private GridPane menuRoot;
+    private StackPane screenRoot;
     private Stage stage;
+    private VBox helpRoot;
+    private PreferencesMenu preferencesMenu;
 
     private PartyMenuItem hostMenuItem, connectMenuItem;
 
@@ -166,7 +167,7 @@ public class MainMenu extends Application {
         // Now create the preferences menu item
         StackPane preferences = new StackPane();
         formatMenuItem(preferences);
-        preferences.setOnMouseClicked(event -> displayPreferences());
+        preferences.setOnMouseClicked(event -> showPreferences(true));
         HBox contents = new HBox(GAP);
         contents.setAlignment(Pos.CENTER);
         Text labelText = new Text("Preferences");
@@ -183,7 +184,7 @@ public class MainMenu extends Application {
         // Scores menu item.
         StackPane help = new StackPane();
         formatMenuItem(help);
-        help.setOnMouseClicked(event -> showHelp());
+        help.setOnMouseClicked(event -> showHelp(true));
         HBox scoresContent = new HBox(GAP);
         scoresContent.setAlignment(Pos.CENTER);
         Text scoresLabel = new Text("Help");
@@ -291,7 +292,10 @@ public class MainMenu extends Application {
             }
         });
         // Set the scene at the end.
-        Scene scene = new Scene(menuRoot);
+        screenRoot = new StackPane(menuRoot);
+        screenRoot.setAlignment(Pos.CENTER);
+
+        Scene scene = new Scene(screenRoot);
         setDisplay(scene);
 
         // Bind font sizes
@@ -300,6 +304,23 @@ public class MainMenu extends Application {
         gameFontSize.bind(scene.heightProperty().divide(GAME_FONT_SIZE_RATIO));
 
         menuRoot.requestFocus();
+
+
+        TextArea area = new TextArea(helpText);
+        setupFont(area, false);
+        // Simply show the help text to the user.
+        Text titleText = new Text("Arcade Quick Start");
+        setupFont(titleText, true);
+        Button closeButton = new Button("Close");
+        closeButton.setOnAction(event -> showHelp(false));
+        setupFont(closeButton, false);
+        helpRoot = new VBox(titleText, area, closeButton);
+        helpRoot.setAlignment(Pos.CENTER);
+        helpRoot.setPadding(new Insets(GAP));
+        helpRoot.setSpacing(GAP);
+        helpRoot.setBackground(new Background(new BackgroundFill(Color.TURQUOISE, CornerRadii.EMPTY, Insets.EMPTY)));
+
+        preferencesMenu = new PreferencesMenu(() -> showPreferences(false), inputFontSize, headerFontSize, HEADER_FONT, INPUT_FONT);
     }
 
     /**
@@ -320,7 +341,7 @@ public class MainMenu extends Application {
      * @param property   The property to which the font size depends on.
      * @param font       The font to be used.
      */
-    private static void setupFont(Node element, DoubleProperty property, @Nullable Font font) {
+    public static void setupFont(Node element, DoubleProperty property, @Nullable Font font) {
         String fontFamily = "";
         if (font != null) {
             fontFamily = String.format("-fx-font-family: %s;", font.getFamily());
@@ -495,24 +516,26 @@ public class MainMenu extends Application {
 
     /**
      * Shows the help stuff.
+     * @param show True to show the help, false to hide it.
      */
-    private void showHelp() {
-        // Simply show the help text to the user.
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.initStyle(StageStyle.UTILITY);
-        alert.setTitle("Help");
-        alert.setHeaderText("Arcade Quick Start");
-        alert.setContentText(helpText);
-
-        alert.showAndWait();
+    private void showHelp(boolean show) {
+        if (!show) {
+            screenRoot.getChildren().remove(helpRoot);
+        } else if (!screenRoot.getChildren().contains(helpRoot)) {
+            screenRoot.getChildren().add(helpRoot);
+        }
     }
 
     /**
      * Displays the user preferences menu.
+     * @param show True to show, false to hide.
      */
-    private void displayPreferences() {
-        PreferencesMenu menu = new PreferencesMenu();
-        menu.showAndWait();
+    private void showPreferences(boolean show) {
+        if (!show) {
+            screenRoot.getChildren().remove(preferencesMenu);
+        } else if (!screenRoot.getChildren().contains(preferencesMenu)) {
+            screenRoot.getChildren().add(preferencesMenu);
+        }
     }
 
     /**

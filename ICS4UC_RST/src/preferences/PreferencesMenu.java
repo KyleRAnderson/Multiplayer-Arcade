@@ -1,20 +1,19 @@
 package preferences;
 
-import javafx.geometry.HPos;
+import javafx.beans.property.DoubleProperty;
 import javafx.geometry.Insets;
-import javafx.geometry.VPos;
-import javafx.scene.Scene;
-import javafx.scene.control.Alert;
+import javafx.geometry.Pos;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import javafx.scene.text.FontPosture;
-import javafx.scene.text.FontWeight;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
+import javafx.scene.text.Text;
+import menu.MainMenu;
 
 /**
  * Preferences Menu for accessing and modifying user preferences from the UI.
@@ -22,57 +21,58 @@ import javafx.stage.StageStyle;
  * @author s405751 (Nicolas Hawrysh)
  * ICS4U RST
  */
-public class PreferencesMenu extends Stage {
+public class PreferencesMenu extends GridPane {
+
+    private final Runnable closeListener;
 
     /**
      * Constructor to create the preferences menu
+     *
+     * @param closeListener  A listener to be set when the preferences menu wants to close.
+     * @param inputFontSize  The input font size double property.
+     * @param headerFontSize The size property for header font.
+     * @param headerFont     The header font.
+     * @param inputFont      The input font.
      */
+    public PreferencesMenu(final Runnable closeListener, final DoubleProperty inputFontSize, final DoubleProperty headerFontSize, final Font headerFont, final Font inputFont) {
+        this.closeListener = closeListener;
+        setPadding(new Insets(MainMenu.GAP));
+        setVgap(MainMenu.GAP);
+        setHgap(MainMenu.GAP);
 
-    public PreferencesMenu() {
-        // create a stage and set the title and prevent from being resized
-        // constant for the title
-        String TITLE = "Preferences";
-        setTitle(TITLE);
-        setResizable(false);
-        initStyle(StageStyle.UTILITY);
+        setAlignment(Pos.CENTER);
+        setBackground(new Background(new BackgroundFill(Color.MEDIUMSLATEBLUE, CornerRadii.EMPTY, Insets.EMPTY)));
 
-        // create new grid pane with spacing to look nice
-        GridPane grdGridPane = new GridPane();
-        grdGridPane.setPadding(new Insets(10, 10, 10, 10));
-        grdGridPane.setVgap(8);
-        grdGridPane.setHgap(10);
-
-        // create a label for the title of the program to be in bold and in italics
-        Label label = new Label(TITLE);
-        label.setFont(Font.font(null, FontWeight.BOLD, FontPosture.ITALIC, 20));
-
-        // place the title in the upper center field of the window
-        GridPane.setConstraints(label, 0, 0, 5, 1, HPos.CENTER, VPos.CENTER);
+        Text headerText = new Text("Preferences ");
+        MainMenu.setupFont(headerText, headerFontSize, headerFont);
+        GridPane.setConstraints(headerText, 0, 0, 2, 1);
 
         // label for username
-        Label lbUserName = new Label("Username: ");
-        GridPane.setConstraints(lbUserName, 0, 2);
+        Text userNameLabel = new Text("Username: ");
+        userNameLabel.setFill(Color.WHITE);
+        MainMenu.setupFont(userNameLabel, headerFontSize, headerFont);
+        GridPane.setConstraints(userNameLabel, 0, 1);
 
         // textfield for the username
-        TextField txtUserName = new TextField();
-
+        TextField usernameField = new TextField();
+        MainMenu.setupFont(usernameField, inputFontSize, inputFont);
+        GridPane.setConstraints(usernameField, 1, 1);
         // get host name from preferences
-        txtUserName.setText(Preferences.getInstance().getHostName());
-
-        // set size and place it in the window
-        GridPane.setConstraints(txtUserName, 1, 2, 3, 1);
+        usernameField.setText(Preferences.getInstance().getHostName());
 
         // button when user is finished entering data
-        Button btnOK = new Button("OK");
-        btnOK.setOnAction(evt -> validate(txtUserName.getText()));
-        GridPane.setConstraints(btnOK, 0, 3);
+        Button okButton = new Button("Save");
+        MainMenu.setupFont(okButton, headerFontSize, headerFont);
+        okButton.setOnAction(evt -> validate(usernameField.getText()));
+        GridPane.setConstraints(okButton, 0, 2);
+
+        Button cancelButton = new Button("Cancel");
+        MainMenu.setupFont(cancelButton, headerFontSize, headerFont);
+        cancelButton.setOnAction(event -> close());
+        GridPane.setConstraints(cancelButton, 1, 2);
 
         // add everything to grid
-        grdGridPane.getChildren().addAll(label, lbUserName, txtUserName, btnOK);
-
-        // create new scene with window dimensions
-        Scene scnMainScene = new Scene(grdGridPane, 250, 120);
-        setScene(scnMainScene);
+        getChildren().addAll(headerText, userNameLabel, usernameField, okButton, cancelButton);
     }
 
     /**
@@ -88,7 +88,7 @@ public class PreferencesMenu extends Stage {
         final int MIN_USERNAME_CHARS = 3;
         if (name.isEmpty() || name.length() < MIN_USERNAME_CHARS || name.contains(" ")) {
             // if so, show error message box
-            errorMessageBox("You must have a name at least " + MIN_USERNAME_CHARS + " characters long and have no spaces.", "Error");
+            showError("You must have a name at least " + MIN_USERNAME_CHARS + " characters long and have no spaces.", "Error");
         } else {
             // set the host name
             Preferences.getInstance().setHostName(name);
@@ -98,23 +98,21 @@ public class PreferencesMenu extends Stage {
         }
     }
 
+    /**
+     * Closes the preferences menu.
+     */
+    private void close() {
+        closeListener.run();
+    }
+
 
     /**
-     * method to display error message box\
+     * Method to display error message.
      *
      * @param message to display
      * @param title   box title
      */
-    public static void errorMessageBox(String message, String title) {
-        // create new message box with an error icon
-        Alert altAlert = new Alert(AlertType.ERROR);
-
-        // set the title and message to display
-        altAlert.setTitle(title);
-        altAlert.setHeaderText(null);
-        altAlert.setContentText(message);
-
-        // show the message box
-        altAlert.showAndWait();
+    private static void showError(String message, String title) {
+        MainMenu.showNotification(AlertType.ERROR, title, message);
     }
 }
