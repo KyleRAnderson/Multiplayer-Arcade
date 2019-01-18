@@ -137,8 +137,9 @@ public class PongUI extends Pane implements Game {
 
         divider = new Divider(FOREGROUND_COLOUR);
         
-        // set to background color so it can be set back to foreground when needed
-        scoreboard = new Scoreboard(BACKGROUND_COLOUR, FONT);
+        // set to background color and font for scoreboard, and hide it
+        scoreboard = new Scoreboard(FOREGROUND_COLOUR, FONT);
+        scoreboard.setVisible(false);
 
         ball = new Rectangle();
         ball.setFill(FOREGROUND_COLOUR);
@@ -612,7 +613,7 @@ public class PongUI extends Pane implements Game {
      */
     private void showScoreboard() {
     	scoreboard.calculate(getWorkingWidth(), getWorkingHeight());
-    	scoreboard.setFontFill(FOREGROUND_COLOUR);
+    	scoreboard.setVisible(true);
     }
 
     /**
