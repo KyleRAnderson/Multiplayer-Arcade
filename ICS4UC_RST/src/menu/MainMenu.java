@@ -58,7 +58,7 @@ import java.util.function.Consumer;
  * ICS4U RST
  */
 public class MainMenu extends Application {
-    private static MainMenu currentInstace;
+    private static MainMenu currentInstance;
 
     private static final double DEFAULT_WIDTH, DEFAULT_HEIGHT, SCREEN_HEIGHT, SCREEN_WIDTH, MIN_HEIGHT, MIN_WIDTH;
     /**
@@ -137,7 +137,7 @@ public class MainMenu extends Application {
      * Constructs a new main menu object.
      */
     public MainMenu() {
-        currentInstace = this;
+        currentInstance = this;
         PartyHandler.setIncomingMessageListener(this::messageReceived);
 
         StringBuilder builder = new StringBuilder(MENU_HELP_TEXT);
@@ -153,7 +153,7 @@ public class MainMenu extends Application {
      * @return The current main menu.
      */
     public static MainMenu getCurrentInstance() {
-        return currentInstace;
+        return currentInstance;
     }
 
     /**
