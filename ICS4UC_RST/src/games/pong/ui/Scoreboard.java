@@ -24,10 +24,16 @@ public class Scoreboard extends Group {
 
     /**
      * Instantiates a new Scoreboard object.
+     *
+     * @param font
+     * @param foregroundColour
      */
-    public Scoreboard() {
+    public Scoreboard(Paint foregroundColour, Font font) {
         leftScore = new Label("0");
         rightScore = new Label("0");
+
+        this.setFont(font);
+        this.setFontFill(foregroundColour);
 
         getChildren().addAll(leftScore, rightScore);
     }
@@ -41,7 +47,7 @@ public class Scoreboard extends Group {
     public void calculate(final double screenWidth, final double screenHeight) {
         final double height = screenHeight * 0.1; // Universal height for both text boxes.
 
-        leftScore.relocate(screenWidth / 2 - screenWidth * PERCENTAGE_DIST_FROM_CENTRE - (leftScore.getWidth()), height);
+        leftScore.relocate(screenWidth / 2 - screenWidth * PERCENTAGE_DIST_FROM_CENTRE - leftScore.getWidth(), height);
         rightScore.relocate(screenWidth / 2 + screenWidth * (PERCENTAGE_DIST_FROM_CENTRE * 1.4), height);
     }
 
