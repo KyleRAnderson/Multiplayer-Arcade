@@ -286,7 +286,9 @@ public class PongUI extends Pane implements Game {
             MainMenu.getCurrentInstance().sizeToScene();
             recalculateScreenDimensions();
             requestFocus();
-
+            scoreboard.calculate(getWorkingWidth(), getWorkingHeight());
+            showScoreboard();
+            
             renderFrameTimer = new Timeline(new KeyFrame(Duration.millis(1000.0 / FPS), event -> renderFrame()));
             renderFrameTimer.setCycleCount(Timeline.INDEFINITE);
 
@@ -532,9 +534,6 @@ public class PongUI extends Pane implements Game {
         if (!hasPrompted && !isNetworkGame()) {
             promptForPlayers();
         } else {
-            // show scoreboard right before prompting for players, ensures proper positioning for scoreboard while waiting for input
-            showScoreboard();
-
             PongPlayer p1 = game.getLocalPlayer(), p2 = game.getPlayer2();
             // We can override which sides everybody is on if it's not a network game.
             boolean overrideSides = !isNetworkGame();
@@ -610,10 +609,9 @@ public class PongUI extends Pane implements Game {
     }
 
     /**
-     * Sets default working pos for scoreboard to be centered and set to be visible.
+     * Show scoreboard
      */
     private void showScoreboard() {
-        scoreboard.calculate(getWorkingWidth(), getWorkingHeight());
         scoreboard.setVisible(true);
     }
 
