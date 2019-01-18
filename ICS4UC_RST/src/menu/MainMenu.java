@@ -22,8 +22,10 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
@@ -179,6 +181,15 @@ public class MainMenu extends Application {
         setIcon(stage);
 
         menuRoot = new GridPane();
+        // Column and row constraints.
+        ColumnConstraints column1 = createColumnConstraints(50);
+        ColumnConstraints column2 = createColumnConstraints(50);
+        RowConstraints row1 = createRowConstraints(10);
+        RowConstraints row2 = createRowConstraints(20);
+        RowConstraints row3 = createRowConstraints(20);
+        RowConstraints row4 = createRowConstraints(50);
+        menuRoot.getColumnConstraints().addAll(column1, column2);
+        menuRoot.getRowConstraints().addAll(row1, row2, row3, row4);
 
         // Create the welcome button at the top.
         Text welcomeText = new Text("Welcome to the Arcade!");
@@ -189,41 +200,17 @@ public class MainMenu extends Application {
         welcomeButton.getChildren().add(welcomeText);
         // Blue background.
         welcomeButton.setBackground(new Background(new BackgroundFill(Color.DODGERBLUE, CornerRadii.EMPTY, Insets.EMPTY)));
-        menuRoot.add(welcomeButton, 0, 0, 2, 1); // (0, 0) with colspan of 2 to spread the entire width.
 
         // Now create the preferences menu item
-        StackPane preferences = new StackPane();
-        formatMenuItem(preferences);
-        preferences.setOnMouseClicked(event -> showPreferences(true));
-        HBox contents = new HBox(GAP);
-        contents.setAlignment(Pos.CENTER);
-        Text labelText = new Text("Preferences");
-        labelText.setTextAlignment(TextAlignment.CENTER);
-        setupFont(labelText, true);
-        ImageView image = new ImageView(getClass().getResource("/res/images/preferences.png").toString());
-        image.setPreserveRatio(true);
-        image.setFitWidth(50);
-        contents.getChildren().addAll(labelText, image);
-        preferences.getChildren().add(contents);
-        preferences.setBackground(new Background(new BackgroundFill(Color.ORANGE, CornerRadii.EMPTY, Insets.EMPTY)));
+        StackPane preferences = createBasicMenuItem(event -> showPreferences(true), "Preferences", "/res/images/preferences.png", Color.ORANGE);
         menuRoot.add(preferences, 0, 1); // Add to (0, 1)
 
-        // Scores menu item.
-        StackPane help = new StackPane();
-        formatMenuItem(help);
-        help.setOnMouseClicked(event -> showHelp(true));
-        HBox scoresContent = new HBox(GAP);
-        scoresContent.setAlignment(Pos.CENTER);
-        Text scoresLabel = new Text("Help");
-        scoresLabel.setTextAlignment(TextAlignment.CENTER);
-        setupFont(scoresLabel, true);
-        ImageView scoresImage = new ImageView(getClass().getResource("/res/images/help.png").toString());
-        scoresImage.setPreserveRatio(true);
-        scoresImage.setFitWidth(50);
-        scoresContent.getChildren().addAll(scoresImage, scoresLabel);
-        help.getChildren().add(scoresContent);
-        help.setBackground(new Background(new BackgroundFill(Color.MEDIUMPURPLE, CornerRadii.EMPTY, Insets.EMPTY)));
+        // Help menu item.
+        StackPane help = createBasicMenuItem(event -> showHelp(true), "Help", "/res/images/help.png", Color.MEDIUMPURPLE);
         menuRoot.add(help, 1, 1); // Add to (1, 1)
+
+        // Add the welcome button after the help because of javafx bug.
+        menuRoot.add(welcomeButton, 0, 0, 2, 1); // (0, 0) with colspan of 2 to spread the entire width.
 
         // Connect to party button
         connectMenuItem = new PartyMenuItem("Connect", "Connecting...");
@@ -303,15 +290,6 @@ public class MainMenu extends Application {
         // Create the scene and all.
         menuRoot.setMinSize(stage.getMinWidth(), stage.getMinHeight());
         menuRoot.setPrefSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
-        // Column and row constraints.
-        ColumnConstraints column1 = createColumnConstraints(50);
-        ColumnConstraints column2 = createColumnConstraints(50);
-        RowConstraints row1 = createRowConstraints(10);
-        RowConstraints row2 = createRowConstraints(20);
-        RowConstraints row3 = createRowConstraints(20);
-        RowConstraints row4 = createRowConstraints(50);
-        menuRoot.getColumnConstraints().addAll(column1, column2);
-        menuRoot.getRowConstraints().addAll(row1, row2, row3, row4);
 
         stage.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             if (event.getCode().equals(FULLSCREEN_KEYCODE)) {
@@ -348,6 +326,37 @@ public class MainMenu extends Application {
         helpRoot.setBackground(new Background(new BackgroundFill(Color.TURQUOISE, CornerRadii.EMPTY, Insets.EMPTY)));
 
         preferencesMenu = new PreferencesMenu(() -> showPreferences(false), inputFontSize, headerFontSize, HEADER_FONT, INPUT_FONT);
+    }
+
+    /**
+     * Creates a basic menu item.
+     *
+     * @param event            The event to call on click of the menu item.
+     * @param menuText         The menu item text.
+     * @param imageLocation    The image location of the image to display next to the text.
+     * @param backgroundColour The background colour.
+     * @return The created StackPane
+     */
+    private StackPane createBasicMenuItem(EventHandler<? super MouseEvent> event, String menuText, String imageLocation, Paint backgroundColour) {
+        // Scores menu item.
+        StackPane pane = new StackPane();
+        formatMenuItem(pane);
+        pane.setOnMouseClicked(event);
+        HBox contentOrganizer = new HBox(GAP);
+        contentOrganizer.setAlignment(Pos.CENTER);
+        Text menuLabel = new Text(menuText);
+        menuLabel.setTextAlignment(TextAlignment.CENTER);
+        setupFont(menuLabel, true);
+        ImageView displayImage = new ImageView(getClass().getResource(imageLocation).toString());
+        displayImage.setPreserveRatio(true);
+        displayImage.setFitWidth(50);
+        displayImage.fitHeightProperty().bind(pane.heightProperty().subtract(5));
+        displayImage.fitWidthProperty().bind(pane.widthProperty().divide(8));
+        contentOrganizer.getChildren().addAll(displayImage, menuLabel);
+        pane.getChildren().add(contentOrganizer);
+        pane.setBackground(new Background(new BackgroundFill(backgroundColour, CornerRadii.EMPTY, Insets.EMPTY)));
+
+        return pane;
     }
 
     /**
