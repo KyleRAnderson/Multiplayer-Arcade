@@ -1,21 +1,38 @@
 package menu;
 
+import com.sun.istack.internal.NotNull;
+import com.sun.istack.internal.Nullable;
 import games.Game;
 import games.pong.ui.PongUI;
+import javafx.animation.PauseTransition;
 import javafx.application.Application;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.text.*;
+import javafx.scene.paint.Paint;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
+import javafx.util.Duration;
 import network.Server;
 import network.TCPSocket;
 import network.party.PartyHandler;
@@ -30,10 +47,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.UnknownHostException;
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.concurrent.ExecutorService;
-
-import static javafx.scene.control.ButtonType.YES;
+import java.util.function.Consumer;
 
 /**
  * Main menu for users to use to launch whatever game they want to or to customize settings.
@@ -43,16 +58,13 @@ import static javafx.scene.control.ButtonType.YES;
  * ICS4U RST
  */
 public class MainMenu extends Application {
+    private static MainMenu currentInstance;
+
     private static final double DEFAULT_WIDTH, DEFAULT_HEIGHT, SCREEN_HEIGHT, SCREEN_WIDTH, MIN_HEIGHT, MIN_WIDTH;
     /**
      * The window's icon.
      */
     private static final Image WINDOW_ICON = new Image(MainMenu.class.getResourceAsStream("/res/images/arcade.png"));
-    private static final String MENU_HELP_TEXT = "Welcome to the Arcade!\n" +
-            "Select a game to begin playing it.\n" +
-            "If you would like to play online with another player on the same network as you,\n" +
-            "one player needs to begin hosting a lobby, noting the IP address on the button, and then the other\n" +
-            "player needs to connect to the lobby at the ip address and on the same port as the host.\n\n";
 
     static {
         Rectangle2D screenDimensions = Screen.getPrimary().getBounds();
@@ -74,13 +86,29 @@ public class MainMenu extends Application {
         }
     }
 
-
-    private static final int GAP = 15;
+    /**
+     * The key to be pressed whewn the user wants to toggle fullscreen.
+     */
+    private static final KeyCode FULLSCREEN_KEYCODE = KeyCode.F11;
+    private static final String MENU_HELP_TEXT = String.format("Welcome to the Arcade!\n" +
+            "Select a game to begin playing it. Press %s for full screen\n" +
+            "If you would like to play online with another player on the same network as you,\n" +
+            "one player needs to begin hosting a lobby, noting the IP address on the button, and then the other\n" +
+            "player needs to connect to the lobby at the ip address and on the same port as the host.\n\n", FULLSCREEN_KEYCODE);
+    public static final int GAP = 15;
+    // Font size ratios
+    private static final int HEADER_FONT_SIZE_RATIO = 13, INPUT_FONT_SIZE_RATIO = 40, GAME_FONT_SIZE_RATIO = 5;
+    private DoubleProperty headerFontSize = new SimpleDoubleProperty(HEADER_FONT_SIZE_RATIO);
+    private DoubleProperty inputFontSize = new SimpleDoubleProperty(INPUT_FONT_SIZE_RATIO);
+    private DoubleProperty gameFontSize = new SimpleDoubleProperty(GAME_FONT_SIZE_RATIO);
     private static final Font
-            HEADER_FONT = Font.font("ArcadeClassic", FontWeight.BOLD, FontPosture.REGULAR, 38),
-            INPUT_FONT = Font.font("Book Antiqua", FontWeight.NORMAL, FontPosture.REGULAR, 12);
+            HEADER_FONT = Font.font("ArcadeClassic", FontWeight.BOLD, 36),
+            INPUT_FONT = Font.font("Book Antiqua");
     private GridPane menuRoot;
+    private StackPane screenRoot;
     private Stage stage;
+    private VBox helpRoot;
+    private PreferencesMenu preferencesMenu;
 
     private PartyMenuItem hostMenuItem, connectMenuItem;
 
@@ -96,6 +124,8 @@ public class MainMenu extends Application {
      */
     private boolean disconnectNotified;
 
+    private Scene scene;
+
     // Array of all the playable games.
     private final Game[] games = new Game[]{
             new PongUI()
@@ -107,6 +137,7 @@ public class MainMenu extends Application {
      * Constructs a new main menu object.
      */
     public MainMenu() {
+        currentInstance = this;
         PartyHandler.setIncomingMessageListener(this::messageReceived);
 
         StringBuilder builder = new StringBuilder(MENU_HELP_TEXT);
@@ -114,6 +145,24 @@ public class MainMenu extends Application {
             builder.append(game.getHelpText()).append("\n\n");
         }
         helpText = builder.toString();
+    }
+
+    /**
+     * Gets the current instance of the main menu.
+     *
+     * @return The current main menu.
+     */
+    public static MainMenu getCurrentInstance() {
+        return currentInstance;
+    }
+
+    /**
+     * Called in order to resize the window to the scene.
+     */
+    public void sizeToScene() {
+        if (!stage.isFullScreen()) {
+            stage.sizeToScene();
+        }
     }
 
     @Override
@@ -132,51 +181,36 @@ public class MainMenu extends Application {
         setIcon(stage);
 
         menuRoot = new GridPane();
+        // Column and row constraints.
+        ColumnConstraints column1 = createColumnConstraints(50);
+        ColumnConstraints column2 = createColumnConstraints(50);
+        RowConstraints row1 = createRowConstraints(10);
+        RowConstraints row2 = createRowConstraints(20);
+        RowConstraints row3 = createRowConstraints(20);
+        RowConstraints row4 = createRowConstraints(50);
+        menuRoot.getColumnConstraints().addAll(column1, column2);
+        menuRoot.getRowConstraints().addAll(row1, row2, row3, row4);
 
         // Create the welcome button at the top.
         Text welcomeText = new Text("Welcome to the Arcade!");
         welcomeText.setTextAlignment(TextAlignment.CENTER);
-        welcomeText.setFont(HEADER_FONT);
+        setupFont(welcomeText, true);
         StackPane welcomeButton = new StackPane();
         formatMenuItem(welcomeButton);
         welcomeButton.getChildren().add(welcomeText);
         // Blue background.
         welcomeButton.setBackground(new Background(new BackgroundFill(Color.DODGERBLUE, CornerRadii.EMPTY, Insets.EMPTY)));
-        menuRoot.add(welcomeButton, 0, 0, 2, 1); // (0, 0) with colspan of 2 to spread the entire width.
 
         // Now create the preferences menu item
-        StackPane preferences = new StackPane();
-        formatMenuItem(preferences);
-        preferences.setOnMouseClicked(event -> displayPreferences());
-        HBox contents = new HBox(GAP);
-        contents.setAlignment(Pos.CENTER);
-        Text labelText = new Text("Preferences");
-        labelText.setTextAlignment(TextAlignment.CENTER);
-        labelText.setFont(HEADER_FONT);
-        ImageView image = new ImageView(getClass().getResource("/res/images/preferences.png").toString());
-        image.setPreserveRatio(true);
-        image.setFitWidth(50);
-        contents.getChildren().addAll(labelText, image);
-        preferences.getChildren().add(contents);
-        preferences.setBackground(new Background(new BackgroundFill(Color.ORANGE, CornerRadii.EMPTY, Insets.EMPTY)));
+        StackPane preferences = createBasicMenuItem(event -> showPreferences(true), "Preferences", "/res/images/preferences.png", Color.ORANGE);
         menuRoot.add(preferences, 0, 1); // Add to (0, 1)
 
-        // Scores menu item.
-        StackPane help = new StackPane();
-        formatMenuItem(help);
-        help.setOnMouseClicked(event -> showHelp());
-        HBox scoresContent = new HBox(GAP);
-        scoresContent.setAlignment(Pos.CENTER);
-        Text scoresLabel = new Text("Help");
-        scoresLabel.setTextAlignment(TextAlignment.CENTER);
-        scoresLabel.setFont(HEADER_FONT);
-        ImageView scoresImage = new ImageView(getClass().getResource("/res/images/help.png").toString());
-        scoresImage.setPreserveRatio(true);
-        scoresImage.setFitWidth(50);
-        scoresContent.getChildren().addAll(scoresImage, scoresLabel);
-        help.getChildren().add(scoresContent);
-        help.setBackground(new Background(new BackgroundFill(Color.MEDIUMPURPLE, CornerRadii.EMPTY, Insets.EMPTY)));
+        // Help menu item.
+        StackPane help = createBasicMenuItem(event -> showHelp(true), "Help", "/res/images/help.png", Color.MEDIUMPURPLE);
         menuRoot.add(help, 1, 1); // Add to (1, 1)
+
+        // Add the welcome button after the help because of javafx bug.
+        menuRoot.add(welcomeButton, 0, 0, 2, 1); // (0, 0) with colspan of 2 to spread the entire width.
 
         // Connect to party button
         connectMenuItem = new PartyMenuItem("Connect", "Connecting...");
@@ -184,15 +218,15 @@ public class MainMenu extends Application {
         formatMenuItem(connectMenuItem);
         connectMenuItem.setBackground(new Background(new BackgroundFill(Color.YELLOW, CornerRadii.EMPTY, Insets.EMPTY)));
         Button connectButton = connectMenuItem.getActionButton();
-        connectButton.setFont(INPUT_FONT);
+        setupFont(connectButton, false);
         connectButton.setBackground(new Background(new BackgroundFill(Color.rgb(77, 77, 255), CornerRadii.EMPTY, Insets.EMPTY)));
         connectMenuItem.setOnAction(event -> connectToParty());
         connectMenuItem.getDisconnectButton().setOnAction(event -> disconnect(true));
         Text ipLabel = new Text("IP Address");
-        ipLabel.setFont(INPUT_FONT);
+        setupFont(ipLabel, false);
         connectMenuItem.addIPField(ipLabel);
         TextField addressField = connectMenuItem.getIPField();
-        addressField.setFont(INPUT_FONT);
+        setupFont(addressField, false);
         setupPort(connectMenuItem);
         menuRoot.add(connectMenuItem, 0, 2); // Add to (0, 2)
 
@@ -211,6 +245,7 @@ public class MainMenu extends Application {
         formatMenuItem(hostMenuItem);
         hostMenuItem.setBackground(new Background(new BackgroundFill(Color.RED, CornerRadii.EMPTY, Insets.EMPTY)));
         Button hostButton = hostMenuItem.getActionButton();
+        setupFont(hostButton, false);
         hostButton.setBackground(new Background(new BackgroundFill(Color.rgb(255, 77, 255), CornerRadii.EMPTY, Insets.EMPTY)));
         hostMenuItem.setOnAction(event -> hostParty());
         setupPort(hostMenuItem);
@@ -219,11 +254,10 @@ public class MainMenu extends Application {
         // Now for the games themselves, held within a scroll pane.
         VBox games = new VBox(); // New VBox with no gap for displaying game menu items.
         games.setAlignment(Pos.TOP_CENTER);
-        ScrollPane gamesScrollPane = new ScrollPane();
+        ScrollPane gamesScrollPane = new ScrollPane(games);
         gamesScrollPane.setFitToWidth(true);
         gamesScrollPane.setFitToHeight(true);
         gamesScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        gamesScrollPane.setContent(games);
         GridPane.setHgrow(gamesScrollPane, Priority.ALWAYS);
         GridPane.setVgrow(gamesScrollPane, Priority.ALWAYS);
         menuRoot.add(gamesScrollPane, 0, 3, 2, 1); // Add to (0, 3) with colspan and rowspan of 2.
@@ -231,18 +265,22 @@ public class MainMenu extends Application {
         // Now for adding all of the games to the list.
         for (Game game : this.games) {
             StackPane menuItem = new StackPane();
-            formatMenuItem(menuItem);
+            menuItem.prefWidthProperty().bind(games.widthProperty());
+            menuItem.setAlignment(Pos.CENTER);
             menuItem.setOnMouseClicked(event -> playGame(game));
             Text menuText = game.getTextDisplay();
+            setupFont(menuText, gameFontSize, null);
             menuText.setTextAlignment(TextAlignment.CENTER);
-            VBox.setVgrow(menuItem, Priority.SOMETIMES);
 
             // Set the background up nicely.
             ImageView coverArtImage = new ImageView(game.getCoverArt());
-            coverArtImage.fitWidthProperty().bind(menuItem.widthProperty());
-            coverArtImage.fitHeightProperty().bind(menuItem.heightProperty());
+            coverArtImage.setPreserveRatio(false);
+            coverArtImage.fitWidthProperty().bind(gamesScrollPane.widthProperty());
+            coverArtImage.fitHeightProperty().bind(gamesScrollPane.heightProperty());
+
             menuItem.getChildren().addAll(coverArtImage, menuText);
             games.getChildren().add(menuItem);
+            VBox.setVgrow(menuItem, Priority.ALWAYS);
         }
 
 
@@ -252,19 +290,106 @@ public class MainMenu extends Application {
         // Create the scene and all.
         menuRoot.setMinSize(stage.getMinWidth(), stage.getMinHeight());
         menuRoot.setPrefSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
-        // Column and row constraints.
-        ColumnConstraints column1 = createColumnConstraints(50);
-        ColumnConstraints column2 = createColumnConstraints(50);
-        RowConstraints row1 = createRowConstraints(10);
-        RowConstraints row2 = createRowConstraints(20);
-        RowConstraints row3 = createRowConstraints(20);
-        RowConstraints row4 = createRowConstraints(50);
-        menuRoot.getColumnConstraints().addAll(column1, column2);
-        menuRoot.getRowConstraints().addAll(row1, row2, row3, row4);
 
+        stage.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode().equals(FULLSCREEN_KEYCODE)) {
+                toggleFullScreen();
+            }
+        });
         // Set the scene at the end.
-        Scene scene = new Scene(menuRoot);
-        setDisplay(scene);
+        screenRoot = new StackPane(menuRoot);
+        screenRoot.setAlignment(Pos.CENTER);
+
+        scene = new Scene(screenRoot);
+        stage.setScene(scene);
+
+        // Bind font sizes
+        inputFontSize.bind(scene.heightProperty().divide(INPUT_FONT_SIZE_RATIO));
+        headerFontSize.bind(scene.heightProperty().divide(HEADER_FONT_SIZE_RATIO));
+        gameFontSize.bind(scene.heightProperty().divide(GAME_FONT_SIZE_RATIO));
+
+        menuRoot.requestFocus();
+
+
+        TextArea area = new TextArea(helpText);
+        setupFont(area, false);
+        // Simply show the help text to the user.
+        Text titleText = new Text("Arcade Quick Start");
+        setupFont(titleText, true);
+        Button closeButton = new Button("Close");
+        closeButton.setOnAction(event -> showHelp(false));
+        setupFont(closeButton, false);
+        helpRoot = new VBox(titleText, area, closeButton);
+        helpRoot.setAlignment(Pos.CENTER);
+        helpRoot.setPadding(new Insets(GAP));
+        helpRoot.setSpacing(GAP);
+        helpRoot.setBackground(new Background(new BackgroundFill(Color.TURQUOISE, CornerRadii.EMPTY, Insets.EMPTY)));
+
+        preferencesMenu = new PreferencesMenu(() -> showPreferences(false), inputFontSize, headerFontSize, HEADER_FONT, INPUT_FONT);
+    }
+
+    /**
+     * Creates a basic menu item.
+     *
+     * @param event            The event to call on click of the menu item.
+     * @param menuText         The menu item text.
+     * @param imageLocation    The image location of the image to display next to the text.
+     * @param backgroundColour The background colour.
+     * @return The created StackPane
+     */
+    private StackPane createBasicMenuItem(EventHandler<? super MouseEvent> event, String menuText, String imageLocation, Paint backgroundColour) {
+        // Scores menu item.
+        StackPane pane = new StackPane();
+        formatMenuItem(pane);
+        pane.setOnMouseClicked(event);
+        HBox contentOrganizer = new HBox(GAP);
+        contentOrganizer.setAlignment(Pos.CENTER);
+        Text menuLabel = new Text(menuText);
+        menuLabel.setTextAlignment(TextAlignment.CENTER);
+        setupFont(menuLabel, true);
+        ImageView displayImage = new ImageView(getClass().getResource(imageLocation).toString());
+        displayImage.setPreserveRatio(true);
+        displayImage.setFitWidth(50);
+        displayImage.fitHeightProperty().bind(pane.heightProperty().subtract(5));
+        displayImage.fitWidthProperty().bind(pane.widthProperty().divide(8));
+        contentOrganizer.getChildren().addAll(displayImage, menuLabel);
+        pane.getChildren().add(contentOrganizer);
+        pane.setBackground(new Background(new BackgroundFill(backgroundColour, CornerRadii.EMPTY, Insets.EMPTY)));
+
+        return pane;
+    }
+
+    /**
+     * Sets up the font for the given element.
+     *
+     * @param element    The element for which the font needs to be set.
+     * @param headerFont True to be header font, false otherwise.
+     */
+    private void setupFont(Node element, boolean headerFont) {
+        final DoubleProperty property = (headerFont) ? headerFontSize : inputFontSize;
+        setupFont(element, property, (headerFont) ? HEADER_FONT : INPUT_FONT);
+    }
+
+    /**
+     * Sets up the font with the correct font.
+     *
+     * @param element  The element to set the font on.
+     * @param property The property to which the font size depends on.
+     * @param font     The font to be used.
+     */
+    public static void setupFont(Node element, DoubleProperty property, @Nullable Font font) {
+        String fontFamily = "";
+        if (font != null) {
+            fontFamily = String.format("-fx-font-family: %s;", font.getFamily());
+        }
+        element.styleProperty().bind(Bindings.concat("-fx-font-size: ", property.asString(), ";", fontFamily));
+    }
+
+    /**
+     * Toggles the fullscreen state of the game.
+     */
+    private void toggleFullScreen() {
+        stage.setFullScreen(!stage.isFullScreen());
     }
 
     /**
@@ -300,12 +425,13 @@ public class MainMenu extends Application {
      *
      * @param menuItem The PartyMenuItem for which the port should be set up.
      */
-    private static void setupPort(PartyMenuItem menuItem) {
+    private void setupPort(PartyMenuItem menuItem) {
         Text portLabel = new Text("Port");
-        portLabel.setFont(INPUT_FONT);
+        portLabel.setFont(null);
+        setupFont(portLabel, false);
         menuItem.addPortField(TCPSocket.DEFAULT_PORT, portLabel);
         TextField portField = menuItem.getPortField();
-        portField.setFont(INPUT_FONT);
+        setupFont(portField, false);
         menuItem.setSpacing(GAP);
     }
 
@@ -327,6 +453,7 @@ public class MainMenu extends Application {
             currentGame.reset();
             currentGame.setOnEnd(this::gameEnded);
             Region window = currentGame.getWindow();
+            setDisplay(window);
             window.setPrefWidth(menuRoot.getWidth());
             if (wasInvited) {
                 currentGame.setNetworkGame();
@@ -334,7 +461,6 @@ public class MainMenu extends Application {
             if (currentGame.isNetworkGame()) {
                 currentGame.getNetworkPlayer().setOnGameDataSend(this::sendGameData);
             }
-            setDisplay(currentGame.getWorkingScene());
             currentGame.initializePlayers();
             currentGame.start();
         }
@@ -349,7 +475,7 @@ public class MainMenu extends Application {
         // Only actually end if the ended game was the game being played.
         if (currentGame == endedGame) {
             currentGame = null;
-            setDisplay(menuRoot.getScene());
+            setDisplay(screenRoot);
         }
     }
 
@@ -375,10 +501,10 @@ public class MainMenu extends Application {
     /**
      * Sets the display to be shown on the screen.
      *
-     * @param scene The scene to be shown.
+     * @param window The window to be shown.
      */
-    private void setDisplay(Scene scene) {
-        stage.setScene(scene);
+    private void setDisplay(Parent window) {
+        scene.setRoot(window);
     }
 
     /**
@@ -424,24 +550,28 @@ public class MainMenu extends Application {
 
     /**
      * Shows the help stuff.
+     *
+     * @param show True to show the help, false to hide it.
      */
-    private void showHelp() {
-        // Simply show the help text to the user.
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.initStyle(StageStyle.UTILITY);
-        alert.setTitle("Help");
-        alert.setHeaderText("Arcade Quick Start");
-        alert.setContentText(helpText);
-
-        alert.showAndWait();
+    private void showHelp(boolean show) {
+        if (!show) {
+            screenRoot.getChildren().remove(helpRoot);
+        } else if (!screenRoot.getChildren().contains(helpRoot)) {
+            screenRoot.getChildren().add(helpRoot);
+        }
     }
 
     /**
      * Displays the user preferences menu.
+     *
+     * @param show True to show, false to hide.
      */
-    private void displayPreferences() {
-        PreferencesMenu menu = new PreferencesMenu();
-        menu.showAndWait();
+    private void showPreferences(boolean show) {
+        if (!show) {
+            screenRoot.getChildren().remove(preferencesMenu);
+        } else if (!screenRoot.getChildren().contains(preferencesMenu)) {
+            screenRoot.getChildren().add(preferencesMenu);
+        }
     }
 
     /**
@@ -554,16 +684,7 @@ public class MainMenu extends Application {
                     case PENDING_GAME_INVITE:
                         // If the user accepts the game invite, we need to do certain things.
                         Game invitedGame = findGame(receivedMessage.getCurrentGame());
-                        boolean userAccepted = gameInvite(receivedMessage.getHostName(), invitedGame);
-                        HostStatus newStatus = (userAccepted) ? HostStatus.ACCEPTED_GAME_INVITE : HostStatus.DECLINED_GAME_INVITE;
-                        NetworkMessage newMessage = new NetworkMessage(newStatus);
-                        if (userAccepted) {
-                            newMessage.setCurrentGame(receivedMessage.getCurrentGame());
-                        }
-                        sendNetworkMessage(newMessage);
-                        if (userAccepted) {
-                            playGame(invitedGame, true);
-                        }
+                        gameInvite(receivedMessage.getHostName(), invitedGame, aBoolean -> gameInviteDecision(aBoolean, invitedGame));
                         break;
                     case ACCEPTED_GAME_INVITE:
                         playGame(findGame(receivedMessage.getCurrentGame()), true);
@@ -582,6 +703,22 @@ public class MainMenu extends Application {
             }
         } else if (receivedEvent == ReceivedDataEvent.DISCONNECTED) {
             remotePlayerDisconnecting(shouldSendToGame);
+        }
+    }
+
+    /**
+     * Called when the user either accepts or declines the invite.
+     *
+     * @param userAccepted True if the user accepted the game invite, false otherwise.
+     * @param invitedGame  The game that the user was invited to.
+     */
+    private void gameInviteDecision(Boolean userAccepted, Game invitedGame) {
+        HostStatus newStatus = (userAccepted) ? HostStatus.ACCEPTED_GAME_INVITE : HostStatus.DECLINED_GAME_INVITE;
+        NetworkMessage newMessage = new NetworkMessage(newStatus);
+        currentGame = invitedGame;
+        sendNetworkMessage(newMessage);
+        if (userAccepted) {
+            playGame(invitedGame, true);
         }
     }
 
@@ -619,23 +756,29 @@ public class MainMenu extends Application {
     /**
      * Invites this user to play a game initiated by the other user.
      *
-     * @param otherPlayerName The gamer tag of the player inviting this player to play the game.
-     * @param game            The game to which the user was invited.
+     * @param otherPlayerName  The gamer tag of the player inviting this player to play the game.
+     * @param game             The game to which the user was invited.
+     * @param onInviteDecision The action to be called when the user either accepts or declines the invite.
      * @return True if this user accepts playing the game, false otherwise.
      */
-    private boolean gameInvite(final String otherPlayerName, final Game game) {
-        boolean userAccepted = false;
+    private void gameInvite(final String otherPlayerName, final Game game, @NotNull Consumer<Boolean> onInviteDecision) {
         if (game != null) {
-            Alert inviteAlert = new Alert(Alert.AlertType.CONFIRMATION, String.format("%s has invited you to play %s. Do you accept?", otherPlayerName, game.getName()), YES, ButtonType.NO);
-            setIcon((Stage) inviteAlert.getDialogPane().getScene().getWindow());
-            Optional<ButtonType> result = inviteAlert.showAndWait();
-            if (result.isPresent()) {
-                ButtonType type = result.get();
-                userAccepted = type == YES;
-            }
-        }
+            Notifications notify = Notifications.create()
+                    .title("Pending Game Invite")
+                    .text(String.format("%s has invited you to play %s. Click to accept.", otherPlayerName, game.getName()));
 
-        return userAccepted;
+            final int secondsToWait = 10;
+            // Hide the close button and show the notification forever.
+            notify.hideAfter(Duration.seconds(secondsToWait));
+            notify.onAction(event -> onInviteDecision.accept(true));
+
+            PauseTransition decliner = new PauseTransition(Duration.seconds(secondsToWait));
+            decliner.setOnFinished(event -> onInviteDecision.accept(false));
+            decliner.play();
+
+            notify.showConfirm();
+
+        }
     }
 
     /**
@@ -661,11 +804,15 @@ public class MainMenu extends Application {
      * @param type    The type of notification to be shown.
      * @param title   The title of the notification.
      * @param content The notification's content text.
+     * @param action  The action to be called when the notification is clicked.
      */
-    public static void showNotification(Alert.AlertType type, final String title, final String content) {
+    public static void showNotification(Alert.AlertType type, final String title, final String content, @Nullable EventHandler<ActionEvent> action) {
         Notifications notifications = Notifications.create();
         notifications.title(title);
         notifications.text(content);
+        if (action != null) {
+            notifications.onAction(action);
+        }
 
         switch (type) {
             case ERROR:
@@ -684,6 +831,17 @@ public class MainMenu extends Application {
                 notifications.show();
                 break;
         }
+    }
+
+    /**
+     * Shows a notification with the given title and text.
+     *
+     * @param type    The type of notification to be shown.
+     * @param title   The title of the notification.
+     * @param content The notification's content text.
+     */
+    public static void showNotification(Alert.AlertType type, final String title, final String content) {
+        showNotification(type, title, content, null);
     }
 
     /**

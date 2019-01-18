@@ -5,6 +5,7 @@ import games.pong.pieces.Paddle;
 import games.pong.pieces.PongBall;
 import games.pong.pieces.Side;
 
+
 /**
  * Advanced bot which pre-calculates the ball's position in order to hit the ball
  * at that position.

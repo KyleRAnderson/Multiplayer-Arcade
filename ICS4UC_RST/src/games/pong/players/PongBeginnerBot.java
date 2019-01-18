@@ -26,11 +26,6 @@ public class PongBeginnerBot extends PongBot {
         }
     }
 
-    @Override
-    protected boolean hasTarget() {
-        return targetY >= 0;
-    }
-
 
     @Override
     protected void runGoTo() {
