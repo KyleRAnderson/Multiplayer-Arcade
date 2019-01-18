@@ -130,10 +130,12 @@ public class PongUI extends Pane implements Game {
 
         divider = new Divider(FOREGROUND_COLOUR);
 
+        // set to background color and font for scoreboard, and hide it
+        scoreboard = new Scoreboard(FOREGROUND_COLOUR, FONT);
+        scoreboard.setVisible(false);
+
         ball = new Rectangle();
         ball.setFill(FOREGROUND_COLOUR);
-
-        scoreboard = initializeScoreboard();
 
         getChildren().addAll(divider, leftPaddle, rightPaddle, ball, scoreboard);
 
@@ -190,19 +192,6 @@ public class PongUI extends Pane implements Game {
 
             calculateScaleFactor();
         }
-    }
-
-    /**
-     * Initializes the scoreboard object to be used in the game.
-     *
-     * @return The Scoreboard object.
-     */
-    private Scoreboard initializeScoreboard() {
-        Scoreboard board = new Scoreboard();
-        board.setFont(FONT);
-        board.setFontFill(Color.WHITE);
-
-        return board;
     }
 
     /**
@@ -542,8 +531,10 @@ public class PongUI extends Pane implements Game {
         if (!hasPrompted && !isNetworkGame()) {
             promptForPlayers();
         } else {
-            PongPlayer p1 = game.getLocalPlayer(), p2 = game.getPlayer2();
+            // show scoreboard right before prompting for players, ensures proper positioning for scoreboard while waiting for input
+            showScoreboard();
 
+            PongPlayer p1 = game.getLocalPlayer(), p2 = game.getPlayer2();
             // We can override which sides everybody is on if it's not a network game.
             boolean overrideSides = !isNetworkGame();
 
@@ -616,6 +607,14 @@ public class PongUI extends Pane implements Game {
 
         selector.getChildren().addAll(text, localMultiplayer, advancedBot, spectateBots);
         getWindow().getChildren().add(selector);
+    }
+
+    /**
+     * Sets default working pos for scoreboard to be centered and set to be visible.
+     */
+    private void showScoreboard() {
+        scoreboard.calculate(getWorkingWidth(), getWorkingHeight());
+        scoreboard.setVisible(true);
     }
 
     /**
