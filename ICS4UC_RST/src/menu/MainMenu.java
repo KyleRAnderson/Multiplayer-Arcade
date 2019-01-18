@@ -1,12 +1,16 @@
 package menu;
 
+import com.sun.istack.internal.NotNull;
 import com.sun.istack.internal.Nullable;
 import games.Game;
 import games.pong.ui.PongUI;
+import javafx.animation.PauseTransition;
 import javafx.application.Application;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
@@ -25,6 +29,7 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import network.Server;
 import network.TCPSocket;
 import network.party.PartyHandler;
@@ -32,6 +37,7 @@ import network.party.network.HostStatus;
 import network.party.network.NetworkMessage;
 import network.party.network.ReceivedDataEvent;
 import org.controlsfx.control.Notifications;
+import org.controlsfx.control.action.Action;
 import preferences.Preferences;
 import preferences.PreferencesMenu;
 
@@ -41,6 +47,7 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
 
 import static javafx.scene.control.ButtonType.YES;
 
@@ -648,16 +655,7 @@ public class MainMenu extends Application {
                     case PENDING_GAME_INVITE:
                         // If the user accepts the game invite, we need to do certain things.
                         Game invitedGame = findGame(receivedMessage.getCurrentGame());
-                        boolean userAccepted = gameInvite(receivedMessage.getHostName(), invitedGame);
-                        HostStatus newStatus = (userAccepted) ? HostStatus.ACCEPTED_GAME_INVITE : HostStatus.DECLINED_GAME_INVITE;
-                        NetworkMessage newMessage = new NetworkMessage(newStatus);
-                        if (userAccepted) {
-                            newMessage.setCurrentGame(receivedMessage.getCurrentGame());
-                        }
-                        sendNetworkMessage(newMessage);
-                        if (userAccepted) {
-                            playGame(invitedGame, true);
-                        }
+                        gameInvite(receivedMessage.getHostName(), invitedGame, aBoolean -> gameInviteDecision(aBoolean, invitedGame));
                         break;
                     case ACCEPTED_GAME_INVITE:
                         playGame(findGame(receivedMessage.getCurrentGame()), true);
@@ -676,6 +674,21 @@ public class MainMenu extends Application {
             }
         } else if (receivedEvent == ReceivedDataEvent.DISCONNECTED) {
             remotePlayerDisconnecting(shouldSendToGame);
+        }
+    }
+
+    /**
+     * Called when the user either accepts or declines the invite.
+     * @param userAccepted True if the user accepted the game invite, false otherwise.
+     * @param invitedGame The game that the user was invited to.
+     */
+    private void gameInviteDecision(Boolean userAccepted, Game invitedGame) {
+        HostStatus newStatus = (userAccepted) ? HostStatus.ACCEPTED_GAME_INVITE : HostStatus.DECLINED_GAME_INVITE;
+        NetworkMessage newMessage = new NetworkMessage(newStatus);
+        currentGame = invitedGame;
+        sendNetworkMessage(newMessage);
+        if (userAccepted) {
+            playGame(invitedGame, true);
         }
     }
 
@@ -715,21 +728,27 @@ public class MainMenu extends Application {
      *
      * @param otherPlayerName The gamer tag of the player inviting this player to play the game.
      * @param game            The game to which the user was invited.
+     * @param onInviteDecision The action to be called when the user either accepts or declines the invite.
      * @return True if this user accepts playing the game, false otherwise.
      */
-    private boolean gameInvite(final String otherPlayerName, final Game game) {
-        boolean userAccepted = false;
+    private void gameInvite(final String otherPlayerName, final Game game, @NotNull Consumer<Boolean> onInviteDecision) {
         if (game != null) {
-            Alert inviteAlert = new Alert(Alert.AlertType.CONFIRMATION, String.format("%s has invited you to play %s. Do you accept?", otherPlayerName, game.getName()), YES, ButtonType.NO);
-            setIcon((Stage) inviteAlert.getDialogPane().getScene().getWindow());
-            Optional<ButtonType> result = inviteAlert.showAndWait();
-            if (result.isPresent()) {
-                ButtonType type = result.get();
-                userAccepted = type == YES;
-            }
-        }
+            Notifications notify = Notifications.create()
+                    .title("Pending Game Invite")
+                    .text(String.format("%s has invited you to play %s. Click to accept.", otherPlayerName, game.getName()));
 
-        return userAccepted;
+            final int secondsToWait = 10;
+            // Hide the close button and show the notification forever.
+            notify.hideAfter(Duration.seconds(secondsToWait));
+            notify.onAction(event -> onInviteDecision.accept(true));
+
+            PauseTransition decliner = new PauseTransition(Duration.seconds(secondsToWait));
+            decliner.setOnFinished(event -> onInviteDecision.accept(false));
+            decliner.play();
+
+            notify.showConfirm();
+
+        }
     }
 
     /**
@@ -751,15 +770,18 @@ public class MainMenu extends Application {
 
     /**
      * Shows a notification with the given title and text.
-     *
-     * @param type    The type of notification to be shown.
+     *  @param type    The type of notification to be shown.
      * @param title   The title of the notification.
      * @param content The notification's content text.
+     * @param action The action to be called when the notification is clicked.
      */
-    public static void showNotification(Alert.AlertType type, final String title, final String content) {
+    public static void showNotification(Alert.AlertType type, final String title, final String content, @Nullable EventHandler<ActionEvent> action) {
         Notifications notifications = Notifications.create();
         notifications.title(title);
         notifications.text(content);
+        if (action != null) {
+            notifications.onAction(action);
+        }
 
         switch (type) {
             case ERROR:
@@ -778,6 +800,15 @@ public class MainMenu extends Application {
                 notifications.show();
                 break;
         }
+    }
+    /**
+     * Shows a notification with the given title and text.
+     *  @param type    The type of notification to be shown.
+     * @param title   The title of the notification.
+     * @param content The notification's content text.
+     */
+    public static void showNotification(Alert.AlertType type, final String title, final String content) {
+        showNotification(type, title, content, null);
     }
 
     /**

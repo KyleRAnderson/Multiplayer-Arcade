@@ -89,7 +89,7 @@ public class PongUI extends Pane implements Game {
     private Rectangle ball;
     private Divider divider;
 
-    private boolean hasInitializePlayers;
+    private boolean hasInitializedPlayers;
 
     private final Rectangle leftPaddle;
     private final Rectangle rightPaddle;
@@ -295,7 +295,7 @@ public class PongUI extends Pane implements Game {
      */
     @Override
     public void start() {
-        if (hasInitializePlayers) {
+        if (hasInitializedPlayers) {
             requestFocus();
             calculateScaleFactor();
 
@@ -397,7 +397,9 @@ public class PongUI extends Pane implements Game {
 
     @Override
     public void end() {
-        renderFrameTimer.stop();
+        if (renderFrameTimer != null) {
+            renderFrameTimer.stop();
+        }
 
         // If the game ended because of player disconnect, notify the user.
         switch (game.getEndReason()) {
@@ -456,8 +458,8 @@ public class PongUI extends Pane implements Game {
 
     @Override
     public void reset() {
+        hasInitializedPlayers = false;
         game = new Pong(); // Initialize new pong game with the correct type of players
-        hasInitializePlayers = false;
         resetKeyBindings();
         game.addEventListener(this::gameEventHappened);
         SfxPongPlayer.init();
@@ -574,7 +576,7 @@ public class PongUI extends Pane implements Game {
 
             p1.setOnActionChanged(this::paddleActionChanged);
             p2.setOnActionChanged(this::paddleActionChanged);
-            hasInitializePlayers = true;
+            hasInitializedPlayers = true;
             start();
         }
     }
@@ -583,7 +585,7 @@ public class PongUI extends Pane implements Game {
      * Prompts the user, asking them what type of game they would like: local singleplayer, local multiplayer, etc.
      */
     private void promptForPlayers() {
-        Text text = new Text("Select Game: ");
+        Text text = new Text("Select Game");
         text.setFont(FONT);
 
         VBox selector = new VBox(15);
