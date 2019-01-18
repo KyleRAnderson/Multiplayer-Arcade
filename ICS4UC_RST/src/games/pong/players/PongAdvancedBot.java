@@ -1,109 +1,26 @@
 package games.pong.players;
 
-import games.pong.Pong;
 import games.pong.PongEvent;
 import games.pong.pieces.Paddle;
 import games.pong.pieces.PongBall;
 import games.pong.pieces.Side;
 
-import java.util.function.BiConsumer;
-
-public class PongAdvancedBot extends PongBot implements PongPlayer {
-
-    private Side side;
-    private int points;
-    private Pong game;
-    private double targetY;
-    private Action oldAction;
-    private BiConsumer<PongPlayer, Action> actionListener;
-
-    @Override
-    public void setOnActionChanged(BiConsumer<PongPlayer, Action> listener) {
-        actionListener = listener;
-    }
-
-    @Override
-    public Side getSide() {
-        return this.side;
-    }
-
-    @Override
-    public void setSide(Side side) {
-        this.side = side;
-    }
-
-    @Override
-    public void setPoints(int points) {
-        this.points = points;
-    }
-
-    @Override
-    public int getPoints() {
-        return points;
-    }
-
-    @Override
-    public void setGame(Pong game) {
-        this.game = game;
-        this.game.setOnTick(this::runGoTo);
-        this.game.addEventListener(this::pongEvent);
-        setGoTo(this.game.getBoardHeight() / 2 + 5);
-    }
-
+/**
+ * Advanced bot which pre-calculates the ball's position in order to hit the ball
+ * at that position.
+ */
+public class PongAdvancedBot extends PongBot {
     @Override
     public String getName() {
         return "Advanced Bot " + getSide();
     }
 
-    @Override
-    public boolean canBeScoredOn() {
-        return true;
-    }
-
-    @Override
-    protected void runGoTo() {
-        // If we have a target, do logic to try and go to the target.
-        if (hasTarget()) {
-            final Paddle thisPaddle = game.getPaddle(this);
-            final double paddleY = thisPaddle.getY(Side.CENTER);
-            // If the paddle's y is larger than the target y by enough of a factor, move down.
-            if (paddleY - targetY > thisPaddle.getHeight() / PADDLE_HEIGHT_DIVISOR) {
-                setAction(Action.MOVE_DOWN);
-            }
-            // If the paddle's y is smaller than the target y by enough of a factor, move up.
-            else if (paddleY - targetY < -thisPaddle.getHeight() / PADDLE_HEIGHT_DIVISOR) {
-                setAction(Action.MOVE_UP);
-            }
-            // Otherwise just stop moving.
-            else {
-                setAction(Action.STOP);
-            }
-        }
-    }
 
     /**
-     * Sets a new action to be done by the paddle.
+     * Called when there is an event in the pong game.
      *
-     * @param newAction The new action.
+     * @param pongEvent The event.
      */
-    private void setAction(Action newAction) {
-        if (newAction != oldAction && actionListener != null) {
-            actionListener.accept(this, newAction);
-        }
-        oldAction = newAction;
-    }
-
-    @Override
-    protected boolean hasTarget() {
-        return targetY >= 0;
-    }
-
-    @Override
-    protected void setGoTo(final double y) {
-        targetY = y;
-    }
-
-
     @Override
     protected void pongEvent(PongEvent pongEvent) {
         switch (pongEvent.getType()) {
