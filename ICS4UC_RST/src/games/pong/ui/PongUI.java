@@ -400,8 +400,7 @@ public class PongUI extends Pane implements Game {
                 showNotification(Alert.AlertType.INFORMATION, "Game was ended by a player.");
                 break;
             case SCORE_LIMIT_REACHED:
-                Alert alert = new Alert(Alert.AlertType.INFORMATION, String.format("%s won the game!", game.getWinner().getName()));
-                alert.showAndWait();
+                showNotification(Alert.AlertType.INFORMATION, String.format("%s won the game!", game.getWinner().getName()));
                 break;
             default:
                 showNotification(Alert.AlertType.ERROR, "Game ended for some unknown reason.");
