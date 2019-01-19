@@ -269,7 +269,7 @@ public class MainMenu extends Application {
             menuItem.setAlignment(Pos.CENTER);
             menuItem.setOnMouseClicked(event -> playGame(game));
             Text menuText = game.getTextDisplay();
-            setupFont(menuText, gameFontSize, null);
+            setupFont(menuText, gameFontSize, menuText.getFont());
             menuText.setTextAlignment(TextAlignment.CENTER);
 
             // Set the background up nicely.
