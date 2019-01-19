@@ -142,7 +142,7 @@ public class MainMenu extends Application {
 
         StringBuilder builder = new StringBuilder(MENU_HELP_TEXT);
         for (Game game : games) {
-            builder.append(game.getHelpText()).append("\n\n");
+            builder.append(game.getName()).append(":\n").append(game.getHelpText()).append("\n\n");
         }
         helpText = builder.toString();
     }
