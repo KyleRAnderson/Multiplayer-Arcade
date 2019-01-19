@@ -770,11 +770,15 @@ public class MainMenu extends Application {
             final int secondsToWait = 10;
             // Hide the close button and show the notification forever.
             notify.hideAfter(Duration.seconds(secondsToWait));
-            notify.onAction(event -> onInviteDecision.accept(true));
 
             PauseTransition decliner = new PauseTransition(Duration.seconds(secondsToWait));
             decliner.setOnFinished(event -> onInviteDecision.accept(false));
             decliner.play();
+
+            notify.onAction(event -> {
+                onInviteDecision.accept(true);
+                decliner.stop();
+            });
 
             notify.showConfirm();
 

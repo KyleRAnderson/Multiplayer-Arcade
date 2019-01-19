@@ -288,12 +288,14 @@ public class PongUI extends Pane implements Game {
             requestFocus();
             scoreboard.calculate(getWorkingWidth(), getWorkingHeight());
             showScoreboard();
-            
-            renderFrameTimer = new Timeline(new KeyFrame(Duration.millis(1000.0 / FPS), event -> renderFrame()));
-            renderFrameTimer.setCycleCount(Timeline.INDEFINITE);
 
-            // Start all timelines.
-            renderFrameTimer.play();
+            if (renderFrameTimer == null) {
+                renderFrameTimer = new Timeline(new KeyFrame(Duration.millis(1000.0 / FPS), event -> renderFrame()));
+                renderFrameTimer.setCycleCount(Timeline.INDEFINITE);
+
+                // Start all timelines.
+                renderFrameTimer.play();
+            }
 
             // If this isn't a network game, we can start the game right away. Otherwise, it's up to the PongNetworkPlayer.
             if (!isNetworkGame()) {
@@ -389,6 +391,7 @@ public class PongUI extends Pane implements Game {
     public void end() {
         if (renderFrameTimer != null) {
             renderFrameTimer.stop();
+            renderFrameTimer = null;
         }
 
         // If the game ended because of player disconnect, notify the user.
@@ -565,7 +568,10 @@ public class PongUI extends Pane implements Game {
             p1.setOnActionChanged(this::paddleActionChanged);
             p2.setOnActionChanged(this::paddleActionChanged);
             hasInitializedPlayers = true;
-            start();
+
+            if (!isNetworkGame()) {
+                start();
+            }
         }
     }
 
@@ -597,8 +603,9 @@ public class PongUI extends Pane implements Game {
 
     /**
      * Called after prompting the player to choose how the game will be played.
+     *
      * @param localPlayer The local player to be used.
-     * @param player2 The second player.
+     * @param player2     The second player.
      */
     private void playerPromptClosed(PongPlayer localPlayer, PongPlayer player2) {
         game.setLocalPlayer(localPlayer);
