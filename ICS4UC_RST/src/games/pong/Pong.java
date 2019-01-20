@@ -32,7 +32,7 @@ public class Pong {
     // How many units per second the paddle moves while the button is being held down.
     public static final double PADDLE_MOVEMENT_RATE = 200;
     // Velocity of the pong ball in units per second.
-    public static final double PONG_BALL_VELOCITY = 250;
+    public static final double PONG_BALL_VELOCITY = 325;
     // How many milliseconds to pause after a player scores.
     private static final long SCORE_PAUSE = 3000; // Set score pause to 3 seconds.
     /**
