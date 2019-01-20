@@ -17,7 +17,7 @@ public abstract class KeyboardPlayer<T extends KeyBinding> {
     /**
      * Key bindings map for the keyboard player.
      */
-    protected HashMap<KeyCode, T> keyBindings;
+    private HashMap<KeyCode, T> keyBindings;
 
     /**
      * Gets this keyboard player's key bindings.

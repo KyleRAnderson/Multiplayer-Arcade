@@ -9,7 +9,7 @@ import network.party.PartyHandler;
  * @author Kyle Anderson
  * ICS4U RST
  */
-public class ConnectTask extends Task<Boolean> {
+class ConnectTask extends Task<Boolean> {
     private final String ip;
     private final int port;
 

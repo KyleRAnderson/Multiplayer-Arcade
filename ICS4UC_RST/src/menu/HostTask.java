@@ -9,8 +9,8 @@ import network.party.PartyHandler;
  * @author Kyle Anderson
  * ICS4U RST
  */
-public class HostTask extends Task {
-    final int port;
+class HostTask extends Task {
+    private final int port;
 
     /**
      * Instantiates a host task with the given port.

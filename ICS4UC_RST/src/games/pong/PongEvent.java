@@ -72,6 +72,7 @@ public class PongEvent {
         return type;
     }
 
+    @SuppressWarnings("WeakerAccess")
     public void setType(EventType type) {
         this.type = type;
     }

@@ -87,7 +87,7 @@ public class MainMenu extends Application {
     }
 
     /**
-     * The key to be pressed whewn the user wants to toggle fullscreen.
+     * The key to be pressed when the user wants to toggle fullscreen.
      */
     private static final KeyCode FULLSCREEN_KEYCODE = KeyCode.F11;
     private static final String MENU_HELP_TEXT = String.format("Welcome to the Arcade!\n" +
@@ -98,9 +98,9 @@ public class MainMenu extends Application {
     public static final int GAP = 15;
     // Font size ratios
     private static final int HEADER_FONT_SIZE_RATIO = 13, INPUT_FONT_SIZE_RATIO = 40, GAME_FONT_SIZE_RATIO = 5;
-    private DoubleProperty headerFontSize = new SimpleDoubleProperty(HEADER_FONT_SIZE_RATIO);
-    private DoubleProperty inputFontSize = new SimpleDoubleProperty(INPUT_FONT_SIZE_RATIO);
-    private DoubleProperty gameFontSize = new SimpleDoubleProperty(GAME_FONT_SIZE_RATIO);
+    private final DoubleProperty headerFontSize = new SimpleDoubleProperty(HEADER_FONT_SIZE_RATIO);
+    private final DoubleProperty inputFontSize = new SimpleDoubleProperty(INPUT_FONT_SIZE_RATIO);
+    private final DoubleProperty gameFontSize = new SimpleDoubleProperty(GAME_FONT_SIZE_RATIO);
     private static final Font
             HEADER_FONT = Font.font("ArcadeClassic", FontWeight.BOLD, 36),
             INPUT_FONT = Font.font("Book Antiqua");
@@ -665,7 +665,7 @@ public class MainMenu extends Application {
      *
      * @param receivedEvent The event of the received data.
      */
-    public void messageReceived(ReceivedDataEvent receivedEvent) {
+    private void messageReceived(ReceivedDataEvent receivedEvent) {
         // Determine if some of the data should be passed to the current game.
         final boolean shouldSendToGame = currentGame != null && currentGame.isNetworkGame();
         if (receivedEvent == ReceivedDataEvent.RECEIVED_DATA) {
@@ -759,7 +759,6 @@ public class MainMenu extends Application {
      * @param otherPlayerName  The gamer tag of the player inviting this player to play the game.
      * @param game             The game to which the user was invited.
      * @param onInviteDecision The action to be called when the user either accepts or declines the invite.
-     * @return True if this user accepts playing the game, false otherwise.
      */
     private void gameInvite(final String otherPlayerName, final Game game, @NotNull Consumer<Boolean> onInviteDecision) {
         if (game != null) {
@@ -810,7 +809,7 @@ public class MainMenu extends Application {
      * @param content The notification's content text.
      * @param action  The action to be called when the notification is clicked.
      */
-    public static void showNotification(Alert.AlertType type, final String title, final String content, @Nullable EventHandler<ActionEvent> action) {
+    private static void showNotification(Alert.AlertType type, final String title, final String content, @Nullable EventHandler<ActionEvent> action) {
         Notifications notifications = Notifications.create();
         notifications.title(title);
         notifications.text(content);
@@ -872,6 +871,7 @@ public class MainMenu extends Application {
      *
      * @param stage The stage for which the icon should be set.
      */
+    @SuppressWarnings("WeakerAccess")
     public static void setIcon(Stage stage) {
         stage.getIcons().add(WINDOW_ICON);
     }

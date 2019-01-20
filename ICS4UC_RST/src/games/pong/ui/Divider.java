@@ -10,7 +10,7 @@ import javafx.scene.shape.Rectangle;
  * @author s405751 (Nicolas Hawrysh)
  * ICS4U RST
  */
-public class Divider extends Group {
+class Divider extends Group {
     // Number of squares that we want.
     private static final int NUMBER_OF_DASHES = 20;
 

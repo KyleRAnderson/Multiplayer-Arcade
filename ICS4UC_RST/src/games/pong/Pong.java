@@ -17,11 +17,12 @@ import java.util.function.Consumer;
  * @author Kyle Anderson
  * ICS4U RST
  */
+@SuppressWarnings("WeakerAccess")
 public class Pong {
     // Default width and height for the pong game.
     private static final int WIDTH = 512, HEIGHT = 256;
     // How far the paddles are from the side.
-    private static final int PADDLE_DISTANCE = 5, PADDLE_WIDTH = 2, PADDLE_HEIGHT = 40;
+    private static final int PADDLE_DISTANCE = 5, PADDLE_WIDTH = 3, PADDLE_HEIGHT = 40;
 
     /**
      * Maximum ball rebound angle, in degrees.
@@ -30,9 +31,9 @@ public class Pong {
     // Ratios for distances and speeds.
     private static final double BALL_RADIUS = 4;
     // How many units per second the paddle moves while the button is being held down.
-    public static final double PADDLE_MOVEMENT_RATE = 200;
+    private static final double PADDLE_MOVEMENT_RATE = 200;
     // Velocity of the pong ball in units per second.
-    public static final double PONG_BALL_VELOCITY = 250;
+    public static final double PONG_BALL_VELOCITY = 325;
     // How many milliseconds to pause after a player scores.
     private static final long SCORE_PAUSE = 3000; // Set score pause to 3 seconds.
     /**
@@ -82,7 +83,7 @@ public class Pong {
     /**
      * An action to be run after each tick.
      */
-    private ArrayList<Runnable> tickActions = new ArrayList<>();
+    private final ArrayList<Runnable> tickActions = new ArrayList<>();
 
     /**
      * Constructs a new pong game with the given players.
@@ -437,7 +438,7 @@ public class Pong {
             ballPoint = PongBall.getX(ball.getRadius(), oldBallX, Side.RIGHT);
         } else {
             paddlePoint = testingPaddle.getX(Side.RIGHT);
-            ballPoint = oldBallX;
+            ballPoint = PongBall.getX(ball.getRadius(), oldBallX, Side.LEFT);
         }
 
         // If the ball was in intersect range during the last tick, we don't need to deal with it now.
@@ -446,25 +447,28 @@ public class Pong {
 
         // Otherwise, we need to run more calculations.
         if (didIntersect) {
+            final Side ballSide = testingPaddle.getSide();
             // Determine how long it's been since the ball would've collided. time = distance / velocity
-            final double timePassedSinceCollision = (Math.abs(ball.getX() - oldBallX)) / (ball.getRunPerNanoSecond());
+            final double timePassedSinceCollision = (Math.abs(ball.getX(ballSide) - paddlePoint)) / (ball.getRunPerNanoSecond());
             // Determine where the paddle would have been at that time. distance = velocity * time.
             final double paddleTopAtTime = testingPaddle.getY(Side.TOP) - timePassedSinceCollision * testingPaddle.getVelYNanos();
             // Also get the bottom position here.
             final double paddleBottomAtTime = Paddle.getY(testingPaddle.getHeight(), paddleTopAtTime, Side.BOTTOM);
+            final double paddleTopCollisionPoint = paddleTopAtTime + ball.getRadius();
+            final double paddleBottomCollisionPoint = paddleBottomAtTime - ball.getRadius();
             // Determine the ball's height at that time.
             final double ballTopYAtTime = ball.getY(Side.TOP) - timePassedSinceCollision * (ball.getRisePerNanoSecond());
             final double ballCenterAtTime = PongBall.getY(ball.getRadius(), ballTopYAtTime, Side.CENTER);
             double goodBallPos;
-            if (ballCenterAtTime > paddleTopAtTime) {
+            if (ballCenterAtTime >= paddleTopCollisionPoint) {
                 goodBallPos = ballTopYAtTime;
-            } else if (ballCenterAtTime < paddleBottomAtTime) {
+            } else if (ballCenterAtTime <= paddleBottomCollisionPoint) {
                 goodBallPos = PongBall.getY(ball.getRadius(), ballTopYAtTime, Side.BOTTOM);
             } else {
                 goodBallPos = ballCenterAtTime;
             }
 
-            didIntersect = doesBallIntersect(goodBallPos, paddleTopAtTime, paddleBottomAtTime);
+            didIntersect = doesBallIntersect(goodBallPos, paddleTopCollisionPoint, paddleBottomCollisionPoint);
 
             // If there was an intersection, we need to continue even more with determining the ball's new location.
             if (didIntersect) {

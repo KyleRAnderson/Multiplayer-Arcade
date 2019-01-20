@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
  * @author Kyle Anderson
  * ICS4U RST
  */
-public class PartyMenuItem extends StackPane {
+class PartyMenuItem extends StackPane {
     private static final Pattern IP_VALIDATOR = Pattern.compile("\\A((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\z");
 
 
@@ -31,7 +31,7 @@ public class PartyMenuItem extends StackPane {
     private final String inactiveText, activeText;
     private boolean active;
 
-    private Button disconnectButton;
+    private final Button disconnectButton;
 
     private EventHandler<ActionEvent> actionHandler;
 

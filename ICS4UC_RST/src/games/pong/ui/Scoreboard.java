@@ -11,7 +11,7 @@ import javafx.scene.text.Font;
  * @author Kyle Anderson and Nicolas Hawrysh
  * ICS4U RST
  */
-public class Scoreboard extends Group {
+class Scoreboard extends Group {
     // Text objects for the scores.
     private final Label leftScore;
     private final Label rightScore;
@@ -25,8 +25,8 @@ public class Scoreboard extends Group {
     /**
      * Instantiates a new Scoreboard object.
      *
-     * @param font
-     * @param foregroundColour
+     * @param foregroundColour The foreground colour.
+     * @param font             The font to be used.
      */
     public Scoreboard(Paint foregroundColour, Font font) {
         leftScore = new Label("0");
