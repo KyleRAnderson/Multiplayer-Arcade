@@ -139,12 +139,25 @@ public class MainMenu extends Application {
     public MainMenu() {
         currentInstance = this;
         PartyHandler.setIncomingMessageListener(this::messageReceived);
+        PartyHandler.setOnReceiverClosed(this::receiverClosed);
 
         StringBuilder builder = new StringBuilder(MENU_HELP_TEXT);
         for (Game game : games) {
             builder.append(game.getName()).append(":\n").append(game.getHelpText()).append("\n\n");
         }
         helpText = builder.toString();
+    }
+
+    /**
+     * Called when the party's receiving thread is closed.
+     */
+    private void receiverClosed() {
+        hostMenuItem.setDisable(false);
+        hostMenuItem.setConnected(false);
+        connectMenuItem.setConnected(false);
+        connectMenuItem.setDisable(false);
+        hostMenuItem.setActive(false);
+        connectMenuItem.setActive(false);
     }
 
     /**
@@ -406,18 +419,14 @@ public class MainMenu extends Application {
             connectTask.cancel(true);
         }
 
-        if (notifyOtherClient) {
+        if (notifyOtherClient && PartyHandler.isConnected()) {
             NetworkMessage message = new NetworkMessage(HostStatus.DISCONNECTING);
             sendNetworkMessage(message);
+            hostMenuItem.setDisable(true);
         } else {
             PartyHandler.disconnect();
+            receiverClosed();
         }
-        hostMenuItem.setConnected(false);
-        connectMenuItem.setConnected(false);
-        hostMenuItem.setDisable(false);
-        connectMenuItem.setDisable(false);
-        hostMenuItem.setActive(false);
-        connectMenuItem.setActive(false);
     }
 
     /**

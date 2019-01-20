@@ -31,6 +31,7 @@ public class PartyHandler {
     private static ReceiverTask incomingTask;
     private static SenderTask outgoingTask;
     private static Consumer<ReceivedDataEvent> incomingListener;
+    private static Runnable receiverClosedListener;
 
     /**
      * Begins a party session with the user at the given IP address.
@@ -230,6 +231,18 @@ public class PartyHandler {
      */
     private static void receiverClosed() {
         disconnect();
+        if (receiverClosedListener != null) {
+            receiverClosedListener.run();
+        }
+    }
+
+    /**
+     * Sets an action to be performed when the receiving thread is closed.
+     *
+     * @param action The action to run.
+     */
+    public static void setOnReceiverClosed(Runnable action) {
+        receiverClosedListener = action;
     }
 
     /**
