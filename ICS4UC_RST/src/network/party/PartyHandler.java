@@ -77,15 +77,6 @@ public class PartyHandler {
     }
 
     /**
-     * Determines if the other player is connected.
-     *
-     * @return True if the other player is connected, false otherwise.
-     */
-    public static boolean isOtherPlayerConnected() {
-        return socket.isConnected();
-    }
-
-    /**
      * Disconnects from the party.
      */
     public static void disconnect() {
@@ -147,7 +138,7 @@ public class PartyHandler {
      *
      * @return The TCP socket object.
      */
-    public static TCPSocket getTCPSocket() {
+    private static TCPSocket getTCPSocket() {
         return socket;
     }
 
@@ -278,7 +269,7 @@ public class PartyHandler {
 
                         boolean waiting;
                         do {
-                            waiting = isOtherPlayerConnected();
+                            waiting = isConnected();
                             if (waiting) {
                                 AdvancedIO.print("Waiting for other user to join...");
                             }

@@ -1,6 +1,3 @@
-/**
- *
- */
 package games.pong.players;
 
 import games.pong.Pong;
@@ -12,11 +9,12 @@ import java.util.function.BiConsumer;
 
 /**
  * @author s405751 (Nicolas Hawrysh)
- *
+ * <p>
  * ICS4U
- *
+ * <p>
  * Abstract class for pong bot
  */
+@SuppressWarnings("WeakerAccess")
 public abstract class PongBot implements PongPlayer {
     protected static final int PADDLE_HEIGHT_DIVISOR = 10;
     /**
@@ -103,6 +101,7 @@ public abstract class PongBot implements PongPlayer {
 
     /**
      * Determines if this bot has a target vertical height to reach.
+     *
      * @return True if there is a target, false otherwise.
      */
     protected boolean hasTarget() {

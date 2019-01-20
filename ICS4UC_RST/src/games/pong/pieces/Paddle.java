@@ -6,6 +6,7 @@ package games.pong.pieces;
  * @author Kyle Anderson
  * ICS4U RST
  */
+@SuppressWarnings("WeakerAccess")
 public class Paddle implements PongPiece {
     private double x, y;
     private final double width, height;

@@ -51,6 +51,7 @@ public class PongNetworkMessage {
      *
      * @param timestampSent The time (in nanoseconds) at which the data was calculated (when frame was rendered).
      */
+    @SuppressWarnings("WeakerAccess")
     public void setTimestampSent(long timestampSent) {
         this.timestampSent = timestampSent;
     }
@@ -207,6 +208,7 @@ public class PongNetworkMessage {
      * @param message The PongNetworkMessage to be converted.
      * @return The json string.
      */
+    @SuppressWarnings("WeakerAccess")
     public static String toJsonString(PongNetworkMessage message) {
         return gson.toJson(message);
     }

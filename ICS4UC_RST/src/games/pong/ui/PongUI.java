@@ -113,7 +113,7 @@ public class PongUI extends Pane implements Game {
     We want to make it so that if the player presses the end key END_KEY_NUMBER_PRESSES times in END_KEY_MILLISECONDS
     milliseconds, the game quits.
      */
-    private Long[] endKeyPressTimes = new Long[END_KEY_NUMBER_PRESSES];
+    private final Long[] endKeyPressTimes = new Long[END_KEY_NUMBER_PRESSES];
     private VBox selector;
 
     /**
@@ -367,7 +367,7 @@ public class PongUI extends Pane implements Game {
      * @param desiredSide The desired coordinate (Side.TOP, Side.CENTER, Side.BOTTOM) that needs to be calculated.
      * @return The transformed value.
      */
-    public static double transformY(double boardHeight, PongPiece piece, Side desiredSide) {
+    private static double transformY(double boardHeight, PongPiece piece, Side desiredSide) {
         double newY;
         double topLeftY = boardHeight - piece.getY(Side.TOP);
         switch (desiredSide) {
@@ -698,9 +698,8 @@ public class PongUI extends Pane implements Game {
             }
         } else {
             // First shift.
-            for (int i = elementsToAppend.length; i < array.length; i++) {
-                array[i - elementsToAppend.length] = array[i];
-            }
+            if (array.length - elementsToAppend.length >= 0)
+                System.arraycopy(array, elementsToAppend.length, array, 0, array.length - elementsToAppend.length);
             // Then append.
             for (int i = 0; i < elementsToAppend.length; i++) {
                 array[array.length - i - 1] = elementsToAppend[i];

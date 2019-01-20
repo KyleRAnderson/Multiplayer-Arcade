@@ -17,6 +17,7 @@ import java.util.function.Consumer;
  * @author Kyle Anderson
  * ICS4U RST
  */
+@SuppressWarnings("WeakerAccess")
 public class Pong {
     // Default width and height for the pong game.
     private static final int WIDTH = 512, HEIGHT = 256;
@@ -30,7 +31,7 @@ public class Pong {
     // Ratios for distances and speeds.
     private static final double BALL_RADIUS = 4;
     // How many units per second the paddle moves while the button is being held down.
-    public static final double PADDLE_MOVEMENT_RATE = 200;
+    private static final double PADDLE_MOVEMENT_RATE = 200;
     // Velocity of the pong ball in units per second.
     public static final double PONG_BALL_VELOCITY = 325;
     // How many milliseconds to pause after a player scores.
@@ -82,7 +83,7 @@ public class Pong {
     /**
      * An action to be run after each tick.
      */
-    private ArrayList<Runnable> tickActions = new ArrayList<>();
+    private final ArrayList<Runnable> tickActions = new ArrayList<>();
 
     /**
      * Constructs a new pong game with the given players.

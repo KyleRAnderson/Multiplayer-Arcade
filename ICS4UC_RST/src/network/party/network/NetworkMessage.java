@@ -8,6 +8,7 @@ import com.google.gson.Gson;
  * @author Kyle Anderson
  * ICS4U RST
  */
+@SuppressWarnings("WeakerAccess")
 public class NetworkMessage {
     private String hostName;
     private HostStatus hostStatus;
