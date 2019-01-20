@@ -22,7 +22,7 @@ public class Pong {
     // Default width and height for the pong game.
     private static final int WIDTH = 512, HEIGHT = 256;
     // How far the paddles are from the side.
-    private static final int PADDLE_DISTANCE = 5, PADDLE_WIDTH = 2, PADDLE_HEIGHT = 40;
+    private static final int PADDLE_DISTANCE = 5, PADDLE_WIDTH = 3, PADDLE_HEIGHT = 40;
 
     /**
      * Maximum ball rebound angle, in degrees.
