@@ -449,7 +449,7 @@ public class Pong {
         if (didIntersect) {
             final Side ballSide = testingPaddle.getSide();
             // Determine how long it's been since the ball would've collided. time = distance / velocity
-            final double timePassedSinceCollision = (Math.abs(ball.getX(ballSide) - paddlePoint)) / (ball.getRunPerNanoSecond());
+            final double timePassedSinceCollision = Math.abs((ball.getX(ballSide) - paddlePoint) / ball.getRunPerNanoSecond());
             // Determine where the paddle would have been at that time. distance = velocity * time.
             final double paddleTopAtTime = testingPaddle.getY(Side.TOP) - timePassedSinceCollision * testingPaddle.getVelYNanos();
             // Also get the bottom position here.
@@ -459,16 +459,8 @@ public class Pong {
             // Determine the ball's height at that time.
             final double ballTopYAtTime = ball.getY(Side.TOP) - timePassedSinceCollision * (ball.getRisePerNanoSecond());
             final double ballCenterAtTime = PongBall.getY(ball.getRadius(), ballTopYAtTime, Side.CENTER);
-            double goodBallPos;
-            if (ballCenterAtTime >= paddleTopCollisionPoint) {
-                goodBallPos = ballTopYAtTime;
-            } else if (ballCenterAtTime <= paddleBottomCollisionPoint) {
-                goodBallPos = PongBall.getY(ball.getRadius(), ballTopYAtTime, Side.BOTTOM);
-            } else {
-                goodBallPos = ballCenterAtTime;
-            }
 
-            didIntersect = doesBallIntersect(goodBallPos, paddleTopCollisionPoint, paddleBottomCollisionPoint);
+            didIntersect = doesBallIntersect(ballCenterAtTime, paddleTopCollisionPoint, paddleBottomCollisionPoint);
 
             // If there was an intersection, we need to continue even more with determining the ball's new location.
             if (didIntersect) {
