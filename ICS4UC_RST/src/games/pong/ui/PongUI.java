@@ -451,6 +451,7 @@ public class PongUI extends Pane implements Game {
     @Override
     public void reset() {
         hasInitializedPlayers = false;
+        getChildren().remove(selector); // Make sure the selector isn't on screen anymore
         game = new Pong(); // Initialize new pong game with the correct type of players
         resetKeyBindings();
         game.addEventListener(this::gameEventHappened);
