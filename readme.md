@@ -5,4 +5,9 @@ A peer-to-peer multiplayer implementation of the classic game of pong! Included 
 - Local singleplayer: A player chooses to compete against a bot of a difficulty they select - Easy, Intermediate or Hard.
 - Online multiplayer: Two players connect to each other on the same local network and play the game of pong on their machines.
 
+### Screenshots
+
+![image](/res/InGame.png)
+![image](/res/MainMenu.png)
+
 This is the final project for Nicolas Hawrysh and Kyle Anderson in the grade 12 ICS4U course.
