@@ -6,3 +6,9 @@ A peer-to-peer multiplayer implementation of the classic game of pong! Included 
 - Online multiplayer: Two players connect to each other on the same local network and play the game of pong on their machines.
 
 This is the final project for Nicolas Hawrysh and Kyle Anderson in the grade 12 ICS4U course.
+
+### Screenshots
+
+![image](/res/MainMenu.png)
+![image](/res/InGame.png)
+
