@@ -9,5 +9,6 @@ This is the final project for Nicolas Hawrysh and Kyle Anderson in the grade 12 
 
 ### Screenshots
 
-![image](/res/InGame.png)
 ![image](/res/MainMenu.png)
+![image](/res/InGame.png)
+
